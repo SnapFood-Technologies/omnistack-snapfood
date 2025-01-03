@@ -12,9 +12,9 @@ export default withAuth(
             return NextResponse.redirect(new URL("/restaurant/dashboard", req.url))
         }
 
-        if (isRestaurantRoute && token?.role !== "RESTAURANT") {
-            return NextResponse.redirect(new URL("/admin/dashboard", req.url))
-        }
+        // if (isRestaurantRoute && token?.role !== "RESTAURANT") {
+        //     return NextResponse.redirect(new URL("/admin/dashboard", req.url))
+        // }
     },
     {
         callbacks: {

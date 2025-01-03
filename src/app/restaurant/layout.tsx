@@ -1,6 +1,6 @@
 // src/app/restaurant/layout.tsx
 import { redirect } from "next/navigation"
-import { auth } from "@/auth"
+import { getAuthSession } from "@/lib/auth"
 import Header from '@/components/restaurant/header'
 import Sidebar from '@/components/restaurant/sidebar'
 
@@ -9,14 +9,14 @@ export default async function RestaurantLayout({
                                                }: {
     children: React.ReactNode
 }) {
-    const session = await auth()
+    const session = await getAuthSession()
     if (!session) {
         redirect("/login")
     }
 
-    if (session.user.role !== "RESTAURANT") {
-        redirect("/admin/dashboard")
-    }
+    // if (session.user.role !== "RESTAURANT") {
+    //     redirect("/admin/dashboard")
+    // }
 
     return (
         <div className="min-h-screen bg-background">

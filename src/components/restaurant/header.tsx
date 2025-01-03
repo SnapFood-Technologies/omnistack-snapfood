@@ -1,49 +1,26 @@
-// src/components/restaurant/header.tsx
-"use client"
-
-import { signOut } from "next-auth/react"
-import { Button } from "@/components/ui/button"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { User, Bell } from "lucide-react"
+import { UserButton } from "@/components/restaurant/user-button"
+// import { ThemeToggle } from "@/components/theme-toggle"
+import { Search } from "lucide-react"
 
 export default function Header() {
     return (
-        <header className="fixed top-0 z-40 w-full border-b bg-background">
-            <div className="flex h-14 items-center justify-between px-4">
-                <div className="font-semibold">Restaurant Manager</div>
-                <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon">
-                        <Bell className="h-5 w-5" />
-                    </Button>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                                <User className="h-5 w-5" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Restaurant Manager</DropdownMenuLabel>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>Profile</DropdownMenuItem>
-                            <DropdownMenuItem>Restaurant Settings</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => signOut()}
-                            >
-                                Logout
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+        <div className="fixed w-full z-50 flex items-center justify-between h-16 px-4 border-b bg-white">
+            <div className="flex items-center">
+                <div className="relative rounded-md shadow-sm">
+                    <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <Search className="h-4 w-4 text-gray-400" />
+                    </div>
+                    <input
+                        type="text"
+                        className="h-10 block w-full rounded-md border border-gray-200 pl-10 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                        placeholder="Search..."
+                    />
                 </div>
             </div>
-        </header>
+            <div className="flex items-center gap-x-4">
+                {/*<ThemeToggle />*/}
+                <UserButton />
+            </div>
+        </div>
     )
 }

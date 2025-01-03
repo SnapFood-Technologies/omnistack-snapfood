@@ -1,5 +1,5 @@
-import type { Config } from "tailwindcss";
-import animate from "tailwindcss-animate";
+import type { Config } from "tailwindcss"
+import animate from "tailwindcss-animate"
 
 const config: Config = {
   darkMode: ["class"],
@@ -9,7 +9,6 @@ const config: Config = {
     './app/**/*.{ts,tsx}',
     './src/**/*.{ts,tsx}',
   ],
-  prefix: "",
   theme: {
     container: {
       center: true,
@@ -20,53 +19,58 @@ const config: Config = {
     },
     extend: {
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        transparent: 'transparent',
+        background: {
+          DEFAULT: '#fafafa',
+          darker: '#ededed',
+          grey: '#f5f5f5',
+        },
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: '#50B7ED',
         },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+        secondary: '#32db64',
+        text: '#222222',
+        placeholder: '#595959',
+        gray: {
+          1: '#454b4c',
+          2: '#6a6a6a',
+          3: '#8c9799',
+          4: '#737373',
+          5: '#d5d4e0',
+          6: '#e9e9f7',
+          7: '#aaa8bf',
+          8: '#fafafc',
+          9: '#f6f6f9',
         },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+        cyan: {
+          1: '#50b7ed',
+          2: '#50b7ed',
+          3: '#23dee2',
         },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
-        },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
-        },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+        alert: {
+          error: '#cc1c4e',
+          success: '#1dd890',
+          warning: '#f4e637',
+          info: '#109df7',
+          neutral: '#7850dd',
         },
       },
+      fontFamily: {
+        yellix: ['Yellix', 'sans-serif']
+      },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
       },
       keyframes: {
         "accordion-down": {
-          from: { height: "0" },
+          from: { height: '0' },
           to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
           from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: "0" },
+          to: { height: '0' },
         },
       },
       animation: {
@@ -76,6 +80,6 @@ const config: Config = {
     },
   },
   plugins: [animate],
-};
+}
 
-export default config;
+export default config
