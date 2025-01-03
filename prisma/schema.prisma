@@ -1,0 +1,89 @@
+// prisma/schema.prisma
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGODB_URI")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  email         String    @unique
+  name          String?
+  password      String
+  role          Role      @default(RESTAURANT_STAFF)
+  restaurantId  String?   @db.ObjectId
+  restaurant    Restaurant? @relation(fields: [restaurantId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+
+model Restaurant {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  description   String?
+  address       String
+  phone         String
+  email         String
+  status        RestaurantStatus @default(PENDING)
+  users         User[]
+  menu          MenuItem[]
+  orders        Order[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model MenuItem {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  description   String?
+  price         Float
+  category      String
+  image         String?
+  isAvailable   Boolean   @default(true)
+  restaurantId  String    @db.ObjectId
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Order {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  status        OrderStatus @default(PENDING)
+  total         Float
+  items         Json
+  customerInfo  Json
+  restaurantId  String    @db.ObjectId
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+enum Role {
+  // Snapfood company roles
+  SUPERADMIN        // Can manage everything in the platform
+  ADMIN            // Admin who manages all restaurants (new role)
+  ACCOUNT_MANAGER   // Snapfood admin that manages specific restaurants
+
+  // Restaurant roles
+  RESTAURANT_OWNER  // Restaurant owner/manager
+  RESTAURANT_STAFF  // Restaurant staff members
+}
+enum RestaurantStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  DELIVERED
+  CANCELLED
+}
+
