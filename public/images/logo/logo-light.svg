@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 40">
+    <text x="20" y="32"
+          font-family="Arial, sans-serif"
+          font-weight="700"
+          font-size="28px"
+          fill="#FFFFFF">
+        Vision<tspan fill="#FFFFFF">Track</tspan>
+    </text>
+</svg>
