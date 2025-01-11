@@ -1,81 +1,49 @@
 // src/app/admin/restaurants/[id]/page.tsx
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Overview } from "@/components/general/restaurants/overview"
-import { RecentOrders } from "@/components/general/restaurants/recent-orders"
-import { DollarSign, Users, CreditCard, Activity } from "lucide-react"
+import { Metadata } from "next"
+import { RestaurantDashboardContent } from "@/components/admin/restaurants/dashboard-content"
 
-export default function RestaurantDashboard() {
+interface Props {
+  params: { id: string }
+}
+
+async function getRestaurant(id: string) {
+  // Replace with your actual data fetching logic
+  // const response = await fetch(`/api/restaurants/${id}`)
+  // return response.json()
+  
+  // Mock data for example
+  return {
+    name: "Pasta Paradise",
+    description: "Authentic Italian cuisine in the heart of the city",
+    cuisine: "Italian",
+    location: "Downtown"
+  }
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const restaurant = await getRestaurant(params.id)
+  
+  return {
+    title: `${restaurant.name} - Restaurant Dashboard - Snapfood Admin`,
+    description: `Manage ${restaurant.name}'s operations, menu, and delivery services. ${restaurant.cuisine} restaurant located in ${restaurant.location}.`,
+    openGraph: {
+      title: `${restaurant.name} - Restaurant Management`,
+      description: restaurant.description,
+      type: 'website',
+      // images: [{ url: restaurant.image }], // If you have restaurant images
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${restaurant.name} - Restaurant Dashboard`,
+      description: `Management dashboard for ${restaurant.name} - ${restaurant.cuisine} cuisine`,
+    },
+  }
+}
+
+export default function RestaurantDashboardPage() {
   return (
-    <div className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$45,231.89</div>
-            <p className="text-xs text-muted-foreground">
-              +20.1% from last month
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Orders</CardTitle>
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+2350</div>
-            <p className="text-xs text-muted-foreground">
-              +180.1% from last month
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Orders</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-            <p className="text-xs text-muted-foreground">
-              +19% from last hour
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Customers</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+573</div>
-            <p className="text-xs text-muted-foreground">
-              +201 since last week
-            </p>
-          </CardContent>
-        </Card>
+      <div>
+          <RestaurantDashboardContent />
       </div>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Overview</CardTitle>
-          </CardHeader>
-          <CardContent className="pl-2">
-            <Overview />
-          </CardContent>
-        </Card>
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Recent Orders</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <RecentOrders />
-          </CardContent>
-        </Card>
-      </div>
-    </div>
   )
 }
