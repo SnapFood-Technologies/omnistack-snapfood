@@ -31,15 +31,15 @@ export default function Sidebar({
     <>
       <div
         ref={sidebarRef}
-        className="h-full border-r border-stroke px-6 py-10 dark:border-stroke-dark"
+        className="h-full border-r border-stroke px-6 py-8 dark:border-stroke-dark"
       >
         <Link href="/" className="inline-block">
           <Image
             src={"/images/logo/logo.svg"}
             alt="logo"
             className="block dark:hidden"
-            width={300}
-            height={60} // Slightly larger logo
+            width={200}
+            height={30} // Slightly larger logo
           />
           <Image
             src={"/images/logo/logo-light.svg"}
@@ -50,7 +50,7 @@ export default function Sidebar({
           />
         </Link>
         <div className="mb-6">
-          <hr className="my-6 border-t border-gray-300 dark:border-gray-700" />
+          <hr className="my-6 border-t border-gray-300 dark:border-white-900" />
           <ul className="space-y-2">
             {sidebarData &&
               sidebarData.map((item: any, key: number) => (
