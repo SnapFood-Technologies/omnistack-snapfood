@@ -7,12 +7,10 @@ import { usePathname } from "next/navigation"
 import {
   LayoutDashboard,
   UtensilsCrossed,
-  ListTree,
-  Package,
   Truck,
-  MapPin,
   Settings,
-  QrCode
+  QrCode,
+  ImageIcon
 } from "lucide-react"
 
 const TABS = [
@@ -22,19 +20,9 @@ const TABS = [
     icon: LayoutDashboard
   },
   {
-    title: "Menu",
+    title: "Menu (Products & Categories)",
     href: "/menu",
     icon: UtensilsCrossed
-  },
-  {
-    title: "Categories",
-    href: "/categories",
-    icon: ListTree
-  },
-  {
-    title: "Products",
-    href: "/products",
-    icon: Package
   },
   {
     title: "Delivery Zones",
@@ -42,9 +30,9 @@ const TABS = [
     icon: Truck
   },
   {
-    title: "Delivery Range",
-    href: "/delivery-range",
-    icon: MapPin
+    title: "Gallery",
+    href: "/gallery",
+    icon: ImageIcon
   },
   {
     title: "Settings",
