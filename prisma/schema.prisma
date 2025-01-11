@@ -15,11 +15,10 @@ model User {
   password      String
   role          Role      @default(RESTAURANT_STAFF)
   restaurantId  String?   @db.ObjectId
-  restaurant    Restaurant? @relation(fields: [restaurantId], references: [id])
+  restaurant    Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: SetNull, onUpdate: Cascade)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
-
 
 model Restaurant {
   id            String    @id @default(auto()) @map("_id") @db.ObjectId
@@ -30,22 +29,98 @@ model Restaurant {
   email         String
   status        RestaurantStatus @default(PENDING)
   users         User[]
-  menu          MenuItem[]
+  menus         Menu[]
+  products      Product[]
+  categories    Category[]
   orders        Order[]
+  qrCodes       QRCode[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
 
-model MenuItem {
+model Menu {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  description   String?
+  isActive      Boolean   @default(true)
+  isDefault     Boolean   @default(false)
+  categories    MenuCategory[]
+  restaurantId  String    @db.ObjectId
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  qrCodes       QRCode[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Category {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  description   String?
+  products      Product[]
+  menus         MenuCategory[]
+  order         Int       @default(0)
+  isActive      Boolean   @default(true)
+  restaurantId  String    @db.ObjectId
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  parentId      String?   @db.ObjectId
+  parent        Category? @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children      Category[] @relation("CategoryHierarchy")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model MenuCategory {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  menuId        String    @db.ObjectId
+  categoryId    String    @db.ObjectId
+  order         Int       @default(0)
+  menu          Menu      @relation(fields: [menuId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  category      Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([menuId, categoryId])
+}
+
+model Product {
   id            String    @id @default(auto()) @map("_id") @db.ObjectId
   name          String
   description   String?
   price         Float
-  category      String
   image         String?
   isAvailable   Boolean   @default(true)
+  isPopular     Boolean   @default(false)
+  categoryId    String    @db.ObjectId
+  category      Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   restaurantId  String    @db.ObjectId
-  restaurant    Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  orderMethod   OrderMethod @default(ALL)
+  nepsOrder     Boolean   @default(true)
+  ageRestricted Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model QRCode {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String?
+  code          String    @unique
+  design        String    @default("classic")
+  type          QRCodeType @default(TABLE)
+  primaryColor  String    @default("#000000")
+  backgroundColor String  @default("#FFFFFF")
+  size          String    @default("medium")
+  customText    String?
+  hasLogo       Boolean   @default(false)
+  errorLevel    String    @default("M")
+  scans         Int       @default(0)
+  lastScanned   DateTime?
+  isActive      Boolean   @default(true)
+  tableNumber   Int?
+  menuId        String    @db.ObjectId
+  menu          Menu      @relation(fields: [menuId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  restaurantId  String    @db.ObjectId
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -57,21 +132,21 @@ model Order {
   items         Json
   customerInfo  Json
   restaurantId  String    @db.ObjectId
-  restaurant    Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  tableNumber   Int?
+  qrCodeScan    String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
 
 enum Role {
-  // Snapfood company roles
-  SUPERADMIN        // Can manage everything in the platform
-  ADMIN            // Admin who manages all restaurants (new role)
-  ACCOUNT_MANAGER   // Snapfood admin that manages specific restaurants
-
-  // Restaurant roles
-  RESTAURANT_OWNER  // Restaurant owner/manager
-  RESTAURANT_STAFF  // Restaurant staff members
+  SUPERADMIN
+  ADMIN
+  ACCOUNT_MANAGER
+  RESTAURANT_OWNER
+  RESTAURANT_STAFF
 }
+
 enum RestaurantStatus {
   PENDING
   ACTIVE
@@ -87,3 +162,15 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum OrderMethod {
+  ALL
+  DELIVERY
+  PICKUP
+  DINE_IN
+}
+
+enum QRCodeType {
+  TABLE
+  TAKEOUT
+  SPECIAL
+}

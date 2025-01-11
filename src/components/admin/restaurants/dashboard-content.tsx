@@ -8,8 +8,8 @@ export function RestaurantDashboardContent() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold">Dashboard</h2>
-        <p className="text-muted-foreground mt-2">
+        <h2 className="text-xl font-bold">Dashboard</h2>
+        <p className="text-sm text-muted-foreground mt-2">
           Monitor your restaurant performance and manage orders
         </p>
       </div>

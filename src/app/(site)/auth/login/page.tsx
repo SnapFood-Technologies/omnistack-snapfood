@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import {
     Card,
     CardContent,
-    CardDescription,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
@@ -54,9 +53,9 @@ export default function LoginPage() {
             <Card className="w-[350px]">
                 <CardHeader>
                     <CardTitle>Login</CardTitle>
-                    <CardDescription>
+                    {/* <CardDescription>
                         Enter your credentials to access your account
-                    </CardDescription>
+                    </CardDescription> */}
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
