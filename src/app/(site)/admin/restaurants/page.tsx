@@ -1,4 +1,4 @@
-// app/admin/dashboard/page.tsx
+// app/admin/restaurants/page.tsx
 import { RestaurantsContent } from "@/components/admin/restaurants/restaurants-content"
 import { Metadata } from "next";
 
