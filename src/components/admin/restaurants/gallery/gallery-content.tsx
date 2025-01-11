@@ -1,4 +1,4 @@
-// components/admin/restaurant/gallery/gallery-content.tsx
+// components/admin/restaurants/gallery/gallery-content.tsx
 "use client"
 
 import { useState, useRef } from "react"
@@ -93,8 +93,8 @@ export function GalleryContent() {
     <div className="space-y-6">
       {/* Header section following dashboard pattern */}
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Gallery</h2>
-        <p className="text-muted-foreground mt-2">
+        <h2 className="text-xl font-bold tracking-tight">Gallery</h2>
+        <p className="text-sm text-muted-foreground mt-2">
           Manage your restaurant's image gallery and showcase your venue
         </p>
       </div>
