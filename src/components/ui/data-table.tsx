@@ -12,8 +12,9 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { PenIcon, Trash2Icon } from "lucide-react"
+import { PenIcon, Trash2Icon, Eye } from "lucide-react"
 import InputSelect from "../Common/InputSelect"
+
 
 interface DataTableProps {
   data: any[]
@@ -22,6 +23,7 @@ interface DataTableProps {
     accessorKey: string
     cell?: (row: any) => React.ReactNode
   }[]
+  onView?: (row: any) => void
   onEdit?: (row: any) => void
   onDelete?: (row: any) => void
   searchKey?: string
@@ -31,6 +33,7 @@ interface DataTableProps {
 export function DataTable({
   data,
   columns,
+  onView,
   onEdit,
   onDelete,
   searchKey = "title",
@@ -78,7 +81,7 @@ export function DataTable({
                 {columns.map((column) => (
                 <TableHead key={column.accessorKey}>{column.header}</TableHead>
                 ))}
-                {(onEdit || onDelete) && <TableHead className="text-right">Actions</TableHead>}
+                {(onEdit || onDelete || onView) && <TableHead className="text-right">Actions</TableHead>}
             </TableRow>
         </TableHeader>
         <TableBody>
@@ -89,29 +92,39 @@ export function DataTable({
                 {column.cell ? column.cell(row) : row[column.accessorKey]}
                 </TableCell>
             ))}
-            {(onEdit || onDelete) && (
-                <TableCell className="text-right">
-                <div className="flex items-center justify-end gap-2">
-                    {onEdit && (
+
+            {(onView || onEdit || onDelete) && (
+              <TableCell className="text-right">
+                <div className="flex items-center justify-end gap-0">
+                  {onView && (
                     <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onEdit(row)}
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onView(row)}
                     >
-                        <PenIcon className="h-4 w-4" />
+                      <Eye className="h-4 w-4" />
                     </Button>
-                    )}
-                    {onDelete && (
+                  )}
+                  {onEdit && (
                     <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onDelete(row)}
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onEdit(row)}
                     >
-                        <Trash2Icon className="h-4 w-4 text-destructive" />
+                      <PenIcon className="h-4 w-4" />
                     </Button>
-                    )}
+                  )}
+                  {onDelete && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onDelete(row)}
+                    >
+                      <Trash2Icon className="h-4 w-4 text-destructive" />
+                    </Button>
+                  )}
                 </div>
-                </TableCell>
+              </TableCell>
             )}
             </TableRow>
         ))}

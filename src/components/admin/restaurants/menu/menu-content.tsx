@@ -1,4 +1,4 @@
-// components/admin/restaurant/menu/menu-content.tsx
+// components/admin/restaurants/menu/menu-content.tsx
 "use client"
 
 import { useState } from "react"
