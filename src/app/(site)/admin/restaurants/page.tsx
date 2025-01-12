@@ -3,7 +3,7 @@ import { RestaurantsContent } from "@/components/admin/restaurants/restaurants-c
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Restaurants - Snapfood Admin",
+    title: "Restaurants - SnapFood Admin",
     description: "Admin dashboard for managing restaurants, orders, and platform analytics.",
 };
 
