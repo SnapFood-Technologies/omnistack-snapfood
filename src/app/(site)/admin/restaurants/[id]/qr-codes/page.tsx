@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const restaurant = await getRestaurant(restaurantId)
   
   return {
-    title: `QR Codes - ${restaurant.name} - Snapfood Admin`,
+    title: `QR Codes - ${restaurant.name} - SnapFood Admin`,
     description: `Generate and manage QR codes for ${restaurant.name}'s menu and services.`,
   }
 }

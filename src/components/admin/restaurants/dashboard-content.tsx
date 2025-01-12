@@ -104,13 +104,14 @@ export function RestaurantDashboardContent() {
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="col-span-1">
+      <div className="gap-2 md:grid-cols-2">
+        
+        <Card className="col-span-1 mb-6">
           <CardHeader>
             <CardTitle>Overview</CardTitle>
           </CardHeader>
           <CardContent>
-            <Overview />
+          <Overview />
           </CardContent>
         </Card>
         

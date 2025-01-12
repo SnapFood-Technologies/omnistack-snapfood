@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const restaurant = await getRestaurant(params.id)
   
   return {
-    title: `${restaurant.name} - Restaurant Dashboard - Snapfood Admin`,
+    title: `${restaurant.name} - Restaurant Dashboard - SnapFood Admin`,
     description: `Manage ${restaurant.name}'s operations, menu, and delivery services. ${restaurant.cuisine} restaurant located in ${restaurant.location}.`,
     openGraph: {
       title: `${restaurant.name} - Restaurant Management`,
