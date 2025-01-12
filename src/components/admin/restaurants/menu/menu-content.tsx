@@ -32,6 +32,7 @@ import { Plus, Upload } from "lucide-react"
 import { MenuPreview } from "./preview/menu-preview"
 import { cn } from "@/lib/utils"
 import InputSelect from "@/components/Common/InputSelect"
+import { useRouter } from "next/navigation"
 
 interface Category {
   id: string
@@ -133,6 +134,7 @@ export function MenuContent() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [isEditingProduct, setIsEditingProduct] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const router = useRouter()
 
   const categoryColumns = [
     {
@@ -339,21 +341,24 @@ export function MenuContent() {
       </Card>
 
       {/* Preview Section */}
-    <Card>
-    <CardHeader className="flex flex-row items-center justify-between space-y-0">
-        <div>
-        <CardTitle className="mb-[-2px]">Menu Preview</CardTitle>
-        <span className="text-sm text-muted-foreground">
-            Preview how your menu looks to customers
-        </span>
-        </div>
-        <Button variant="soft">
-        View Menu Page
-        </Button>
-    </CardHeader>
-    <CardContent>
-        <MenuPreview />
-    </CardContent>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+            <div>
+                <CardTitle className="mb-[-2px]">Menu Preview</CardTitle>
+                <span className="text-sm text-muted-foreground">
+                    Preview how your menu looks to customers
+                </span>
+            </div>
+            <Button 
+                variant="soft"
+                onClick={() => router.push(`/admin/restaurants/1/menu/manage`)}
+            >
+                View Menu Page
+            </Button>
+        </CardHeader>
+        <CardContent>
+            <MenuPreview />
+        </CardContent>
     </Card>
 
       {/* Category Modal */}

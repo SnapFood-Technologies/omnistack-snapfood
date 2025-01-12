@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Heart, Clock, MapPin, Star } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 interface PreviewItem {
   name: string
@@ -20,10 +21,15 @@ interface PreviewItem {
 export function MenuPreview() {
   const [favorites, setFavorites] = useState<Record<string, boolean>>({})
   const [mounted, setMounted] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  const handleSeeAll = (section: 'popular' | 'recent') => {
+    router.push(`/admin/restaurants/1/menu/manage`)
+  }
 
   const popularDishes: PreviewItem[] = [
     {
@@ -181,7 +187,7 @@ export function MenuPreview() {
           <div className="space-y-0">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Popular Dishes</h3>
-              <Button variant="link" className="text-primary font-medium">
+              <Button variant="link"  onClick={() => handleSeeAll('popular')} className="text-primary font-medium">
                 See All
               </Button>
             </div>
@@ -203,7 +209,7 @@ export function MenuPreview() {
           <div className="space-y-0">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Recent Orders</h3>
-              <Button variant="link" className="text-primary font-medium">
+              <Button variant="link"  onClick={() => handleSeeAll('recent')} className="text-primary font-medium">
                 See All
               </Button>
             </div>
