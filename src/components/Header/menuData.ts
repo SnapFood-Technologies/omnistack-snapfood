@@ -35,7 +35,7 @@ export const menuData: Menu[] = [
 				id: 304,
 				title: "Sign In",
 				newTab: false,
-				path: "/auth/signin",
+				path: "/auth/login",
 			},
 			{
 				id: 305,

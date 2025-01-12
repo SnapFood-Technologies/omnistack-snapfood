@@ -126,7 +126,7 @@ const Header = () => {
 						) : (
 							<>
 								<Link
-									href="/auth/signin"
+									href="/auth/login"
 									className={`px-5 py-2 font-medium ${
 										stickyMenu ? "text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300" : "text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300"
 									}`}

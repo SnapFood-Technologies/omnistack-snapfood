@@ -27,14 +27,14 @@ const handleLogout = async () => {
 	  // Then sign out from NextAuth with redirect
 	  await signOut({
 		redirect: false,
-		callbackUrl: "/auth/signin"
+		callbackUrl: "/auth/login"
 	  });
   
 		// Manually redirect to signin page
-	  router.push("/auth/signin");
+	  router.push("/auth/login");
 	} catch (error) {
 	  console.error("Logout error:", error);
-	  router.push("/auth/signin");
+	  router.push("/auth/login");
 	}
   };
   
