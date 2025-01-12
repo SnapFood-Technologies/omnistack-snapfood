@@ -4,13 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm install && npx prisma generate && next build && npx prisma db push && npx prisma db seed-supabase",
+    "build": "npm install && npx prisma generate && next build && npx prisma db push && npx prisma db seed",
     "start": "next start",
     "lint": "next lint"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts",
-    "seed-supabase": "ts-node prisma/seed-supabase.ts"
+    "seed": "ts-node prisma/seed-supabase.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.4",
