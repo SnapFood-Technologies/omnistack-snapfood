@@ -14,7 +14,7 @@ export default function Sidebar({
 
   // Check current pathname for open menu.
   const currentOpenMenu = sidebarData.find(
-    (i: any) => pathname.includes(i.path) || 0
+    (i: any) => pathname === i.path || pathname.startsWith(i.path + "/") || 0
   );
   const [openMenus, setOpenMenus] = useState<{ [key: number]: boolean }>({
     [currentOpenMenu?.id ?? 0]: true,
@@ -59,8 +59,8 @@ export default function Sidebar({
                     <Link
                       href={item.children ? "#" : item.path}
                       className={`flex w-full items-center gap-3 rounded-lg px-3.5 py-3 font-satoshi font-medium duration-300 ${
-                        pathname === item.path
-                          ? "bg-primary bg-opacity-10 text-primary dark:bg-white dark:bg-opacity-10 dark:text-white"
+                        +   (pathname === item.path || pathname.startsWith(item.path + "/"))
+                        ? "bg-primary bg-opacity-10 text-primary dark:bg-white dark:bg-opacity-10 dark:text-white"
                           : "text-dark hover:bg-primary hover:bg-opacity-10 hover:text-primary dark:text-gray-5 dark:hover:bg-white dark:hover:bg-opacity-10 dark:hover:text-white"
                       }`}
                       onClick={
@@ -91,7 +91,7 @@ export default function Sidebar({
                             <Link
                               href={child.path}
                               className={`flex w-full items-center gap-3 rounded-lg px-3.5 py-2 font-satoshi text-base font-medium duration-300 ${
-                                pathname === child.path
+                                (pathname === child.path || pathname.startsWith(child.path + "/"))
                                   ? "bg-primary bg-opacity-10 text-primary dark:bg-white dark:bg-opacity-10 dark:text-white"
                                   : "text-dark hover:bg-primary hover:bg-opacity-10 hover:text-primary dark:text-gray-5 dark:hover:bg-white dark:hover:bg-opacity-10 dark:hover:text-white"
                               }`}

@@ -41,22 +41,16 @@ import {
             },
             {
                 id: 2,
-                title: "Restaurants",
+                title: "Vendors",
                 icon: <Store className="w-6 h-6"/>,
                 path: "/admin/restaurants",
                 children: [
                     {
                         id: 1,
-                        title: "All Restaurants",
+                        title: "Restaurants",
                         icon: <Utensils className="w-6 h-6"/>,
                         path: "/admin/restaurants",
                     },
-                    {
-                        id: 2,
-                        title: "Orders",
-                        icon: <Package className="w-6 h-6"/>,
-                        path: "/admin/restaurants/orders",
-                    }
                 ]
             },
             {
