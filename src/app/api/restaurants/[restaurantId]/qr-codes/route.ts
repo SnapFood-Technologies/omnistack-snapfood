@@ -1,7 +1,6 @@
-// src/app/api/restaurants/[restaurantId]/qr-codes/route.ts
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import QRCode from "qrcode"
+import * as QRCode from "qrcode"
 
 export async function GET(
   req: Request,
@@ -22,6 +21,7 @@ export async function GET(
 
     return NextResponse.json(qrCodes)
   } catch (error) {
+    console.log('Error fetching QR codes:', error.message)
     return NextResponse.json(
       { error: "Error fetching QR codes" }, 
       { status: 500 }
@@ -29,64 +29,74 @@ export async function GET(
   }
 }
 
-
 export async function POST(
   req: Request,
-  { params }: { params: { restaurantId?: string } }
+  { params }: { params: { restaurantId: string } }
 ) {
   try {
-    if (!params?.restaurantId) {
-      return NextResponse.json(
-        { error: "Restaurant ID is required" },
-        { status: 400 }
-      )
-    }
-
-    const data = await req.formData()
+    const formData = await req.formData()
     
     // Generate URL based on menu or custom URL
-    const qrUrl = data.get('customUrl') 
-      ? String(data.get('customUrl'))
-      : `${process.env.NEXT_PUBLIC_APP_URL}/menu/${data.get('menuId')}`
+    const customUrl = formData.get('customUrl') ? String(formData.get('customUrl')) : null
+    const menuId = formData.get('menuId') ? String(formData.get('menuId')) : null
+
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
+    const qrUrl = customUrl
+      ? customUrl
+      : menuId
+      ? `${baseUrl}/menu/${menuId}`
+      : `${baseUrl}` // Fallback URL if neither customUrl nor menuId is provided
 
     // QR code generation options
-    const qrOptions: QRCode.QRCodeToDataURLOptions = {
+    const qrOptions: QRCode.QRCodeToStringOptions = {
       type: 'svg',
       color: {
-        dark: String(data.get('primaryColor')),
-        light: String(data.get('backgroundColor')),
+        dark: String(formData.get('primaryColor') || '#000000'),
+        light: String(formData.get('backgroundColor') || '#FFFFFF'),
       },
-      errorCorrectionLevel: data.get('errorLevel') as 'L' | 'M' | 'Q' | 'H',
+      errorCorrectionLevel: (formData.get('errorLevel') as 'L' | 'M' | 'Q' | 'H') || 'M',
       margin: 1,
-      width: data.get('size') === 'large' ? 400 : data.get('size') === 'medium' ? 300 : 200,
+      width: formData.get('size') === 'large' ? 400 : formData.get('size') === 'medium' ? 300 : 200,
     }
 
-    // Generate QR code
-    const qrDataUrl = await QRCode.toDataURL(qrUrl, qrOptions)
+    
 
-    // Save to database
+    // Generate QR code as SVG
+    const qrSvg = await QRCode.toString(qrUrl, qrOptions)
+
+  
+    // Create QR code record
     const qrCode = await prisma.qRCode.create({
       data: {
-        code: qrDataUrl,
-        design: String(data.get('design')),
-        primaryColor: String(data.get('primaryColor')),
-        backgroundColor: String(data.get('backgroundColor')),
-        size: String(data.get('size')),
-        customText: data.get('customText') ? String(data.get('customText')) : null,
-        hasLogo: Boolean(data.get('hasLogo')),
-        errorLevel: String(data.get('errorLevel')),
-        type: String(data.get('type')) as 'TABLE' | 'TAKEOUT' | 'SPECIAL',
-        tableNumber: data.get('tableNumber') ? parseInt(String(data.get('tableNumber'))) : null,
-        menuId: data.get('menuId') ? String(data.get('menuId')) : undefined,
-        restaurantId: params.restaurantId,
+        code: qrSvg,
+        name: formData.get('customText') ? String(formData.get('customText')) : null,
+        design: String(formData.get('design')),
+        primaryColor: String(formData.get('primaryColor')),
+        backgroundColor: String(formData.get('backgroundColor')),
+        size: String(formData.get('size')),
+        customText: formData.get('customText') ? String(formData.get('customText')) : null,
+        hasLogo: formData.get('hasLogo') === 'true',
+        errorCorrectionLevel: String(formData.get('errorLevel')),
+        type: String(formData.get('type')) as 'TABLE' | 'TAKEOUT' | 'SPECIAL',
+        tableNumber: formData.get('tableNumber') ? Number(formData.get('tableNumber')) : null,
+        menuId: menuId, // Set to null if customUrl is used
+        //restaurantId: '349'
       },
     })
 
-    return NextResponse.json(qrCode)
+    
+
+    return NextResponse.json({
+      success: true,
+      qrCode,
+      svgString: qrSvg
+    })
+
   } catch (error) {
-    console.error('Error creating QR code:', error)
+    console.log('error.message', error.message);
     return NextResponse.json(
-      { error: "Error creating QR code" }, 
+      { error: error.message }, // Return error message
       { status: 500 }
     )
   }

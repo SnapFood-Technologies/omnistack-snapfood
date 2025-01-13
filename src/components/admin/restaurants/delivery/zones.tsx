@@ -81,12 +81,15 @@ export function DeliveryZones() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold tracking-tight">DELIVERY ZONES</h2>
+      <h2 className="text-xl font-bold tracking-tight">Delivery Zones</h2>
+        <p className="text-sm text-muted-foreground mt-2">
+          Manage your restaurant's delivry zones and their configurations
+        </p>
       </div>
 
       {/* Zone Selection */}
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="pt-0">
           <div className="space-y-4">
             <Label className="text-base">
               Determine number of zones* (Minimum Allowed: 1 Zone | Maximum Allowed: 7 Zones)
@@ -124,7 +127,7 @@ export function DeliveryZones() {
 
       {/* Zone Details */}
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="pt-0">
           <Label className="text-base mb-4 block">Zone Delivery Details*</Label>
           
           <div className="space-y-6">
@@ -193,7 +196,7 @@ export function DeliveryZones() {
 
       {/* Map Section */}
       <Card>
-        <CardContent className="pt-6">
+        <CardContent className="pt-0">
           <Label className="text-base mb-4 block">Delivery Zones Map*</Label>
           
           {/* Map Controls */}
