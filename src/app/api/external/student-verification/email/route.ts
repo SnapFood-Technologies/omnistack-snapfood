@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { sendEmail } from '@/lib/email';
-import fs from 'fs';
-import path from 'path';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_KEY! // Using service role key for backend
+);
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
@@ -14,7 +19,7 @@ const SOCIAL_LINKS = {
 
 const EMAIL_TEMPLATES = {
   STUDENT_VERIFICATION_APPROVED: {
-    file: 'src/emails/templates/student-approved.html',
+    file: 'email-templates/student-approved.html',
     subject: 'Your Student Card has been Approved! 🎉',
     variables: {
       logoUrl: `${BASE_URL}/assets/snapfood/snapfood-email-logo.png`,
@@ -30,7 +35,7 @@ const EMAIL_TEMPLATES = {
     }
   },
   STUDENT_VERIFICATION_DECLINED: {
-    file: 'src/emails/templates/student-declined.html',
+    file: 'email-templates/student-declined.html',
     subject: 'Student Card Verification Update',
     variables: {
       logoUrl: `${BASE_URL}/assets/snapfood/snapfood-email-logo.png`,
@@ -46,6 +51,25 @@ const EMAIL_TEMPLATES = {
     }
   }
 } as const;
+
+// Function to fetch template from Supabase Storage
+async function getTemplate(templatePath: string) {
+  try {
+    const { data, error } = await supabase
+      .storage
+      .from('templates') // Your bucket name
+      .download(templatePath);
+    
+    if (error) {
+      throw error;
+    }
+
+    return await data.text();
+  } catch (error) {
+    console.error('Error fetching template:', error);
+    throw new Error(`Failed to fetch template: ${error.message}`);
+  }
+}
 
 export async function PUT(request: Request) {
   try {
@@ -64,11 +88,8 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Invalid email type' }, { status: 400 });
     }
 
-    // Read HTML file
-    let htmlContent = fs.readFileSync(
-      path.join(process.cwd(), template.file),
-      'utf-8'
-    );
+    // Fetch template from Supabase Storage
+    const htmlContent = await getTemplate(template.file);
 
     // Replace all variables including images and social links
     const allVariables = {
@@ -78,21 +99,22 @@ export async function PUT(request: Request) {
     };
 
     // Replace all variables in the template
-    Object.entries(allVariables).forEach(([key, value]) => {
-      htmlContent = htmlContent.replace(new RegExp(`{{${key}}}`, 'g'), value);
-    });
+    const processedHtml = Object.entries(allVariables).reduce(
+      (html, [key, value]) => html.replace(new RegExp(`{{${key}}}`, 'g'), value),
+      htmlContent
+    );
 
     console.log('Sending email with content:', {
       to: email,
       subject: template.subject,
-      htmlLength: htmlContent.length
+      htmlLength: processedHtml.length
     });
 
     // Send email
     const result = await sendEmail({
       to: email,
       subject: template.subject,
-      html: htmlContent
+      html: processedHtml
     });
 
     console.log('Email sent:', result);
