@@ -96,7 +96,7 @@ const TabsContent = React.forwardRef<HTMLDivElement, TabsContentProps>(
     return (
       <div
         ref={ref}
-        className={`p-4 ${className}`}
+        className={`p-2 pt-0 ${className}`}
         {...props}
       >
         {children}
