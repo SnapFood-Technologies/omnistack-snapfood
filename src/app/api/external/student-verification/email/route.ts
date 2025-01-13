@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 import { sendEmail } from '@/lib/email';
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY! // Using service role key for backend
+// Initialize storage Supabase client
+const supabaseStorage = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_STORAGE_URL!,
+  process.env.SUPABASE_STORAGE_SERVICE_ROLE_KEY!
 );
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
@@ -52,22 +52,40 @@ const EMAIL_TEMPLATES = {
   }
 } as const;
 
-// Function to fetch template from Supabase Storage
 async function getTemplate(templatePath: string) {
   try {
-    const { data, error } = await supabase
+    // Use supabaseStorage client for storage operations
+    const { data: allFiles, error: listError } = await supabaseStorage
       .storage
-      .from('templates') // Your bucket name
-      .download(templatePath);
+      .from('templates')
+      .list();
     
+    console.log('All files in bucket:', allFiles);
+
+    const { data, error } = await supabaseStorage
+      .storage
+      .from('templates')
+      .download(templatePath);
+
     if (error) {
+      console.error('Download error:', {
+        error,
+        templatePath,
+        allFiles
+      });
       throw error;
     }
 
-    return await data.text();
+    if (!data) {
+      throw new Error('No data received');
+    }
+
+    const text = await data.text();
+    console.log('Successfully retrieved template, length:', text.length);
+    return text;
   } catch (error) {
-    console.error('Error fetching template:', error);
-    throw new Error(`Failed to fetch template: ${error.message}`);
+    console.error('Template fetch error:', error);
+    throw error;
   }
 }
 
@@ -88,8 +106,17 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Invalid email type' }, { status: 400 });
     }
 
-    // Fetch template from Supabase Storage
-    const htmlContent = await getTemplate(template.file);
+    // Fetch template using storage client
+    let htmlContent;
+    try {
+      htmlContent = await getTemplate(template.file);
+    } catch (error) {
+      console.error('Failed to fetch template:', error);
+      return NextResponse.json({ 
+        error: 'Failed to fetch template',
+        details: error
+      }, { status: 500 });
+    }
 
     // Replace all variables including images and social links
     const allVariables = {
