@@ -173,3 +173,41 @@ enum QRCodeType {
   TAKEOUT
   SPECIAL
 }
+
+
+enum EmailStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum EmailType {
+  STUDENT_VERIFICATION_APPROVED
+  STUDENT_VERIFICATION_DECLINED
+}
+
+model EmailTemplate {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  type        EmailType @unique  // Make type unique so we can query by it
+  subject     String
+  htmlFile    String    // Store the HTML file path
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  sentEmails  Email[]
+}
+
+model Email {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  templateId  String      @db.ObjectId
+  template    EmailTemplate @relation(fields: [templateId], references: [id])
+  to          String
+  from        String      @default("noreply@snapfood.com")
+  subject     String
+  body        String
+  status      EmailStatus @default(PENDING)
+  error       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
