@@ -18,7 +18,7 @@ export async function sendEmail(emailData: EmailData) {
     console.log('Attempting to send email to:', emailData.to);
     
     const result = await resend.emails.send({
-      from: 'SnapFood <onboarding@resend.dev>', // Use verified domain or default resend domain
+      from: 'SnapFood <student-verification@snapfood.al>',
       to: emailData.to,
       subject: emailData.subject,
       html: emailData.html
