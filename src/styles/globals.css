@@ -164,6 +164,11 @@
 .radix-dropdown-content {
   z-index: 50;
 }
+
+.select-portal[data-radix-select-portal] {
+  position: relative;
+  z-index: 50 !important;
+}
 /* select {
 	appearance: none; 
 	-webkit-appearance: none;
