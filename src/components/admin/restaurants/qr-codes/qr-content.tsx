@@ -24,20 +24,20 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
   const router = useRouter()
   const { toast } = useToast()
 
-  // Separate loading states
+  // Loading states
   const [loadingPreview, setLoadingPreview] = useState(false)
   const [loadingGenerate, setLoadingGenerate] = useState(false)
 
+  // Data states
   const [menus, setMenus] = useState<Menu[]>([])
   const [useCustomUrl, setUseCustomUrl] = useState(false)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
-
-  // Store raw HTML/SVG for inline preview
   const [qrPreview, setQrPreview] = useState<string | null>(null)
-  // Store data URLs for downloads
   const [qrUrls, setQrUrls] = useState<{ png?: string; svg?: string }>({})
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
-  // Full QR code config form
+  // Form data
   const [formData, setFormData] = useState<QRCodeData>({
     design: "classic",
     primaryColor: "#000000",
@@ -49,24 +49,21 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
     type: "TABLE",
     customUrl: "",
     logo: null,
-    // tableNumber, menuId will be set dynamically
   })
 
-  // Some example design styles
+  // Options
   const designs = [
     { id: "classic", name: "Classic", preview: "⬛" },
     { id: "modern", name: "Modern", preview: "◼️" },
     { id: "dots", name: "Dots", preview: "⚫" },
   ]
 
-  // Some example sizes
   const sizes = [
     { value: "small", label: "Small (200x200)" },
     { value: "medium", label: "Medium (300x300)" },
     { value: "large", label: "Large (400x400)" },
   ]
 
-  // Types for the QR code
   const qrTypes = [
     { value: "TABLE", label: "Table QR" },
     { value: "TAKEOUT", label: "Takeout Menu" },
@@ -81,7 +78,6 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
         const data = await response.json()
         setMenus(data)
 
-        // If there's a default menu, set it unless we’re using custom URL
         if (data.length > 0 && !useCustomUrl) {
           setFormData((prev) => ({ ...prev, menuId: data[0].id }))
         }
@@ -97,37 +93,69 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
     loadMenus()
   }, [restaurantId, toast, useCustomUrl])
 
+  // Cleanup effect
   useEffect(() => {
     return () => {
       if (logoPreview) {
         URL.revokeObjectURL(logoPreview)
       }
+      if (qrUrls.svg) {
+        URL.revokeObjectURL(qrUrls.svg)
+      }
+      if (qrUrls.png) {
+        URL.revokeObjectURL(qrUrls.png)
+      }
     }
-  }, [logoPreview])
+  }, [logoPreview, qrUrls])
 
   const isValidForm = () => {
-    if (useCustomUrl && !formData.customUrl) return false
-    if (!useCustomUrl && !formData.menuId) return false
-    if (formData.type === 'TABLE' && !formData.tableNumber) return false
-    return true
+    if (useCustomUrl && !formData.customUrl) return false;
+    if (!useCustomUrl && !formData.menuId) return false;
+    if (formData.type === 'TABLE' && !formData.tableNumber) return false;
+    return true;
+  };
+
+  // Validation
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {}
+
+    if (!useCustomUrl && !formData.menuId) {
+      newErrors.menuId = "Please select a menu"
+    }
+
+    if (useCustomUrl && !formData.customUrl) {
+      newErrors.customUrl = "Please enter a custom URL"
+    }
+
+    if (formData.type === "TABLE" && !formData.tableNumber) {
+      newErrors.tableNumber = "Please enter a table number"
+    }
+
+    if (formData.hasLogo && !formData.logo) {
+      newErrors.logo = "Please upload a logo"
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
   }
 
-  /**
-   * Generate a preview by calling a special endpoint.
-   * e.g.: PUT /api/restaurants/{restaurantId}/qr-codes/preview
-   * Returns:
-   *  - svgString: raw SVG code
-   *  - svgDataUrl: data:image/svg+xml;base64,...
-   *  - pngDataUrl: data:image/png;base64,...
-   */
   const handlePreview = async () => {
+    if (!validateForm()) {
+      toast({
+        title: "Validation Error",
+        description: "Please check all required fields",
+        variant: "destructive",
+      })
+      return
+    }
+
     setLoadingPreview(true)
     try {
       const formDataToSend = new FormData()
       Object.entries(formData).forEach(([key, value]) => {
         if (value !== null && value !== undefined) {
-          if (key === 'logo' && value instanceof File) {
-            formDataToSend.append('logo', value)
+          if (key === "logo" && value instanceof File) {
+            formDataToSend.append("logo", value)
           } else {
             formDataToSend.append(key, String(value))
           }
@@ -137,20 +165,19 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
       const response = await fetch(
         `/api/restaurants/${restaurantId}/qr-codes/preview`,
         {
-          method: "PUT", // Changed from "POST" to "PUT"
+          method: "PUT",
           body: formDataToSend,
         }
       )
 
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || "Failed to generate preview")
-      }
-
       const data = await response.json()
 
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to generate preview")
+      }
+
       setQrPreview(data.svgString)
-      setQrUrls({ svg: data.svgDataUrl, png: data.pngDataUrl }) // Ensure pngDataUrl is returned
+      setQrUrls({ svg: data.svgDataUrl, png: data.pngDataUrl })
 
       toast({
         title: "Success",
@@ -167,17 +194,12 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
     }
   }
 
-  /**
-   * Download the current QR code in either .svg or .png format.
-   * We rely on data URLs stored in `qrUrls`.
-   */
   const handleDownload = async (format: "svg" | "png") => {
     if (!qrUrls[format]) return
 
     try {
       const response = await fetch(qrUrls[format]!)
       const blob = await response.blob()
-
       const element = document.createElement("a")
       element.href = URL.createObjectURL(blob)
       element.download = `qr-code-${Date.now()}.${format}`
@@ -194,10 +216,16 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
     }
   }
 
-  /**
-   * Officially "Generate" the QR code (e.g. saving in DB, or finalizing).
-   */
   const handleGenerate = async () => {
+    if (!validateForm()) {
+      toast({
+        title: "Validation Error",
+        description: "Please check all required fields",
+        variant: "destructive",
+      })
+      return
+    }
+
     setLoadingGenerate(true)
     try {
       const formDataToSend = new FormData()
@@ -216,18 +244,30 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
         body: formDataToSend,
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || "Failed to generate QR code")
+        throw new Error(data.error || "Failed to generate QR code")
       }
 
-      console.log('0', 'Success');
+      setSuccessMessage("QR code generated successfully!")
+      setTimeout(() => setSuccessMessage(null), 3000)
+
       toast({
         title: "Success",
-        description: "QR code generated and saved",
+        description: "QR code generated and saved successfully",
       })
-      // Optionally refresh or navigate
-      // router.refresh()
+
+      // Reset form if needed
+      if (formData.type === "TABLE") {
+        setFormData(prev => ({
+          ...prev,
+          tableNumber: undefined
+        }))
+      }
+
+      // Generate new preview
+      await handlePreview()
     } catch (error: any) {
       toast({
         title: "Error",
@@ -235,19 +275,15 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
         variant: "destructive",
       })
     } finally {
-      console.log('here');
       setLoadingGenerate(false)
     }
   }
 
-  /**
-   * Handle file upload for the logo and show a local preview.
-   */
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
 
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+    if (file.size > 5 * 1024 * 1024) {
       toast({
         title: "Error",
         description: "Logo file size must be less than 5MB",
@@ -288,9 +324,15 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
         </p>
       </div>
 
+      {successMessage && (
+        <div className="bg-green-50 text-green-700 p-3 rounded-md">
+          {successMessage}
+        </div>
+      )}
+
       {/* Main Content */}
       <div className="flex flex-col lg:flex-row gap-8">
-        {/* Preview & Generate Section in a sticky container */}
+        {/* Preview Section */}
         <div className="lg:w-1/3">
           <div className="sticky top-4 space-y-4">
             <QRCard
@@ -333,42 +375,40 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
               </div>
             </QRCard>
 
-            {/* Buttons for Preview & Generate */}
-            <div className="flex gap-2">
-              {/* Preview Button (soft variant, separate loading) */}
-              <Button
-                onClick={handlePreview}
-                variant="soft"
-                className="w-full"
-                disabled={!isValidForm() || loadingPreview}
-              >
-                {loadingPreview ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  "Preview"
-                )}
-              </Button>
+           {/* Action Buttons */}
+<div className="flex gap-2">
+  <Button
+    onClick={handlePreview}
+    variant="soft"
+    className="w-full"
+    disabled={!isValidForm() || loadingPreview}
+  >
+    {loadingPreview ? (
+      <>
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        Generating...
+      </>
+    ) : (
+      "Preview"
+    )}
+  </Button>
 
-              {/* Generate Button (default variant, separate loading) */}
-              <Button
-                onClick={handleGenerate}
-                variant="default" // primary background, white text
-                className="w-full"
-                disabled={!isValidForm() || loadingGenerate}
-              >
-                {loadingGenerate ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  "Generate"
-                )}
-              </Button>
-            </div>
+  <Button
+    onClick={handleGenerate}
+    variant="default"
+    className="w-full"
+    disabled={!isValidForm() || loadingGenerate}
+  >
+    {loadingGenerate ? (
+      <>
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        Generating...
+      </>
+    ) : (
+      "Generate"
+    )}
+  </Button>
+</div>
           </div>
         </div>
 
@@ -387,50 +427,56 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
                 </div>
 
                 {useCustomUrl ? (
-                  <div className="space-y-2">
-                    <Label>Custom Menu URL</Label>
-                    <Input
-                      placeholder="https://your-menu-url.com"
-                      value={formData.customUrl}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          customUrl: e.target.value,
-                          menuId: undefined,
-                        }))
-                      }
-                    />
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <InputSelect
-                      name="menuId"
-                      label="Select Menu"
-                      value={formData.menuId ?? "Select Option"}
-                      onChange={(e) => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          menuId: e.target.value,
-                          customUrl: undefined,
-                        }))
-                      }}
-                      options={
-                        menus && menus.length > 0
-                          ? menus.map((menu) => ({
-                              value: menu.id,
-                              label: menu.name,
-                            }))
-                          : [
-                              {
-                                value: "no-menu",
-                                label: "No menus available",
-                              },
-                            ]
-                      }
-                      required
-                    />
-                  </div>
-                )}
+  <div className="space-y-2">
+    <Label>Custom Menu URL</Label>
+    <Input
+      placeholder="https://your-menu-url.com"
+      value={formData.customUrl}
+      onChange={(e) =>
+        setFormData((prev) => ({
+          ...prev,
+          customUrl: e.target.value,
+          menuId: undefined,
+        }))
+      }
+    />
+    {errors.customUrl && (
+      <p className="text-sm text-destructive">{errors.customUrl}</p>
+    )}
+  </div>
+) : (
+  <div className="space-y-2">
+    <InputSelect
+      name="menuId"
+      label="Select Menu"
+      value={formData.menuId ?? "Select Option"}
+      onChange={(e) => {
+        setFormData((prev) => ({
+          ...prev,
+          menuId: e.target.value,
+          customUrl: undefined,
+        }))
+      }}
+      options={
+        menus && menus.length > 0
+          ? menus.map((menu) => ({
+              value: menu.id,
+              label: menu.name,
+            }))
+          : [
+              {
+                value: "no-menu",
+                label: "No menus available",
+              },
+            ]
+      }
+      required
+    />
+    {errors.menuId && (
+      <p className="text-sm text-destructive">{errors.menuId}</p>
+    )}
+  </div>
+)}
               </div>
 
               <div className="space-y-2">
@@ -450,21 +496,24 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
               </div>
 
               {formData.type === "TABLE" && (
-                <div className="space-y-2">
-                  <Label>Table Number</Label>
-                  <Input
-                    type="number"
-                    value={formData.tableNumber || ""}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        tableNumber: parseInt(e.target.value) || 0,
-                      }))
-                    }
-                    placeholder="Enter table number"
-                  />
-                </div>
-              )}
+  <div className="space-y-2">
+    <Label>Table Number</Label>
+    <Input
+      type="number"
+      value={formData.tableNumber || ""}
+      onChange={(e) =>
+        setFormData((prev) => ({
+          ...prev,
+          tableNumber: parseInt(e.target.value) || 0,
+        }))
+      }
+      placeholder="Enter table number"
+    />
+    {errors.tableNumber && (
+      <p className="text-sm text-destructive">{errors.tableNumber}</p>
+    )}
+  </div>
+)}
             </div>
 
             {/* Design Tabs */}

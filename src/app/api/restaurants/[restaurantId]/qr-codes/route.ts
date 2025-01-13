@@ -21,7 +21,7 @@ export async function GET(
 
     return NextResponse.json(qrCodes)
   } catch (error) {
-    console.log('Error fetching QR codes:', error.message)
+    console.log('Error fetching QR codes:', error)
     return NextResponse.json(
       { error: "Error fetching QR codes" }, 
       { status: 500 }
@@ -39,6 +39,9 @@ export async function POST(
     // Generate URL based on menu or custom URL
     const customUrl = formData.get('customUrl') ? String(formData.get('customUrl')) : null
     const menuId = formData.get('menuId') ? String(formData.get('menuId')) : null
+    const hasLogo = formData.get('hasLogo') === 'true'
+    const customText = formData.get('customText') ? String(formData.get('customText')) : null
+    const logoFile = formData.get('logo') as File | null
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
@@ -60,32 +63,70 @@ export async function POST(
       width: formData.get('size') === 'large' ? 400 : formData.get('size') === 'medium' ? 300 : 200,
     }
 
-    
-
     // Generate QR code as SVG
-    const qrSvg = await QRCode.toString(qrUrl, qrOptions)
+    let qrSvg = await QRCode.toString(qrUrl, qrOptions)
 
-  
+    // Add custom text if provided
+    if (customText) {
+      const textY = qrOptions.width + 30 // Position text below QR code
+      qrSvg = qrSvg.replace('</svg>', `
+        <text
+          x="50%"
+          y="${textY}"
+          text-anchor="middle"
+          font-family="Arial, sans-serif"
+          font-size="14"
+          fill="${qrOptions.color.dark}"
+        >${customText}</text>
+      </svg>`)
+    }
+
+    // Add logo if enabled and provided
+    if (hasLogo && logoFile) {
+      try {
+        // Convert logo to base64
+        const logoBuffer = Buffer.from(await logoFile.arrayBuffer())
+        const logoBase64 = logoBuffer.toString('base64')
+        const logoMimeType = logoFile.type
+        
+        // Calculate logo size (20% of QR code size)
+        const logoSize = Math.floor(qrOptions.width * 0.2)
+        const logoX = Math.floor((qrOptions.width - logoSize) / 2)
+        const logoY = Math.floor((qrOptions.width - logoSize) / 2)
+
+        // Insert logo in the center
+        qrSvg = qrSvg.replace('</svg>', `
+          <image
+            x="${logoX}"
+            y="${logoY}"
+            width="${logoSize}"
+            height="${logoSize}"
+            href="data:${logoMimeType};base64,${logoBase64}"
+          />
+        </svg>`)
+      } catch (error) {
+        console.error('Error processing logo:', error)
+      }
+    }
+
     // Create QR code record
     const qrCode = await prisma.qRCode.create({
       data: {
         code: qrSvg,
-        name: formData.get('customText') ? String(formData.get('customText')) : null,
+        name: customText,
         design: String(formData.get('design')),
         primaryColor: String(formData.get('primaryColor')),
         backgroundColor: String(formData.get('backgroundColor')),
         size: String(formData.get('size')),
-        customText: formData.get('customText') ? String(formData.get('customText')) : null,
-        hasLogo: formData.get('hasLogo') === 'true',
+        customText: customText,
+        hasLogo: hasLogo,
         errorCorrectionLevel: String(formData.get('errorLevel')),
         type: String(formData.get('type')) as 'TABLE' | 'TAKEOUT' | 'SPECIAL',
         tableNumber: formData.get('tableNumber') ? Number(formData.get('tableNumber')) : null,
-        menuId: menuId, // Set to null if customUrl is used
-        //restaurantId: '349'
+        menuId: menuId,
+        restaurantId: params.restaurantId
       },
     })
-
-    
 
     return NextResponse.json({
       success: true,
@@ -94,9 +135,9 @@ export async function POST(
     })
 
   } catch (error) {
-    console.log('error.message', error.message);
+    console.log('error.message', error)
     return NextResponse.json(
-      { error: error.message }, // Return error message
+      { error: "Failed to generate QR code" }, 
       { status: 500 }
     )
   }
