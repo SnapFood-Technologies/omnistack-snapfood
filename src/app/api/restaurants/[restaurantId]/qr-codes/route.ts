@@ -1,7 +1,6 @@
-// src/app/api/restaurants/[restaurantId]/qr-codes/route.ts
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import QRCode from "qrcode"
+import * as QRCode from "qrcode"
 
 export async function GET(
   req: Request,
@@ -22,6 +21,7 @@ export async function GET(
 
     return NextResponse.json(qrCodes)
   } catch (error) {
+    console.log('Error fetching QR codes:', error)
     return NextResponse.json(
       { error: "Error fetching QR codes" }, 
       { status: 500 }
@@ -29,64 +29,115 @@ export async function GET(
   }
 }
 
-
 export async function POST(
   req: Request,
-  { params }: { params: { restaurantId?: string } }
+  { params }: { params: { restaurantId: string } }
 ) {
   try {
-    if (!params?.restaurantId) {
-      return NextResponse.json(
-        { error: "Restaurant ID is required" },
-        { status: 400 }
-      )
-    }
-
-    const data = await req.formData()
+    const formData = await req.formData()
     
     // Generate URL based on menu or custom URL
-    const qrUrl = data.get('customUrl') 
-      ? String(data.get('customUrl'))
-      : `${process.env.NEXT_PUBLIC_APP_URL}/menu/${data.get('menuId')}`
+    const customUrl = formData.get('customUrl') ? String(formData.get('customUrl')) : null
+    const menuId = formData.get('menuId') ? String(formData.get('menuId')) : null
+    const hasLogo = formData.get('hasLogo') === 'true'
+    const customText = formData.get('customText') ? String(formData.get('customText')) : null
+    const logoFile = formData.get('logo') as File | null
+
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
+    const qrUrl = customUrl
+      ? customUrl
+      : menuId
+      ? `${baseUrl}/menu/${menuId}`
+      : `${baseUrl}` // Fallback URL if neither customUrl nor menuId is provided
 
     // QR code generation options
-    const qrOptions: QRCode.QRCodeToDataURLOptions = {
+    const qrOptions: QRCode.QRCodeToStringOptions = {
       type: 'svg',
       color: {
-        dark: String(data.get('primaryColor')),
-        light: String(data.get('backgroundColor')),
+        dark: String(formData.get('primaryColor') || '#000000'),
+        light: String(formData.get('backgroundColor') || '#FFFFFF'),
       },
-      errorCorrectionLevel: data.get('errorLevel') as 'L' | 'M' | 'Q' | 'H',
+      errorCorrectionLevel: (formData.get('errorLevel') as 'L' | 'M' | 'Q' | 'H') || 'M',
       margin: 1,
-      width: data.get('size') === 'large' ? 400 : data.get('size') === 'medium' ? 300 : 200,
+      width: formData.get('size') === 'large' ? 400 : formData.get('size') === 'medium' ? 300 : 200,
     }
 
-    // Generate QR code
-    const qrDataUrl = await QRCode.toDataURL(qrUrl, qrOptions)
+    // Generate QR code as SVG
+    let qrSvg = await QRCode.toString(qrUrl, qrOptions)
 
-    // Save to database
+    // Add custom text if provided
+    if (customText) {
+      const textY = qrOptions.width + 30 // Position text below QR code
+      qrSvg = qrSvg.replace('</svg>', `
+        <text
+          x="50%"
+          y="${textY}"
+          text-anchor="middle"
+          font-family="Arial, sans-serif"
+          font-size="14"
+          fill="${qrOptions.color.dark}"
+        >${customText}</text>
+      </svg>`)
+    }
+
+    // Add logo if enabled and provided
+    if (hasLogo && logoFile) {
+      try {
+        // Convert logo to base64
+        const logoBuffer = Buffer.from(await logoFile.arrayBuffer())
+        const logoBase64 = logoBuffer.toString('base64')
+        const logoMimeType = logoFile.type
+        
+        // Calculate logo size (20% of QR code size)
+        const logoSize = Math.floor(qrOptions.width * 0.2)
+        const logoX = Math.floor((qrOptions.width - logoSize) / 2)
+        const logoY = Math.floor((qrOptions.width - logoSize) / 2)
+
+        // Insert logo in the center
+        qrSvg = qrSvg.replace('</svg>', `
+          <image
+            x="${logoX}"
+            y="${logoY}"
+            width="${logoSize}"
+            height="${logoSize}"
+            href="data:${logoMimeType};base64,${logoBase64}"
+          />
+        </svg>`)
+      } catch (error) {
+        console.error('Error processing logo:', error)
+      }
+    }
+
+    // Create QR code record
     const qrCode = await prisma.qRCode.create({
       data: {
-        code: qrDataUrl,
-        design: String(data.get('design')),
-        primaryColor: String(data.get('primaryColor')),
-        backgroundColor: String(data.get('backgroundColor')),
-        size: String(data.get('size')),
-        customText: data.get('customText') ? String(data.get('customText')) : null,
-        hasLogo: Boolean(data.get('hasLogo')),
-        errorLevel: String(data.get('errorLevel')),
-        type: String(data.get('type')) as 'TABLE' | 'TAKEOUT' | 'SPECIAL',
-        tableNumber: data.get('tableNumber') ? parseInt(String(data.get('tableNumber'))) : null,
-        menuId: data.get('menuId') ? String(data.get('menuId')) : undefined,
-        restaurantId: params.restaurantId,
+        code: qrSvg,
+        name: customText,
+        design: String(formData.get('design')),
+        primaryColor: String(formData.get('primaryColor')),
+        backgroundColor: String(formData.get('backgroundColor')),
+        size: String(formData.get('size')),
+        customText: customText,
+        hasLogo: hasLogo,
+        errorCorrectionLevel: String(formData.get('errorLevel')),
+        type: String(formData.get('type')) as 'TABLE' | 'TAKEOUT' | 'SPECIAL',
+        tableNumber: formData.get('tableNumber') ? Number(formData.get('tableNumber')) : null,
+        menuId: menuId,
+        restaurantId: params.restaurantId
       },
     })
 
-    return NextResponse.json(qrCode)
+    return NextResponse.json({
+      success: true,
+      qrCode,
+      svgString: qrSvg
+    })
+
   } catch (error) {
-    console.error('Error creating QR code:', error)
+    console.log('error.message', error)
     return NextResponse.json(
-      { error: "Error creating QR code" }, 
+      { error: "Failed to generate QR code" }, 
       { status: 500 }
     )
   }

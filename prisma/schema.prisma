@@ -1,4 +1,3 @@
-// prisma/schema.prisma
 datasource db {
   provider = "mongodb"
   url      = env("MONGODB_URI")
@@ -15,7 +14,7 @@ model User {
   password      String
   role          Role      @default(RESTAURANT_STAFF)
   restaurantId  String?   @db.ObjectId
-  restaurant    Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  restaurant    Restaurant? @relation(fields: [restaurantId], references: [id])
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -46,7 +45,7 @@ model Menu {
   isDefault     Boolean   @default(false)
   categories    MenuCategory[]
   restaurantId  String    @db.ObjectId
-  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   qrCodes       QRCode[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -61,7 +60,7 @@ model Category {
   order         Int       @default(0)
   isActive      Boolean   @default(true)
   restaurantId  String    @db.ObjectId
-  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   parentId      String?   @db.ObjectId
   parent        Category? @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   children      Category[] @relation("CategoryHierarchy")
@@ -74,8 +73,8 @@ model MenuCategory {
   menuId        String    @db.ObjectId
   categoryId    String    @db.ObjectId
   order         Int       @default(0)
-  menu          Menu      @relation(fields: [menuId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  category      Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  menu          Menu      @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  category      Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -91,9 +90,9 @@ model Product {
   isAvailable   Boolean   @default(true)
   isPopular     Boolean   @default(false)
   categoryId    String    @db.ObjectId
-  category      Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  category      Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   restaurantId  String    @db.ObjectId
-  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   orderMethod   OrderMethod @default(ALL)
   nepsOrder     Boolean   @default(true)
   ageRestricted Boolean   @default(false)
@@ -102,27 +101,27 @@ model Product {
 }
 
 model QRCode {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  name          String?
-  code          String    @unique
-  design        String    @default("classic")
-  type          QRCodeType @default(TABLE)
-  primaryColor  String    @default("#000000")
-  backgroundColor String  @default("#FFFFFF")
-  size          String    @default("medium")
-  customText    String?
-  hasLogo       Boolean   @default(false)
-  errorLevel    String    @default("M")
-  scans         Int       @default(0)
-  lastScanned   DateTime?
-  isActive      Boolean   @default(true)
-  tableNumber   Int?
-  menuId        String    @db.ObjectId
-  menu          Menu      @relation(fields: [menuId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  restaurantId  String    @db.ObjectId
-  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id               String      @id @default(auto()) @map("_id") @db.ObjectId
+  name             String?
+  code             String      @unique
+  design           String      @default("classic")
+  type             QRCodeType  @default(TABLE)
+  primaryColor     String      @default("#000000")
+  backgroundColor  String      @default("#FFFFFF")
+  size             String      @default("medium")
+  customText       String?
+  hasLogo          Boolean     @default(false)
+  errorCorrectionLevel String   @default("M")
+  scans            Int         @default(0)
+  lastScanned      DateTime?
+  isActive         Boolean     @default(true)
+  tableNumber      Int?
+  menuId           String?     @db.ObjectId
+  menu             Menu?       @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  restaurantId     String?      @db.ObjectId
+  restaurant       Restaurant?  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
 }
 
 model Order {
@@ -132,7 +131,7 @@ model Order {
   items         Json
   customerInfo  Json
   restaurantId  String    @db.ObjectId
-  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   tableNumber   Int?
   qrCodeScan    String?
   createdAt     DateTime  @default(now())
