@@ -11,10 +11,10 @@ const supabaseStorage = createClient(
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 const SOCIAL_LINKS = {
-  twitter: 'https://twitter.com/snapfood',
-  facebook: 'https://facebook.com/snapfood',
-  instagram: 'https://instagram.com/snapfood',
-  tiktok: 'https://tiktok.com/@snapfood'
+  twitter: 'https://x.com/snapfood_al?',
+  facebook: 'https://www.facebook.com/people/SnapFood/61559626340549/',
+  instagram: 'https://www.instagram.com/snapfood.al/',
+  tiktok: 'https://www.tiktok.com/@snapfood.al'
 };
 
 const EMAIL_TEMPLATES = {
@@ -27,10 +27,10 @@ const EMAIL_TEMPLATES = {
       facebookUrl: SOCIAL_LINKS.facebook,
       instagramUrl: SOCIAL_LINKS.instagram,
       tiktokUrl: SOCIAL_LINKS.tiktok,
-      twitterIconUrl: `${BASE_URL}/assets/snapfood/twitter.svg`,
-      facebookIconUrl: `${BASE_URL}/assets/snapfood/facebook.svg`,
-      instagramIconUrl: `${BASE_URL}/assets/snapfood/instagram.svg`,
-      tiktokIconUrl: `${BASE_URL}/assets/snapfood/tiktok.svg`,
+      twitterIconUrl: `${BASE_URL}/assets/snapfood/social-x.png`,
+      facebookIconUrl: `${BASE_URL}/assets/snapfood/social-fb.png`,
+      instagramIconUrl: `${BASE_URL}/assets/snapfood/social-insta.png`,
+      tiktokIconUrl: `${BASE_URL}/assets/snapfood/social-tiktok.png`,
       illustrationUrl: `${BASE_URL}/assets/snapfood/approved-student-banner.png`
     }
   },
