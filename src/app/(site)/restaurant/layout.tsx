@@ -11,7 +11,7 @@ export default async function RestaurantLayout({
 }) {
     const session = await getAuthSession()
     if (!session) {
-        redirect("/login")
+        redirect("/auth/login")
     }
 
     // if (session.user.role !== "RESTAURANT") {
