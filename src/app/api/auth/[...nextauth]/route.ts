@@ -13,7 +13,7 @@ interface ExtendedUser extends User {
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(prisma),
     pages: {
-        signIn: '/login',
+        signIn: '/auth/login',
     },
     session: {
         strategy: 'jwt'
