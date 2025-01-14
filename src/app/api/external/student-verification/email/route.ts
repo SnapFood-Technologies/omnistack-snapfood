@@ -20,7 +20,7 @@ const SOCIAL_LINKS = {
 const EMAIL_TEMPLATES = {
   STUDENT_VERIFICATION_APPROVED: {
     file: 'email-templates/student-approved.html',
-    subject: 'Your Student Card has been Approved! 🎉',
+    subject: 'Karta e studentit u pranua!',
     variables: {
       logoUrl: `${BASE_URL}/assets/snapfood/snapfood-email-logo.png`,
       twitterUrl: SOCIAL_LINKS.twitter,
@@ -36,7 +36,7 @@ const EMAIL_TEMPLATES = {
   },
   STUDENT_VERIFICATION_DECLINED: {
     file: 'email-templates/student-declined.html',
-    subject: 'Student Card Verification Update',
+    subject: 'Karta e studentit nuk u pranua!',
     variables: {
       logoUrl: `${BASE_URL}/assets/snapfood/snapfood-email-logo.png`,
       twitterUrl: SOCIAL_LINKS.twitter,
