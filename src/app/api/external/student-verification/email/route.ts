@@ -1,6 +1,8 @@
+// app/api/external/student-verification/email/route.ts
 import { NextResponse } from 'next/server';
 import { sendEmail } from '@/lib/email';
 import { createClient } from '@supabase/supabase-js';
+import { validateApiKey } from '@/middleware/api-auth';
 
 // Initialize storage Supabase client
 const supabaseStorage = createClient(
@@ -54,7 +56,6 @@ const EMAIL_TEMPLATES = {
 
 async function getTemplate(templatePath: string) {
   try {
-    // Use supabaseStorage client for storage operations
     const { data: allFiles, error: listError } = await supabaseStorage
       .storage
       .from('templates')
@@ -90,6 +91,10 @@ async function getTemplate(templatePath: string) {
 }
 
 export async function PUT(request: Request) {
+  // Check API key first
+  const authError = validateApiKey(request);
+  if (authError) return authError;
+
   try {
     const body = await request.json();
     console.log('Received request:', body);
