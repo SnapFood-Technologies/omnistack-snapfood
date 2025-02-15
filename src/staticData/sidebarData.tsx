@@ -3,41 +3,77 @@ import { getSecurityMenuItems } from '@/utils/getSecurityMenuItems';
 import { getAnalyticsMenuItems } from '@/utils/getAnalyticsMenuItems';
 import { getOperationsMenuItems } from '@/utils/getOperationsMenuItems';
 import { 
-	LayoutDashboard, 
-	Building2, 
-	MonitorPlay,
+	LayoutDashboard,
 	BarChart3,
-	Shield,
 	Users,
 	Settings,
-	Building,
-	Boxes,
-	Camera,
-	MonitorDot,
-	Video,
-	LayoutPanelTop,
-	Camera as CameraControl,
-	UserCog,
-	Key,
-	Building as BuildingIcon,
-	Bell as BellIcon,
 	ScrollText,
-	CreditCard,
 	Store,
-	KeyRound,
     Utensils,
-    Package
+	PieChart,
+	Share2,
+	UserPlus,
+	Wallet,
+	Mail
    } from "lucide-react";
+
+
+   import {  } from "lucide-react";
+
    
    export const getUserSidebarData = (businessType: string = 'RETAIL'): Sidebar[] => {
 
-    if (businessType === 'FOOD') {
+	if (businessType === 'FOOD') {
         return [
             {
                 id: 1,
                 title: "Dashboard",
                 icon: <LayoutDashboard className="w-6 h-6"/>,
                 path: "/admin/dashboard",
+                children: [
+                    {
+                        id: 11,
+                        title: "Food Dashboard",
+                        icon: <PieChart className="w-6 h-6"/>,
+                        path: "/admin/dashboard",
+                    },
+                    {
+                        id: 12,
+                        title: "Social Dashboard",
+                        icon: <Share2 className="w-6 h-6"/>,
+                        path: "/admin/dashboard/social",
+                    },
+                    {
+                        id: 13,
+                        title: "Customer Insights",
+                        icon: <UserPlus className="w-6 h-6"/>,
+                        path: "/admin/dashboard/insights",
+                    },
+                    {
+                        id: 14,
+                        title: "Promotions Stats",
+                        icon: <BarChart3 className="w-6 h-6"/>,
+                        path: "/admin/dashboard/promotions",
+                    },
+                    {
+                        id: 15,
+                        title: "Wallet Stats",
+                        icon: <Wallet className="w-6 h-6"/>,
+                        path: "/admin/dashboard/wallet",
+                    },
+                    {
+                        id: 16,
+                        title: "Feature Usage Stats",
+                        icon: <BarChart3 className="w-6 h-6"/>,
+                        path: "/admin/dashboard/features",
+                    },
+                    {
+                        id: 17,
+                        title: "Newsletter Reports",
+                        icon: <Mail className="w-6 h-6"/>,
+                        path: "/admin/dashboard/newsletter",
+                    }
+                ]
             },
             {
                 id: 2,
@@ -46,11 +82,17 @@ import {
                 path: "/admin/restaurants",
                 children: [
                     {
-                        id: 1,
+                        id: 21,
                         title: "Restaurants",
                         icon: <Utensils className="w-6 h-6"/>,
                         path: "/admin/restaurants",
                     },
+                    {
+                        id: 22,
+                        title: "Reports",
+                        icon: <ScrollText className="w-6 h-6"/>,
+                        path: "/admin/restaurants/reports",
+                    }
                 ]
             },
             {
@@ -62,190 +104,10 @@ import {
             {
                 id: 4,
                 title: "Settings",
-                path: "/admin/settings",
                 icon: <Settings className="w-6 h-6"/>,
+                path: "/admin/settings",
             }
-          ]
-    } else {
-        return [
-            // Dashboard
-            {
-                id: 1,
-                title: "Dashboard",
-                path: "/user/dashboard",
-                icon: <LayoutDashboard className="w-6 h-6" />
-            },
-            
-            // Property Infrastructure 
-            {
-                id: 2,
-                title: "Properties",
-                path: "/user/properties",
-                icon: <Building2 className="w-6 h-6" />,
-                // @ts-ignore
-                children: [
-                {
-                    id: "2-1",
-                    title: "Properties",
-                    path: "/user/properties",
-                    icon: <Building className="w-4 h-4" />
-                },
-                {
-                    id: "2-2",
-                    title: "Buildings",
-                    path: "/user/properties/buildings",
-                    icon: <BuildingIcon className="w-4 h-4" />
-                },
-                {
-                    id: "2-3",
-                    title: "Zones",
-                    path: "/user/properties/zones",
-                    icon: <Boxes className="w-4 h-4" />
-                },
-                {
-                    id: "2-4",
-                    title: "Stores",
-                    path: "/user/properties/stores",
-                    icon: <Store className="w-4 h-4" />
-                },
-                {
-                    id: "2-5",
-                    title: "Cameras",
-                    path: "/user/properties/cameras",
-                    icon: <Camera className="w-4 h-4" />
-                }
-                ]
-            },
-            
-            // Live Monitoring
-            {
-                id: 3,
-                title: "Live Monitoring",
-                path: "/user/monitoring",
-                icon: <MonitorPlay className="w-6 h-6" />,
-            // @ts-ignore
-                children: [
-                {
-                    id: "3-1",
-                    title: "Live View",
-                    path: "/user/monitoring/live",
-                    icon: <MonitorDot className="w-4 h-4" />
-                },
-                {
-                    id: "3-2",
-                    title: "Recordings",
-                    path: "/user/monitoring/recordings",
-                    icon: <Video className="w-4 h-4" />
-                },
-                {
-                    id: "3-3",
-                    title: "Video Wall",
-                    path: "/user/monitoring/wall",
-                    icon: <LayoutPanelTop className="w-4 h-4" />
-                },
-                {
-                    id: "3-4",
-                    title: "PTZ Control",
-                    path: "/user/monitoring/ptz",
-                    icon: <CameraControl className="w-4 h-4" />
-                }
-                ]
-            },
-            
-            // Building Analytics
-            {
-                id: 4,
-                title: "Analytics",
-                path: "/user/analytics",
-                icon: <BarChart3 className="w-6 h-6" />,
-                // @ts-ignore
-                children: getAnalyticsMenuItems(businessType)
-            },
-            
-            // Security Features
-            {
-                id: 5,
-                title: "Security",
-                path: "/user/security",
-                icon: <Shield className="w-6 h-6" />,
-                // @ts-ignore
-                children: getSecurityMenuItems(businessType)
-            
-            },
-            
-            {
-                id: 8,
-                title: "Operations",
-                path: "/user/operations",
-                icon: <Store className="w-6 h-6" />,
-                // @ts-ignore
-                children: businessType === 'RETAIL' ? getOperationsMenuItems(businessType) : []
-              },
-            
-            // Staff Management
-            {
-                id: 6,
-                title: "Staff",
-                path: "/user/staff",
-                icon: <Users className="w-6 h-6" />,
-                // @ts-ignore
-                children: [
-                {
-                    id: "6-1",
-                    title: "Staff Members",
-                    path: "/user/staff",
-                    icon: <UserCog className="w-4 h-4" />
-                },
-                {
-                    id: "6-2",
-                    title: "Department",
-                    path: "/user/staff/department",
-                    icon: <Users className="w-4 h-4" />
-                },
-                {
-                    id: "6-3",
-                    title: "Permissions",
-                    path: "/user/staff/permissions",
-                    icon: <Key className="w-4 h-4" />
-                }
-                ]
-            },
-            
-            // Settings
-            {
-                id: 7,
-                title: "Settings",
-                path: "/user/settings",
-                icon: <Settings className="w-6 h-6" />,
-                // @ts-ignore
-                children: [
-                {
-                    id: "7-1",
-                    title: "VT Credentials",
-                    path: "/user/settings/vt-credentials",
-                    icon: <KeyRound className="w-4 h-4" />
-                },
-                {
-                    id: "7-2",
-                    title: "Notifications",
-                    path: "/user/settings/notifications",
-                    icon: <BellIcon className="w-4 h-4" />
-                },
-                {
-                    id: "7-3",
-                    title: "Reports",
-                    path: "/user/settings/reports",
-                    icon: <ScrollText className="w-4 h-4" />
-                },
-                {
-                    id: "7-4",
-                    title: "Billing",
-                    path: "/user/settings/billing",
-                    icon: <CreditCard className="w-4 h-4" />
-                }
-                ]
-            }
-            ];
+        ];
     }
 	
 };
