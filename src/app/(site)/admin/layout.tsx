@@ -3,6 +3,7 @@ import { useState } from "react";
 import Sidebar from "@/components/dashboard/sidebar";
 import Header from "@/components/dashboard/header";
 import { getSidebarDataForType } from "@/utils/getSidebarDataForType"
+import Footer from "@/components/Footer";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const [openSidebar, setOpenSidebar] = useState(false);
@@ -42,6 +43,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         <div className="flex-1 overflow-auto bg-gray-50 p-4 md:p-6 dark:bg-gray-900">
           {children}
         </div>
+		<Footer/>
       </main>
 
       {/* Overlay */}
