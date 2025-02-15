@@ -76,7 +76,7 @@ export function DashboardContent() {
       // Add more orders as needed
     ];
 
-    const COLORS = ['#5FC4D0', '#4CAF50', '#2196F3'];
+    const COLORS = ['#50B7ED', '#4CAF50', '#2196F3'];
 
     const metrics = [
       {
@@ -133,7 +133,7 @@ export function DashboardContent() {
                         <Calendar className="h-4 w-4 mr-2" />
                         Last 30 Days
                     </Button>
-                    <Button className="h-10" style={{ backgroundColor: "#5FC4D0" }}>
+                    <Button className="h-10">
                         <TrendingUp className="h-4 w-4 mr-2" />
                         View Analytics
                     </Button>
@@ -242,7 +242,7 @@ export function DashboardContent() {
                                     <Line 
                                         type="monotone" 
                                         dataKey="orders" 
-                                        stroke="#5FC4D0" 
+                                        stroke="#50B7ED" 
                                         strokeWidth={2}
                                     />
                                 </LineChart>
