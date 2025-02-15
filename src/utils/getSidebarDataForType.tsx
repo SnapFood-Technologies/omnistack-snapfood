@@ -16,7 +16,9 @@ import {
     BadgePercent,
     Bell,
     DollarSign,
-    UserCog
+    UserCog,
+    Newspaper,
+    LineChart
   } from "lucide-react";
   
   export const getSidebarDataForType = (businessType: string = 'FOOD'): { 
@@ -57,9 +59,21 @@ import {
               },
               {
                 id: 14,
-                title: "Performance Stats",
-                icon: <BarChart3 className="w-4 h-4"/>,
-                path: "/admin/dashboard/performance",
+                title: "Wallet Stats",
+                icon: <Wallet className="w-4 h-4"/>,
+                path: "/admin/dashboard/wallet",
+              },
+              {
+                id: 15,
+                title: "Feature Usage Stats",
+                icon: <LineChart className="w-4 h-4"/>,
+                path: "/admin/dashboard/feature-usage",
+              },
+              {
+                id: 16,
+                title: "Newsletter Reports",
+                icon: <Newspaper className="w-4 h-4"/>,
+                path: "/admin/dashboard/newsletter-reports",
               }
             ]
           }
