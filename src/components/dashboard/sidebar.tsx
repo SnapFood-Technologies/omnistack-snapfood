@@ -1,140 +1,250 @@
-"use client";
-import Image from "next/image";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react"; // Import Lucide icons
+"use client"
 
-export default function Sidebar({
-  sidebarOthersData,
-  sidebarData,
-  sidebarRef,
-}: any) {
-  const pathname = usePathname();
+import Image from "next/image"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { useState } from "react"
+import { ChevronDown, ChevronRight } from "lucide-react"
 
-  // Check current pathname for open menu.
-  const currentOpenMenu = sidebarData.find(
-    (i: any) => pathname === i.path || pathname.startsWith(i.path + "/") || 0
-  );
+const MenuItem = ({ item, pathname, openMenus, toggleMenu }: any) => {
+  const isActive = pathname === item.path || pathname.startsWith(item.path + "/")
+  
+  return (
+    <div key={item.id}>
+      <Link
+        href={item.children ? "#" : item.path}
+        onClick={
+          item.children
+            ? (e) => {
+                e.preventDefault()
+                toggleMenu(item.id)
+              }
+            : undefined
+        }
+        className={`group flex w-full items-center rounded-lg p-2 text-sm font-medium transition-colors ${
+          isActive
+            ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-white"
+            : "text-gray-600 hover:bg-primary/5 hover:text-primary dark:text-gray-300 dark:hover:bg-primary/10 dark:hover:text-white"
+        }`}
+      >
+        <span className={`mr-3 ${isActive ? "text-primary" : ""}`}>{item.icon}</span>
+        <span className="flex-1">{item.title}</span>
+        {item.children && (
+          <span className="ml-auto">
+            {openMenus[item.id] ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+          </span>
+        )}
+      </Link>
+
+      {item.children && openMenus[item.id] && (
+        <div className="mt-1 space-y-1 pl-6">
+          {item.children.map((child: any) => (
+            <Link
+              key={child.id}
+              href={child.path}
+              className={`group flex items-center rounded-lg p-2 text-sm font-medium transition-colors ${
+                pathname === child.path
+                  ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-white"
+                  : "text-gray-600 hover:bg-primary/5 hover:text-primary dark:text-gray-300 dark:hover:bg-primary/10 dark:hover:text-white"
+              }`}
+            >
+              <span className={`mr-3 ${pathname === child.path ? "text-primary" : ""}`}>
+                {child.icon}
+              </span>
+              <span className="flex-1">{child.title}</span>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default function Sidebar({ mainMenu, sales, crm, marketing, communication, finance, settings }: any) {
+  const pathname = usePathname()
+  
+  const allMenuItems = [
+    ...mainMenu, 
+    ...sales, 
+    ...crm, 
+    ...marketing, 
+    ...communication,
+    ...finance,
+    ...settings
+  ]
+  
+  const currentOpenMenu = allMenuItems.find(
+    (i: any) => pathname === i.path || pathname.startsWith(i.path + "/")
+  )
+  
   const [openMenus, setOpenMenus] = useState<{ [key: number]: boolean }>({
     [currentOpenMenu?.id ?? 0]: true,
-  });
+  })
 
   const toggleMenu = (id: number) => {
     setOpenMenus((prevState) => ({
       ...prevState,
       [id]: !prevState[id],
-    }));
-  };
+    }))
+  }
 
   return (
-    <>
-      <div
-        ref={sidebarRef}
-        className="h-full border-r border-stroke px-6 py-8 dark:border-stroke-dark"
-      >
-        <Link href="/" className="inline-block">
-          <Image
-            src={"/images/logo/logo.svg"}
-            alt="logo"
-            className="block dark:hidden"
-            width={200}
-            height={30} // Slightly larger logo
-          />
-          <Image
-            src={"/images/logo/logo-light.svg"}
-            alt="logo"
-            className="hidden dark:block"
-            width={300}
-            height={60} // Slightly larger logo
-          />
-        </Link>
-        <div className="mb-6">
-          <hr className="my-6 border-t border-gray-300 dark:border-white-900" />
-          <ul className="space-y-2">
-            {sidebarData &&
-              sidebarData.map((item: any, key: number) => (
-                <li key={key}>
-                  <div>
-                    <Link
-                      href={item.children ? "#" : item.path}
-                      className={`flex w-full items-center gap-3 rounded-lg px-3.5 py-3 font-satoshi font-medium duration-300 ${
-                        +   (pathname === item.path || pathname.startsWith(item.path + "/"))
-                        ? "bg-primary bg-opacity-10 text-primary dark:bg-white dark:bg-opacity-10 dark:text-white"
-                          : "text-dark hover:bg-primary hover:bg-opacity-10 hover:text-primary dark:text-gray-5 dark:hover:bg-white dark:hover:bg-opacity-10 dark:hover:text-white"
-                      }`}
-                      onClick={
-                        item.children
-                          ? (e) => {
-                              e.preventDefault();
-                              toggleMenu(item.id);
-                            }
-                          : undefined
-                      }
-                    >
-                      <span className="h-[24px] w-[24px]">{item.icon}</span>
-                      {item.title}
-                      {item.children && (
-                        <span className="ml-auto">
-                          {openMenus[item.id] ? (
-                            <ChevronDown />
-                          ) : (
-                            <ChevronRight />
-                          )}
-                        </span>
-                      )}
-                    </Link>
-                    {item.children && openMenus[item.id] && (
-                      <ul className="ml-6 mt-2 space-y-2">
-                        {item.children.map((child: any) => (
-                          <li key={child.id}>
-                            <Link
-                              href={child.path}
-                              className={`flex w-full items-center gap-3 rounded-lg px-3.5 py-2 font-satoshi text-base font-medium duration-300 ${
-                                (pathname === child.path || pathname.startsWith(child.path + "/"))
-                                  ? "bg-primary bg-opacity-10 text-primary dark:bg-white dark:bg-opacity-10 dark:text-white"
-                                  : "text-dark hover:bg-primary hover:bg-opacity-10 hover:text-primary dark:text-gray-5 dark:hover:bg-white dark:hover:bg-opacity-10 dark:hover:text-white"
-                              }`}
-                            >
-                              <span className="h-[22px] w-[22px]">
-                                {child.icon}
-                              </span>
-                              {child.title}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </li>
-              ))}
-          </ul>
+    <div className="flex flex-col h-full">
+      {/* Logo Section */}
+      <div className="flex-shrink-0 bg-white dark:bg-gray-800">
+  <div className="flex justify-center items-center h-[72px] px-6 border-b border-stroke dark:border-stroke-dark">
+    <Link href="/" className="flex items-center justify-center">
+            <Image
+              src="/images/logo/logo.svg"
+              alt="Logo"
+              width={160}
+              height={36}
+              className="dark:hidden"
+              priority
+            />
+            <Image
+              src="/images/logo/logo-light.svg"
+              alt="Logo"
+              width={160}
+              height={36}
+              className="hidden dark:block"
+              priority
+            />
+          </Link>
         </div>
-        {sidebarOthersData && (
-          <div>
-            <p className="mb-4 font-satoshi text-sm font-medium uppercase text-body dark:text-gray-6">
-              Others
-            </p>
-            <ul className="space-y-2">
-              {sidebarOthersData.map((item: any) => (
-                <li key={item.id}>
-                  <Link
-                    href={item.path}
-                    className={`flex w-full items-center gap-3 rounded-lg px-3.5 py-3 font-satoshi font-medium duration-300 ${
-                      pathname === item.path
-                        ? "bg-primary bg-opacity-10 text-primary dark:bg-white dark:bg-opacity-10 dark:text-white"
-                        : "text-dark hover:bg-primary hover:bg-opacity-10 hover:text-primary dark:text-gray-5 dark:hover:bg-white dark:hover:bg-opacity-10 dark:hover:text-white"
-                    }`}
-                  >
-                    <span>{item.icon}</span>
-                    {item.title}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
       </div>
-    </>
-  );
+
+      {/* Menu Sections */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="px-4 py-6 space-y-6">
+          {/* Main Menu */}
+          <div>
+            <h3 className="px-2 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              Main Menu
+            </h3>
+            <nav className="space-y-1">
+              {mainMenu.map((item: any) => (
+                <MenuItem
+                  key={item.id}
+                  item={item}
+                  pathname={pathname}
+                  openMenus={openMenus}
+                  toggleMenu={toggleMenu}
+                />
+              ))}
+            </nav>
+          </div>
+
+          {/* Sales */}
+          <div>
+            <h3 className="px-2 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              Sales
+            </h3>
+            <nav className="space-y-1">
+              {sales.map((item: any) => (
+                <MenuItem
+                  key={item.id}
+                  item={item}
+                  pathname={pathname}
+                  openMenus={openMenus}
+                  toggleMenu={toggleMenu}
+                />
+              ))}
+            </nav>
+          </div>
+
+          {/* CRM */}
+          <div>
+            <h3 className="px-2 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              CRM
+            </h3>
+            <nav className="space-y-1">
+              {crm.map((item: any) => (
+                <MenuItem
+                  key={item.id}
+                  item={item}
+                  pathname={pathname}
+                  openMenus={openMenus}
+                  toggleMenu={toggleMenu}
+                />
+              ))}
+            </nav>
+          </div>
+
+          {/* Marketing */}
+          <div>
+            <h3 className="px-2 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              Marketing
+            </h3>
+            <nav className="space-y-1">
+              {marketing.map((item: any) => (
+                <MenuItem
+                  key={item.id}
+                  item={item}
+                  pathname={pathname}
+                  openMenus={openMenus}
+                  toggleMenu={toggleMenu}
+                />
+              ))}
+            </nav>
+          </div>
+
+          {/* Communication */}
+          <div>
+            <h3 className="px-2 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              Communication
+            </h3>
+            <nav className="space-y-1">
+              {communication.map((item: any) => (
+                <MenuItem
+                  key={item.id}
+                  item={item}
+                  pathname={pathname}
+                  openMenus={openMenus}
+                  toggleMenu={toggleMenu}
+                />
+              ))}
+            </nav>
+          </div>
+
+          {/* Finance */}
+          <div>
+            <h3 className="px-2 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              Finance
+            </h3>
+            <nav className="space-y-1">
+              {finance.map((item: any) => (
+                <MenuItem
+                  key={item.id}
+                  item={item}
+                  pathname={pathname}
+                  openMenus={openMenus}
+                  toggleMenu={toggleMenu}
+                />
+              ))}
+            </nav>
+          </div>
+
+          {/* Settings */}
+          <div>
+            <nav className="space-y-1">
+              {settings.map((item: any) => (
+                <MenuItem
+                  key={item.id}
+                  item={item}
+                  pathname={pathname}
+                  openMenus={openMenus}
+                  toggleMenu={toggleMenu}
+                />
+              ))}
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 }
