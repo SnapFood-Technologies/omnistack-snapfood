@@ -212,6 +212,7 @@ export function NewsletterContent() {
           </Pagination>
         </div>
       </Card>
+      <div className="h-8"></div>
     </div>
   );
 }
