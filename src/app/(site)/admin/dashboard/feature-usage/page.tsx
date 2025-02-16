@@ -4,7 +4,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
     title: "Features Usage Stats - SnapFood Admin",
-    description: "",
+    description: "Indicates how many times features are clicked and how many times used",
 };
 
 export default function FeatureUsagePage() {

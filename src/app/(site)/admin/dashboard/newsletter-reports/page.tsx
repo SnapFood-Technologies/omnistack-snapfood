@@ -4,7 +4,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
     title: "Newsletter Reports - SnapFood Admin",
-    description: "Track and Analyze SubAccount Email Campaigns Performance",
+    description: "Track and Analyze SnapFood Email Campaigns Performance",
 };
 
 export default function NewsletterReportsPage() {

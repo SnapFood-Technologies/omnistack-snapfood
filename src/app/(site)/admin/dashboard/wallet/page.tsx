@@ -4,7 +4,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
     title: "Wallet Dashboard & Stats - SnapFood Admin",
-    description: "",
+    description: "Monitor wallet usage and credit distribution",
 };
 
 export default function WalletPage() {
