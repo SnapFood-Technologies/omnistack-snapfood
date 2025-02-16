@@ -265,7 +265,7 @@ export function SocialContent() {
                         </p>
                     </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="mt-4">
                     <div className="h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={chatData}>
@@ -329,7 +329,7 @@ export function SocialContent() {
                         <ArrowRight className="h-4 w-4" />
                     </Button>
                 </div>
-                <CardContent>
+                <CardContent className="mt-2">
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -346,7 +346,9 @@ export function SocialContent() {
                                     <TableCell className="flex items-center gap-2">
                                         <Avatar>
                                             <AvatarImage src={story.avatar} alt={story.user} />
-                                            <AvatarFallback>{story.initials}</AvatarFallback>
+                                            <AvatarFallback className="bg-primary text-white">
+                                                {story.initials}
+                                            </AvatarFallback>
                                         </Avatar>
                                         <span>{story.user}</span>
                                     </TableCell>
