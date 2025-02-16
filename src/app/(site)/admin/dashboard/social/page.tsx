@@ -4,7 +4,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
     title: "Social Dashboard & Stats - SnapFood Admin",
-    description: "",
+    description: "Monitor social interactions and engagement metrics",
 };
 
 export default function SocialPage() {
