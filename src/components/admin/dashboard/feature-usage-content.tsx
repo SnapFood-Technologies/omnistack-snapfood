@@ -107,22 +107,22 @@ export function FeatureUsageContent() {
             </div>
 
             {/* Features Table */}
-            <Card className="shadow-none">
-                <CardHeader>
-                    <div className="flex justify-between items-center">
-                        <div>
-                            <h2 className="text-xl font-bold tracking-tight">Features Usage</h2>
-                            <p className="text-sm text-muted-foreground mt-0">
-                                Track feature engagement and usage patterns
-                            </p>
-                        </div>
-                        <Button variant="outline" size="sm">
-                            <Download className="h-4 w-4 mr-2" />
-                            Export Data
-                        </Button>
+            <Card className="relative shadow-none">
+            <CardHeader>
+                    <div>
+                        <h2 className="text-xl font-bold tracking-tight">Features Usage</h2>
+                        <p className="text-sm text-muted-foreground mt-0">
+                        Track feature engagement and usage patterns
+                        </p>
                     </div>
                 </CardHeader>
-                <CardContent>
+                <div className="absolute top-6 right-6">
+                    <Button variant="outline" size="sm">
+                        <Download className="h-4 w-4 mr-2" />
+                        Export Data
+                    </Button>
+                </div>
+                <CardContent className="mt-2">
                     <Table>
                         <TableHeader>
                             <TableRow>
