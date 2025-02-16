@@ -145,6 +145,7 @@ export function FeatureUsageContent() {
                     </Table>
                 </CardContent>
             </Card>
+            <div className="h-8"></div> 
         </div>
     );
 }
