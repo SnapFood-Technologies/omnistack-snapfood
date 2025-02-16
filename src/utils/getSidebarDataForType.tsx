@@ -55,7 +55,7 @@ import {
                 id: 13,
                 title: "Customer Insights",
                 icon: <UserPlus className="w-4 h-4"/>,
-                path: "/admin/dashboard/insights",
+                path: "/admin/dashboard/customer-insights",
               },
               {
                 id: 14,
