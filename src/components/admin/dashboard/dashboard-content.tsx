@@ -236,9 +236,9 @@ export function DashboardContent() {
                             <div className="flex justify-between items-start space-y-0">
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground">{metric.title}</p>
-                                    <div className="mt-1">
+                                    <div className="mt-0">
                                         <h3 className="text-2xl font-bold">{metric.value}</h3>
-                                        <div className="flex items-center gap-2 mt-1">
+                                        <div className="flex items-center gap-2 ">
                                             <div className={`flex items-center text-sm ${
                                                 metric.trend === 'up' ? 'text-green-600' : 'text-red-600'
                                             }`}>
@@ -268,12 +268,12 @@ export function DashboardContent() {
                     <CardHeader>
                         <div>
                             <h2 className="text-xl font-bold tracking-tight">Order report</h2>
-                            <p className="text-sm text-muted-foreground mt-1">
+                            <p className="text-sm text-muted-foreground mt-0">
                                 Overview of order completion status
                             </p>
                         </div>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="mt-2">
                         <div className="h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <LineChart data={orderReportData}>
@@ -293,12 +293,12 @@ export function DashboardContent() {
                     <CardHeader>
                         <div>
                             <h2 className="text-xl font-bold tracking-tight">Quick Links</h2>
-                            <p className="text-sm text-muted-foreground mt-1">
+                            <p className="text-sm text-muted-foreground mt-0">
                                 Direct access to key sections
                             </p>
                         </div>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="mt-2"> 
                         <div className="grid grid-cols-2 gap-4">
                             {quickLinks.map((link, index) => (
                                 <div key={index} className="text-center">
@@ -319,12 +319,12 @@ export function DashboardContent() {
                     <CardHeader>
                         <div>
                             <h2 className="text-xl font-bold tracking-tight">Top 10 Vendors</h2>
-                            <p className="text-sm text-muted-foreground mt-1">
+                            <p className="text-sm text-muted-foreground mt-0">
                                 Highest performing restaurants
                             </p>
                         </div>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="mt-2">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -350,12 +350,12 @@ export function DashboardContent() {
     <CardHeader>
         <div>
             <h2 className="text-xl font-bold tracking-tight">Top 10 Customers</h2>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-0">
                 Users with highest order frequency
             </p>
         </div>
     </CardHeader>
-    <CardContent>
+    <CardContent className="mt-2">
         <Table>
             <TableHeader>
                 <TableRow>
@@ -385,7 +385,7 @@ export function DashboardContent() {
                     <CardHeader>
                         <div>
                             <h2 className="text-xl font-bold tracking-tight">Orders by Source</h2>
-                            <p className="text-sm text-muted-foreground mt-1">
+                            <p className="text-sm text-muted-foreground mt-0">
                                 Distribution of orders by platform
                             </p>
                         </div>
@@ -425,7 +425,7 @@ export function DashboardContent() {
                     <CardHeader>
                         <div className="mb-2">
                             <h2 className="text-xl font-bold tracking-tight">Orders by Hour</h2>
-                            <p className="text-sm text-muted-foreground mt-1">
+                            <p className="text-sm text-muted-foreground mt-0">
                                 Hourly distribution of order volume
                             </p>
                         </div>
@@ -462,7 +462,7 @@ export function DashboardContent() {
                 <CardHeader>
                     <div>
                         <h2 className="text-xl font-bold tracking-tight">Recent Orders</h2>
-                        <p className="text-sm text-muted-foreground mt-1">
+                        <p className="text-sm text-muted-foreground mt-0">
                             Latest incoming orders from customers
                         </p>
                     </div>
