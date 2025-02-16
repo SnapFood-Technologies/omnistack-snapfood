@@ -3,7 +3,7 @@ import { WalletContent } from "@/components/admin/dashboard/wallet-content"
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Wallet - SnapFood Admin",
+    title: "Wallet Dashboard & Stats - SnapFood Admin",
     description: "",
 };
 

@@ -267,6 +267,7 @@ export function WalletContent() {
                     ))}
                 </div>
             </div>
+            <div className="h-0"></div>
         </div>
     );
 }
