@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -18,9 +19,80 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Calendar, RefreshCw } from "lucide-react";
+import {
+  Calendar,
+  RefreshCw,
+  Mail,
+  ArrowUp,
+  ArrowDown,
+  Minus,
+} from "lucide-react";
 
 export function NewsletterContent() {
+  // Top metrics for newsletter campaigns
+  const newsletterTopMetrics = [
+    {
+      title: "Total Campaigns",
+      value: "10",
+      subtitle: "Total campaigns executed",
+      icon: <Mail className="h-5 w-5 text-blue-500" />,
+    },
+    {
+      title: "Average Open Rate",
+      value: "12.5%",
+      subtitle: "Across all campaigns",
+      icon: <ArrowUp className="h-5 w-5 text-green-500" />,
+      trend: "up",
+      trendValue: "+1.2%",
+    },
+    {
+      title: "Average Click Rate",
+      value: "5.2%",
+      subtitle: "Across all campaigns",
+      icon: <ArrowDown className="h-5 w-5 text-red-500" />,
+      trend: "down",
+      trendValue: "-0.8%",
+    },
+    {
+      title: "Total Recipients",
+      value: "33,000",
+      subtitle: "Cumulative recipients reached",
+      icon: <Mail className="h-5 w-5 text-purple-500" />,
+    },
+  ];
+
+  // Additional stat cards for newsletter details
+  const newsletterStatCards = [
+    {
+      title: "Total Emails Sent",
+      label: "Aggregate number of emails sent:",
+      value: "35,000",
+      type: "blue",
+      icon: <Mail className="h-5 w-5 text-blue-500" />,
+    },
+    {
+      title: "Bounce Rate",
+      label: "Percentage of bounced emails:",
+      value: "2.5%",
+      type: "red",
+      icon: <ArrowDown className="h-5 w-5 text-red-500" />,
+    },
+    {
+      title: "Unsubscribe Rate",
+      label: "Users unsubscribed:",
+      value: "0.5%",
+      type: "orange",
+      icon: <Minus className="h-5 w-5 text-orange-500" />,
+    },
+    {
+      title: "Conversion Rate",
+      label: "Emails leading to action:",
+      value: "4.8%",
+      type: "green",
+      icon: <ArrowUp className="h-5 w-5 text-green-500" />,
+    },
+  ];
+
   const campaignData = [
     {
       name: "Porosi dhuratë",
@@ -126,7 +198,8 @@ export function NewsletterContent() {
             Campaign & Newsletter Analytics
           </h2>
           <p className="text-sm text-muted-foreground">
-            Uncover actionable insights into your email campaigns and newsletters for improved reach.
+            Uncover actionable insights into your email campaigns and newsletters
+            for improved reach.
           </p>
         </div>
         <div className="flex gap-3">
@@ -141,15 +214,98 @@ export function NewsletterContent() {
         </div>
       </div>
 
-      {/* Campaigns Card */}
+      {/* Newsletter Top Metrics */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {newsletterTopMetrics.map((metric, index) => (
+          <Card key={index} className="shadow-none">
+            <CardContent className="p-2">
+              <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                  <h3 className="text-base font-medium">{metric.title}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {metric.subtitle}
+                  </p>
+                  <div className="flex items-center gap-2 mt-4">
+                    <p className="text-2xl font-bold">{metric.value}</p>
+                    {metric.trend && (
+                      <div
+                        className={`flex items-center text-sm ${
+                          metric.trend === "up"
+                            ? "text-green-600"
+                            : metric.trend === "down"
+                            ? "text-red-600"
+                            : "text-gray-600"
+                        }`}
+                      >
+                        {metric.trend === "up" ? (
+                          <ArrowUp className="h-4 w-4" />
+                        ) : metric.trend === "down" ? (
+                          <ArrowDown className="h-4 w-4" />
+                        ) : (
+                          <Minus className="h-4 w-4" />
+                        )}
+                        {metric.trendValue}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="p-2 bg-gray-100/50 rounded-lg">
+                  {metric.icon}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Newsletter Stat Cards */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {newsletterStatCards.map((stat, index) => (
+          <Card key={index} className="shadow-none">
+            <CardContent className="p-2">
+              <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                  <h3 className="text-base font-medium">{stat.title}</h3>
+                  <p className="text-sm text-muted-foreground">{stat.label}</p>
+                  <div className="mt-4">
+                    <Badge
+                      className={`
+                        ${
+                          stat.type === "blue"
+                            ? "bg-blue-100 text-blue-700"
+                            : stat.type === "green"
+                            ? "bg-green-100 text-green-700"
+                            : stat.type === "orange"
+                            ? "bg-orange-100 text-orange-700"
+                            : stat.type === "red"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-gray-100 text-gray-700"
+                        }
+                      `}
+                    >
+                      {stat.value}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="p-2 bg-gray-100/50 rounded-lg">
+                  {stat.icon}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Campaigns Table Card */}
       <Card className="relative shadow-none">
         <CardHeader>
           <div>
             <h2 className="text-xl font-bold tracking-tight">
-               Campaign & Newsletter Analytics
+              Campaign & Newsletter Analytics
             </h2>
             <p className="text-sm text-muted-foreground mt-0">
-                Uncover actionable insights into your email campaigns and newsletters for improved reach.
+              Uncover actionable insights into your email campaigns and newsletters
+              for improved reach.
             </p>
           </div>
         </CardHeader>
