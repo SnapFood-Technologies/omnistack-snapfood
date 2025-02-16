@@ -33,6 +33,13 @@ import {
   ArrowRight,
   TrendingUp,
   RefreshCcw,
+  Share,
+  Headphones,
+  Wallet,
+  DollarSign,
+  XCircle,
+  Receipt,
+  CheckCircle,
 } from "lucide-react";
 import { 
     LineChart, 
@@ -62,6 +69,78 @@ export function DashboardContent() {
         { name: "Web", value: 3 }
     ];
 
+    const topVendors = [
+        { id: 1, name: "Pizza Seni", orders: 53 },
+        { id: 2, name: "Te Komuna", orders: 36 },
+        { id: 3, name: "Monk", orders: 21 },
+        { id: 4, name: "Bloom Bistro", orders: 21 },
+        { id: 5, name: "FABRIKA", orders: 5 },
+        { id: 6, name: "Top Snack", orders: 5 }
+    ];
+
+    const topCustomers = [
+        { id: 1, name: "Marku", orders: 157 },
+        { id: 2, name: "Redi Frasheri", orders: 3 },
+        { id: 3, name: "Klea", orders: 3 },
+        { id: 4, name: "Juri", orders: 1 },
+        { id: 5, name: "Klajdi Zaimi", orders: 1 },
+        { id: 6, name: "Genti Ndoj", orders: 1 }
+    ];
+
+
+    const deliveryMetrics = [
+        {
+            title: 'Delivered Orders',
+            subtitle: 'Successfully completed deliveries',
+            value: '329',
+            icon: CheckCircle
+        },
+        {
+            title: 'Cancelled Orders',
+            subtitle: 'Orders terminated before completion',
+            value: '-',
+            icon: XCircle
+        },
+        {
+            title: 'Average Order Value',
+            subtitle: 'Mean monetary value per order',
+            value: '1,898.906 ALL',
+            icon: DollarSign
+        }
+    ];
+
+    const quickLinks = [
+        { icon: <Headphones className="h-6 w-6" />, label: "Customers" },
+        { icon: <ShoppingBag className="h-6 w-6" />, label: "Orders" },
+        { icon: <Wallet className="h-6 w-6" />, label: "Paid Ads" },
+        { icon: <Share className="h-6 w-6" />, label: "Marketing" }
+    ];
+    
+
+    const bottomMetrics = [
+        {
+            title: 'Total Orders',
+            subtitle: 'Cumulative count of all placed orders',
+            value: '329',
+            valueType: 'blue',
+            icon: ShoppingBag // Add icon
+        },
+        {
+            title: 'Total Revenue',
+            subtitle: 'Net income after all deductions',
+            value: '624,740 ALL',
+            valueType: 'green',
+            icon: DollarSign // Add icon
+        },
+        {
+            title: 'Total Tax',
+            subtitle: 'Aggregate tax collected on orders',
+            value: '110,081.1 ALL',
+            valueType: 'gray',
+            icon: Receipt // Add icon
+        }
+    ];
+
     const recentOrders = [
       {
         id: "PIZZASENI-38033",
@@ -77,6 +156,15 @@ export function DashboardContent() {
     ];
 
     const COLORS = ['#50B7ED', '#4CAF50', '#2196F3'];
+
+    const orderReportData = [
+        { name: "Jan", delivered: 400, cancelled: 200 },
+        { name: "Feb", delivered: 300, cancelled: 150 },
+        { name: "Mar", delivered: 500, cancelled: 250 },
+        { name: "Apr", delivered: 450, cancelled: 300 },
+        { name: "May", delivered: 600, cancelled: 350 },
+        { name: "Jun", delivered: 550, cancelled: 400 }
+    ];
 
     const metrics = [
       {
@@ -144,13 +232,13 @@ export function DashboardContent() {
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 {metrics.map((metric) => (
                     <Card key={metric.title} className="shadow-none">
-                        <CardContent className="p-6">
+                        <CardContent className="p-2">
                             <div className="flex justify-between items-start space-y-0">
                                 <div>
                                     <p className="text-sm font-medium text-muted-foreground">{metric.title}</p>
-                                    <div className="mt-1">
+                                    <div className="mt-0">
                                         <h3 className="text-2xl font-bold">{metric.value}</h3>
-                                        <div className="flex items-center gap-2 mt-1">
+                                        <div className="flex items-center gap-2 ">
                                             <div className={`flex items-center text-sm ${
                                                 metric.trend === 'up' ? 'text-green-600' : 'text-red-600'
                                             }`}>
@@ -174,13 +262,130 @@ export function DashboardContent() {
                 ))}
             </div>
 
+            {/* Order Report and Quick Links */}
+            <div className="grid gap-6 lg:grid-cols-3">
+                <Card className="shadow-none relative lg:col-span-2">
+                    <CardHeader>
+                        <div>
+                            <h2 className="text-xl font-bold tracking-tight">Order report</h2>
+                            <p className="text-sm text-muted-foreground mt-0">
+                                Overview of order completion status
+                            </p>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="mt-2">
+                        <div className="h-[300px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={orderReportData}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="name" />
+                                    <YAxis />
+                                    <Tooltip />
+                                    <Line type="monotone" dataKey="delivered" stroke="#149f8c" strokeWidth={2} />
+                                    <Line type="monotone" dataKey="cancelled" stroke="#ff0000" strokeWidth={2} />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="shadow-none relative">
+                    <CardHeader>
+                        <div>
+                            <h2 className="text-xl font-bold tracking-tight">Quick Links</h2>
+                            <p className="text-sm text-muted-foreground mt-0">
+                                Direct access to key sections
+                            </p>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="mt-2"> 
+                        <div className="grid grid-cols-2 gap-4">
+                            {quickLinks.map((link, index) => (
+                                <div key={index} className="text-center">
+                                    <Button variant="outline" className="w-full h-20 mb-2">
+                                        {link.icon}
+                                    </Button>
+                                    <span className="text-sm text-muted-foreground">{link.label}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Top Vendors & Customers */}
+            <div className="grid gap-6 md:grid-cols-2">
+                <Card className="shadow-none relative">
+                    <CardHeader>
+                        <div>
+                            <h2 className="text-xl font-bold tracking-tight">Top 10 Vendors</h2>
+                            <p className="text-sm text-muted-foreground mt-0">
+                                Highest performing restaurants
+                            </p>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="mt-2">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>No.</TableHead>
+                                    <TableHead>Vendor</TableHead>
+                                    <TableHead>Orders</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {topVendors.map((vendor, index) => (
+                                    <TableRow key={vendor.id}>
+                                        <TableCell>{index + 1}</TableCell>
+                                        <TableCell>{vendor.name}</TableCell>
+                                        <TableCell>{vendor.orders}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+
+                <Card className="shadow-none relative">
+    <CardHeader>
+        <div>
+            <h2 className="text-xl font-bold tracking-tight">Top 10 Customers</h2>
+            <p className="text-sm text-muted-foreground mt-0">
+                Users with highest order frequency
+            </p>
+        </div>
+    </CardHeader>
+    <CardContent className="mt-2">
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead>No.</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Orders</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {topCustomers.map((customer, index) => (
+                    <TableRow key={customer.id}>
+                        <TableCell>{index + 1}</TableCell>
+                        <TableCell>{customer.name}</TableCell>
+                        <TableCell>{customer.orders}</TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
+    </CardContent>
+</Card>
+            </div>
+
+
             {/* Charts Section */}
             <div className="grid gap-6 md:grid-cols-2">
                 <Card className="shadow-none relative">
                     <CardHeader>
                         <div>
                             <h2 className="text-xl font-bold tracking-tight">Orders by Source</h2>
-                            <p className="text-sm text-muted-foreground mt-1">
+                            <p className="text-sm text-muted-foreground mt-0">
                                 Distribution of orders by platform
                             </p>
                         </div>
@@ -220,7 +425,7 @@ export function DashboardContent() {
                     <CardHeader>
                         <div className="mb-2">
                             <h2 className="text-xl font-bold tracking-tight">Orders by Hour</h2>
-                            <p className="text-sm text-muted-foreground mt-1">
+                            <p className="text-sm text-muted-foreground mt-0">
                                 Hourly distribution of order volume
                             </p>
                         </div>
@@ -257,7 +462,7 @@ export function DashboardContent() {
                 <CardHeader>
                     <div>
                         <h2 className="text-xl font-bold tracking-tight">Recent Orders</h2>
-                        <p className="text-sm text-muted-foreground mt-1">
+                        <p className="text-sm text-muted-foreground mt-0">
                             Latest incoming orders from customers
                         </p>
                     </div>
@@ -346,6 +551,55 @@ export function DashboardContent() {
                     </div>
                 </CardContent>
             </Card>
+
+            <div className="grid gap-6 md:grid-cols-3">
+    {bottomMetrics.map((metric, index) => (
+        <Card key={index} className="shadow-none">
+            <CardContent className="p-2">
+                <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                        <h3 className="text-base font-medium">{metric.title}</h3>
+                        <p className="text-sm text-muted-foreground">{metric.subtitle}</p>
+                        <div className="flex items-center gap-2 mt-4">
+                            <Badge 
+                                className={`${
+                                    metric.valueType === 'blue' ? 'bg-blue-100 text-blue-700' :
+                                    metric.valueType === 'green' ? 'bg-green-100 text-green-700' :
+                                    'bg-gray-100 text-gray-700'
+                                } hover:bg-opacity-100`}
+                            >
+                                {metric.value}
+                            </Badge>
+                        </div>
+                    </div>
+                    <div className="p-2 bg-gray-100/50 rounded-lg">
+                        <metric.icon className="h-5 w-5 text-gray-500" />
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    ))}
+</div>
+
+            {/* Delivery Metrics */}
+            <div className="grid gap-6 md:grid-cols-3">
+    {deliveryMetrics.map((metric, index) => (
+        <Card key={index} className="shadow-none">
+            <CardContent className="p-2">
+                <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                        <h3 className="text-base font-medium">{metric.title}</h3>
+                        <p className="text-sm text-muted-foreground">{metric.subtitle}</p>
+                        <p className="text-2xl font-bold mt-4">{metric.value}</p>
+                    </div>
+                    <div className="p-2 bg-gray-100/50 rounded-lg">
+                        <metric.icon className="h-5 w-5 text-gray-500" />
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    ))}
+</div>
             <div className="h-4"></div>
         </div>
     );

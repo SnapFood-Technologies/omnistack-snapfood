@@ -119,8 +119,8 @@ export default function Sidebar({ mainMenu, sales, crm, marketing, communication
       </div>
 
       {/* Menu Sections */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="px-4 py-6 space-y-6">
+      <div className="flex-1 overflow-y-auto scrollbar-hide">
+      <div className="px-4 py-8 space-y-8">
           {/* Main Menu */}
           <div>
             <h3 className="px-2 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
