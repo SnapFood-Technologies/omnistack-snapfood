@@ -17,6 +17,7 @@ import {
   Pagination,
   PaginationContent,
   PaginationItem,
+  PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
@@ -175,12 +176,12 @@ export function CustomersContent() {
                                 <TableCell>
                                     <div className="flex items-center gap-3">
                                         <Avatar>
-                                            <AvatarFallback className="uppercase">
-                                                {customer.full_name ? customer.full_name.substring(0, 2) : "??"}
+                                        <AvatarFallback className="bg-primary text-white uppercase">
+                                                {customer.full_name ? customer.full_name.substring(0, 2) : "NA"}
                                             </AvatarFallback>
                                         </Avatar>
                                         <div className="font-medium">
-                                            {customer.full_name || "Anonymous"}
+                                            {customer.full_name || "Unnamed"}
                                         </div>
                                     </div>
                                 </TableCell>
@@ -232,7 +233,58 @@ export function CustomersContent() {
                     </TableBody>
                 </Table>
 
-                {/* Existing pagination */}
+                <div className="border-t px-4 py-3">
+    <div className="flex items-center justify-between gap-4">
+        <InputSelect
+            name="pageSize"
+            label=""
+            value={pageSize.toString()}
+            onChange={(e) => setPageSize(parseInt(e.target.value))}
+            options={[
+                { value: "10", label: "10 rows" },
+                { value: "20", label: "20 rows" },
+                { value: "50", label: "50 rows" }
+            ]}
+        />
+        
+        <div className="flex-1 flex items-center justify-center">
+            <Pagination>
+                <PaginationContent>
+                    <PaginationItem>
+                        <PaginationPrevious 
+                            href="#" 
+                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                            disabled={currentPage === 1}
+                        />
+                    </PaginationItem>
+                    {[...Array(Math.min(5, totalPages))].map((_, i) => (
+                        <PaginationItem key={i + 1}>
+                            <PaginationLink
+                                href="#"
+                                isActive={currentPage === i + 1}
+                                onClick={() => setCurrentPage(i + 1)}
+                            >
+                                {i + 1}
+                            </PaginationLink>
+                        </PaginationItem>
+                    ))}
+                    <PaginationItem>
+                        <PaginationNext 
+                            href="#" 
+                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                            disabled={currentPage === totalPages}
+                        />
+                    </PaginationItem>
+                </PaginationContent>
+            </Pagination>
+        </div>
+
+        <p className="text-sm text-muted-foreground min-w-[180px] text-right">
+            Showing <span className="font-medium">{customers.length}</span> of{" "}
+            <span className="font-medium">{totalItems}</span> customers
+        </p>
+    </div>
+</div>
             </CardContent>
         </Card>
         </div>
