@@ -8,134 +8,147 @@ generator client {
 }
 
 model User {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  email         String    @unique
-  name          String?
-  password      String
-  role          Role      @default(RESTAURANT_STAFF)
-  restaurantId  String?   @db.ObjectId
-  restaurant    Restaurant? @relation(fields: [restaurantId], references: [id])
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id           String      @id @default(auto()) @map("_id") @db.ObjectId
+  email        String      @unique
+  name         String?
+  password     String
+  role         Role        @default(RESTAURANT_STAFF)
+  restaurantId String?     @db.ObjectId
+  restaurant   Restaurant? @relation(fields: [restaurantId], references: [id])
+  clientId     String?     @db.ObjectId
+  client       Client?     @relation(fields: [clientId], references: [id])
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model Client {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  name              String
+  isSuperClient     Boolean  @default(false)
+  omniGatewayId     String?  @unique
+  omniGatewayApiKey String?  @unique
+  users             User[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model Restaurant {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  description   String?
-  address       String
-  phone         String
-  email         String
-  status        RestaurantStatus @default(PENDING)
-  users         User[]
-  menus         Menu[]
-  products      Product[]
-  categories    Category[]
-  orders        Order[]
-  qrCodes       QRCode[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id          String           @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String?
+  address     String
+  phone       String
+  email       String
+  status      RestaurantStatus @default(PENDING)
+  users       User[]
+  menus       Menu[]
+  products    Product[]
+  categories  Category[]
+  orders      Order[]
+  qrCodes     QRCode[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 }
 
 model Menu {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  description   String?
-  isActive      Boolean   @default(true)
-  isDefault     Boolean   @default(false)
-  categories    MenuCategory[]
-  restaurantId  String    @db.ObjectId
-  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  qrCodes       QRCode[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id           String         @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  description  String?
+  isActive     Boolean        @default(true)
+  isDefault    Boolean        @default(false)
+  categories   MenuCategory[]
+  restaurantId String         @db.ObjectId
+  restaurant   Restaurant     @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  qrCodes      QRCode[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 }
 
 model Category {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  description   String?
-  products      Product[]
-  menus         MenuCategory[]
-  order         Int       @default(0)
-  isActive      Boolean   @default(true)
-  restaurantId  String    @db.ObjectId
-  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  parentId      String?   @db.ObjectId
-  parent        Category? @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  children      Category[] @relation("CategoryHierarchy")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id           String         @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  description  String?
+  products     Product[]
+  menus        MenuCategory[]
+  order        Int            @default(0)
+  isActive     Boolean        @default(true)
+  restaurantId String         @db.ObjectId
+  restaurant   Restaurant     @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  parentId     String?        @db.ObjectId
+  parent       Category?      @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children     Category[]     @relation("CategoryHierarchy")
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 }
 
 model MenuCategory {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  menuId        String    @db.ObjectId
-  categoryId    String    @db.ObjectId
-  order         Int       @default(0)
-  menu          Menu      @relation(fields: [menuId], references: [id], onDelete: Cascade)
-  category      Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  menuId     String   @db.ObjectId
+  categoryId String   @db.ObjectId
+  order      Int      @default(0)
+  menu       Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@unique([menuId, categoryId])
 }
 
 model Product {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
   name          String
   description   String?
   price         Float
   image         String?
-  isAvailable   Boolean   @default(true)
-  isPopular     Boolean   @default(false)
-  categoryId    String    @db.ObjectId
-  category      Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  restaurantId  String    @db.ObjectId
-  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  isAvailable   Boolean     @default(true)
+  isPopular     Boolean     @default(false)
+  categoryId    String      @db.ObjectId
+  category      Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  restaurantId  String      @db.ObjectId
+  restaurant    Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   orderMethod   OrderMethod @default(ALL)
-  nepsOrder     Boolean   @default(true)
-  ageRestricted Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  nepsOrder     Boolean     @default(true)
+  ageRestricted Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
 model QRCode {
-  id               String      @id @default(auto()) @map("_id") @db.ObjectId
-  name             String?
-  code             String      @unique
-  design           String      @default("classic")
-  type             QRCodeType  @default(TABLE)
-  primaryColor     String      @default("#000000")
-  backgroundColor  String      @default("#FFFFFF")
-  size             String      @default("medium")
-  customText       String?
-  hasLogo          Boolean     @default(false)
-  errorCorrectionLevel String   @default("M")
-  scans            Int         @default(0)
-  lastScanned      DateTime?
-  isActive         Boolean     @default(true)
-  tableNumber      Int?
-  menuId           String?     @db.ObjectId
-  menu             Menu?       @relation(fields: [menuId], references: [id], onDelete: Cascade)
-  restaurantId     String?      @db.ObjectId
-  restaurant       Restaurant?  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  id                   String      @id @default(auto()) @map("_id") @db.ObjectId
+  name                 String?
+  code                 String      @unique
+  design               String      @default("classic")
+  type                 QRCodeType  @default(TABLE)
+  primaryColor         String      @default("#000000")
+  backgroundColor      String      @default("#FFFFFF")
+  size                 String      @default("medium")
+  customText           String?
+  hasLogo              Boolean     @default(false)
+  errorCorrectionLevel String      @default("M")
+  scans                Int         @default(0)
+  lastScanned          DateTime?
+  isActive             Boolean     @default(true)
+  tableNumber          Int?
+  menuId               String?     @db.ObjectId
+  menu                 Menu?       @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  restaurantId         String?     @db.ObjectId
+  restaurant           Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
 }
 
 model Order {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  status        OrderStatus @default(PENDING)
-  total         Float
-  items         Json
-  customerInfo  Json
-  restaurantId  String    @db.ObjectId
-  restaurant    Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  tableNumber   Int?
-  qrCodeScan    String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id           String      @id @default(auto()) @map("_id") @db.ObjectId
+  status       OrderStatus @default(PENDING)
+  total        Float
+  items        Json
+  customerInfo Json
+  restaurantId String      @db.ObjectId
+  restaurant   Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  tableNumber  Int?
+  qrCodeScan   String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 }
 
 enum Role {
@@ -174,7 +187,6 @@ enum QRCodeType {
   SPECIAL
 }
 
-
 enum EmailStatus {
   PENDING
   SENT
@@ -187,27 +199,27 @@ enum EmailType {
 }
 
 model EmailTemplate {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
-  type        EmailType @unique  // Make type unique so we can query by it
-  subject     String
-  htmlFile    String    // Store the HTML file path
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  sentEmails  Email[]
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  type       EmailType @unique // Make type unique so we can query by it
+  subject    String
+  htmlFile   String // Store the HTML file path
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  sentEmails Email[]
 }
 
 model Email {
-  id          String      @id @default(auto()) @map("_id") @db.ObjectId
-  templateId  String      @db.ObjectId
-  template    EmailTemplate @relation(fields: [templateId], references: [id])
-  to          String
-  from        String      @default("noreply@snapfood.com")
-  subject     String
-  body        String
-  status      EmailStatus @default(PENDING)
-  error       String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id         String        @id @default(auto()) @map("_id") @db.ObjectId
+  templateId String        @db.ObjectId
+  template   EmailTemplate @relation(fields: [templateId], references: [id])
+  to         String
+  from       String        @default("noreply@snapfood.com")
+  subject    String
+  body       String
+  status     EmailStatus   @default(PENDING)
+  error      String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
 }
