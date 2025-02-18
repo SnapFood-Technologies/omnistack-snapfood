@@ -20,9 +20,15 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Calendar, Users, TrendingUp, UserPlus, Phone, Mail } from "lucide-react";
+import { 
+    Users, Calendar, TrendingUp, Phone, Mail, 
+    Apple, Smartphone, Globe, UserCircle, 
+    Check, MoreHorizontal, RefreshCcw, 
+    UserPlus
+} from "lucide-react";
 import InputSelect from "@/components/Common/InputSelect";
 import { useEffect, useState } from "react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export function CustomersContent() {
     const { 
@@ -31,38 +37,56 @@ export function CustomersContent() {
         totalItems, 
         totalPages, 
         metrics,
-        fetchCustomers 
+        fetchCustomers,
+        isInitialized 
     } = useSnapFoodCustomers();
-    const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState("10");
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+
+    // Only fetch when page or size changes
     useEffect(() => {
-        fetchCustomers({
-            page: currentPage,
-            per_page: parseInt(pageSize)
-        });
-    }, [fetchCustomers, currentPage, pageSize]);
+        if (isInitialized) {
+            fetchCustomers({
+                page: currentPage,
+                per_page: pageSize
+            });
+        }
+    }, [currentPage, pageSize, fetchCustomers, isInitialized]);
 
     const customerMetrics = [
         {
             title: "Total Customers",
             value: totalItems.toString(),
-            change: `+${metrics?.new_today || 0}`,
-            trend: "up",
+            change: `${metrics.new_today > 0 ? '+' : ''}${metrics.new_today}`,
+            trend: metrics.new_today >= 0 ? "up" : "down",
             icon: Users,
             subtitle: "New today",
             color: "blue"
         },
         {
-            title: "Active Customers",
-            value: "157",
-            change: "+12%",
-            trend: "up",
+            title: "Deleted Customers",
+            value: metrics.deleted_today.toString(),
+            change: `${metrics.deleted_today > 0 ? '+' : ''}${metrics.deleted_today}`,
+            trend: "down",
             icon: UserPlus,
-            subtitle: "Last 30 days",
-            color: "green"
+            subtitle: "Today",
+            color: "red"
         }
     ];
+
+    const getSourceIcon = (source: string) => {
+        switch (source.toLowerCase()) {
+            case 'ios':
+                return <Apple className="h-4 w-4 text-gray-500" />;
+            case 'android':
+                return <Smartphone className="h-4 w-4 text-gray-500" />;
+            case 'web':
+                return <Globe className="h-4 w-4 text-gray-500" />;
+            default:
+                return <UserCircle className="h-4 w-4 text-gray-500" />;
+        }
+    };
 
     return (
         <div className="space-y-6 pb-8">
@@ -119,106 +143,98 @@ export function CustomersContent() {
 
             {/* Customers List */}
             <Card className="shadow-none">
-                <CardHeader>
-                    <div>
-                        <h2 className="text-xl font-bold tracking-tight">Customers List</h2>
-                        <p className="text-sm text-muted-foreground mt-0">
-                            Manage and view customer details
-                        </p>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
+            <CardHeader>
+                <div>
+                    <h2 className="text-xl font-bold tracking-tight">Customers List</h2>
+                    <p className="text-sm text-muted-foreground mt-0">
+                        Manage and view customer details
+                    </p>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Customer</TableHead>
+                            <TableHead>Contact</TableHead>
+                            <TableHead>Registration</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Source</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {isLoading ? (
                             <TableRow>
-                                <TableHead>Customer</TableHead>
-                                <TableHead>Contact</TableHead>
-                                <TableHead>Registration Date</TableHead>
-                                <TableHead>Orders</TableHead>
-                                <TableHead>Last Order</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="text-right">Actions</TableHead>
+                                <TableCell colSpan={6} className="text-center">
+                                    <RefreshCcw className="h-6 w-6 animate-spin text-muted-foreground mx-auto" />
+                                </TableCell>
                             </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {isLoading ? (
-                                <TableRow>
-                                    <TableCell colSpan={7} className="text-center">
-                                        Loading...
-                                    </TableCell>
-                                </TableRow>
-                            ) : customers.map((customer) => (
-                                <TableRow key={customer.id}>
-                                    <TableCell>{customer.full_name}</TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-col gap-1">
-                                            <div className="flex items-center gap-1">
-                                                <Phone className="h-3 w-3" />
-                                                <span className="text-sm">{customer.phone}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                                <Mail className="h-3 w-3" />
-                                                <span className="text-sm">{customer.email}</span>
-                                            </div>
+                        ) : customers.map((customer) => (
+                            <TableRow key={customer.id}>
+                                <TableCell>
+                                    <div className="flex items-center gap-3">
+                                        <Avatar>
+                                            <AvatarFallback className="uppercase">
+                                                {customer.full_name ? customer.full_name.substring(0, 2) : "??"}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div className="font-medium">
+                                            {customer.full_name || "Anonymous"}
                                         </div>
-                                    </TableCell>
-                                    <TableCell>{new Date(customer.registered_at).toLocaleDateString()}</TableCell>
-                                    <TableCell>-</TableCell>
-                                    <TableCell>{customer.last_order ? new Date(customer.last_order).toLocaleDateString() : '-'}</TableCell>
-                                    <TableCell>
-                                        <Badge variant="secondary" className="bg-green-50 text-green-700">
-                                            Active
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="space-y-1">
+                                        <div className="flex items-center text-sm">
+                                            <Mail className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
+                                            {customer.email}
+                                        </div>
+                                        <div className="flex items-center text-sm">
+                                            <Phone className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
+                                            {customer.phone}
+                                        </div>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    {new Date(customer.created_at).toLocaleDateString('en-US', {
+                                        year: 'numeric',
+                                        month: 'short',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    })}
+                                </TableCell>
+                                <TableCell>
+                                    <Badge variant={customer.active ? "success" : "secondary"}>
+                                        {customer.active ? "Active" : "Inactive"}
+                                    </Badge>
+                                    {customer.verified_by_mobile && (
+                                        <Badge variant="outline" className="ml-2">
+                                            <Check className="h-3 w-3 mr-1" />
+                                            Verified
                                         </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-right">•••</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                                    )}
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex items-center gap-2">
+                                        {getSourceIcon(customer.source)}
+                                        <span className="capitalize">{customer.source || 'Manual'}</span>
+                                    </div>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    <Button variant="ghost" size="icon">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
 
-                    {/* Pagination */}
-                    <div className="border-t px-4 py-3">
-                        <div className="flex items-center justify-between gap-4">
-                            <InputSelect
-                                name="pageSize"
-                                label=""
-                                value={pageSize}
-                                onChange={(e) => setPageSize(e.target.value)}
-                                options={[
-                                    { value: "10", label: "10 rows" },
-                                    { value: "20", label: "20 rows" },
-                                    { value: "50", label: "50 rows" }
-                                ]}
-                            />
-                            
-                            <div className="flex-1 flex items-center justify-center">
-                                <Pagination>
-                                    <PaginationContent>
-                                        <PaginationItem>
-                                            <PaginationPrevious 
-                                                href="#" 
-                                                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                                            />
-                                        </PaginationItem>
-                                        {/* Add page numbers here if needed */}
-                                        <PaginationItem>
-                                            <PaginationNext 
-                                                href="#" 
-                                                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                                            />
-                                        </PaginationItem>
-                                    </PaginationContent>
-                                </Pagination>
-                            </div>
-
-                            <p className="text-sm text-muted-foreground min-w-[180px] text-right">
-                                Showing <span className="font-medium">{customers.length}</span> of{" "}
-                                <span className="font-medium">{totalItems}</span> customers
-                            </p>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+                {/* Existing pagination */}
+            </CardContent>
+        </Card>
         </div>
     );
 }

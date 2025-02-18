@@ -1,4 +1,4 @@
-export interface Client {
+interface Client {
   id: string;
   name: string;
   isSuperClient: boolean;
@@ -6,7 +6,7 @@ export interface Client {
   omniGatewayApiKey?: string;
 }
 
-export interface User {
+interface User {
   id: string;
   email: string;
   name: string;
@@ -19,17 +19,18 @@ export interface User {
 // hooks/useClient.ts
 import { useSession } from 'next-auth/react';
 
+
 export const useClient = () => {
-  const { data: session } = useSession();
-  const user = session?.user as User;
-  
-  return {
-    clientId: user?.clientId || '',
-    client: user?.client || null,
-    isSystemClient: user?.client?.isSuperClient || false,
-    gatewayId: user?.client?.omniGatewayId,
-    gatewayApiKey: user?.client?.omniGatewayApiKey,
-    name: user?.name,
-    role: user?.role,
-  };
+    const { data: session } = useSession();
+    const user = session?.user as User;
+    
+    return {
+        clientId: user?.clientId || '',
+        client: user?.client || null,
+        isSystemClient: user?.client?.isSuperClient || false,
+        gatewayId: user?.client?.omniGatewayId,
+        gatewayApiKey: user?.client?.omniGatewayApiKey,
+        name: user?.name,
+        role: user?.role,
+    };
 };
