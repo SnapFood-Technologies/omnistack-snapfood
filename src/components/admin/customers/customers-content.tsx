@@ -30,6 +30,7 @@ import {
 import InputSelect from "@/components/Common/InputSelect";
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import React from "react";
 
 export function CustomersContent() {
     const { 
@@ -44,6 +45,9 @@ export function CustomersContent() {
 
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
+
+    const startItem = (currentPage - 1) * pageSize + 1;
+const endItem = Math.min(currentPage * pageSize, totalItems);
 
     // Only fetch when page or size changes
     useEffect(() => {
@@ -239,7 +243,11 @@ export function CustomersContent() {
             name="pageSize"
             label=""
             value={pageSize.toString()}
-            onChange={(e) => setPageSize(parseInt(e.target.value))}
+            onChange={(e) => {
+                const newSize = parseInt(e.target.value);
+                setPageSize(newSize);
+                setCurrentPage(1); // Reset to first page when changing page size
+            }}
             options={[
                 { value: "10", label: "10 rows" },
                 { value: "20", label: "20 rows" },
@@ -257,17 +265,45 @@ export function CustomersContent() {
                             disabled={currentPage === 1}
                         />
                     </PaginationItem>
-                    {[...Array(Math.min(5, totalPages))].map((_, i) => (
-                        <PaginationItem key={i + 1}>
-                            <PaginationLink
-                                href="#"
-                                isActive={currentPage === i + 1}
-                                onClick={() => setCurrentPage(i + 1)}
-                            >
-                                {i + 1}
-                            </PaginationLink>
-                        </PaginationItem>
-                    ))}
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(page => {
+                            // Show first page, last page, current page and pages around current
+                            return page === 1 || 
+                                   page === totalPages || 
+                                   Math.abs(page - currentPage) <= 2
+                        })
+                        .map((page, i, array) => {
+                            // If there's a gap, show ellipsis
+                            if (i > 0 && page - array[i - 1] > 1) {
+                                return (
+                                    <React.Fragment key={`gap-${page}`}>
+                                        <PaginationItem>
+                                            <PaginationLink disabled>...</PaginationLink>
+                                        </PaginationItem>
+                                        <PaginationItem>
+                                            <PaginationLink
+                                                href="#"
+                                                isActive={currentPage === page}
+                                                onClick={() => setCurrentPage(page)}
+                                            >
+                                                {page}
+                                            </PaginationLink>
+                                        </PaginationItem>
+                                    </React.Fragment>
+                                );
+                            }
+                            return (
+                                <PaginationItem key={page}>
+                                    <PaginationLink
+                                        href="#"
+                                        isActive={currentPage === page}
+                                        onClick={() => setCurrentPage(page)}
+                                    >
+                                        {page}
+                                    </PaginationLink>
+                                </PaginationItem>
+                            );
+                        })}
                     <PaginationItem>
                         <PaginationNext 
                             href="#" 
@@ -280,13 +316,15 @@ export function CustomersContent() {
         </div>
 
         <p className="text-sm text-muted-foreground min-w-[180px] text-right">
-            Showing <span className="font-medium">{customers.length}</span> of{" "}
+            Showing <span className="font-medium">{startItem}-{endItem}</span> of{" "}
             <span className="font-medium">{totalItems}</span> customers
         </p>
     </div>
 </div>
             </CardContent>
         </Card>
+          {/* Bottom spacing */}
+      <div className="h-4"></div>
         </div>
     );
 }
