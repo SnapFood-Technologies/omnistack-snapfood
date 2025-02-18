@@ -1,10 +1,9 @@
 // hooks/useSnapFoodCustomers.ts
 import { useState, useCallback } from 'react';
-import { createSnapFoodApi } from '@/api/external/omnigateway/snapfood';
 import { CustomerParams, CustomerMetrics, Customer } from '@/app/api/external/omnigateway/types/snapfood-customer';
-
 import { useToast } from '@/components/ui/use-toast';
 import { useGatewayClientApiKey } from './useGatewayClientApiKey';
+import { createSnapFoodApi } from '@/app/api/external/omnigateway/snapfood-customer';
 
 export const useSnapFoodCustomers = () => {
     const [isLoading, setIsLoading] = useState(false);
