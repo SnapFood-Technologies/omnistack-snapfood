@@ -38,9 +38,9 @@ function MetricCard({ label, value, subValue, icon: Icon }: MetricCardProps) {
 
 function WalletStats({ data }: { data: any }) {
     const formatCurrency = (amount: number | string) => {
-        return new Intl.NumberFormat('en-US', {
+        return new Intl.NumberFormat('sq-AL', {
             style: 'currency',
-            currency: 'USD',
+            currency: 'ALL',
             minimumFractionDigits: 0,
             maximumFractionDigits: 0
         }).format(Number(amount));
@@ -86,6 +86,7 @@ function WalletStats({ data }: { data: any }) {
         </div>
     );
 }
+
 
 function CustomerInsightSection({ data }: { data: any }) {
     // Data is directly in the response, not under customerStats
@@ -279,9 +280,9 @@ export function InsightCard({ title, data, loading, onClick, error }: InsightCar
                 </Button>
             </div>
 
-            {title === "Customer Insights" && (
-                <CustomerInsightSection data={responseData} />
-            )}
+            {title.toLowerCase().includes("customer") && (
+    <CustomerInsightSection data={responseData} />
+)}
 
             {title === "Health Check" && (
                 <HealthCheckSection data={responseData} />
