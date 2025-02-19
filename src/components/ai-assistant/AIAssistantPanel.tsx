@@ -6,7 +6,8 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card } from "@/components/ui/card";
+import { InsightCard } from "./InsightCard";
+
 import DOMPurify from 'dompurify';
 import { 
     Bot, X, Send, Users, ShoppingBag, 
@@ -51,40 +52,6 @@ function FormattedMessage({ content, role }: { content: string; role: 'user' | '
                 )}
             </div>
         </div>
-    );
-}
-
-function InsightCard({ title, data, loading, onClick, error }: any) {
-    return (
-        <Card className="p-4">
-            <div className="flex justify-between items-center mb-4">
-                <h3 className="font-medium">{title}</h3>
-                <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={onClick}
-                    disabled={loading}
-                >
-                    {loading ? <RefreshCcw className="h-4 w-4 animate-spin" /> : 'Refresh'}
-                </Button>
-            </div>
-            <div className="min-h-[100px]">
-                {loading ? (
-                    <div className="animate-pulse space-y-2">
-                        <div className="h-4 bg-muted rounded w-3/4"></div>
-                        <div className="h-4 bg-muted rounded w-1/2"></div>
-                    </div>
-                ) : error ? (
-                    <p className="text-sm text-red-500">{error}</p>
-                ) : data ? (
-                    <div className="prose prose-sm">
-                        <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(data) }} />
-                    </div>
-                ) : (
-                    <p className="text-sm text-muted-foreground">Click refresh to load data</p>
-                )}
-            </div>
-        </Card>
     );
 }
 
