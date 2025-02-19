@@ -1,4 +1,3 @@
-// hooks/useAIAssistant.ts
 import { useState, useCallback } from 'react';
 import { AIAssistantType, AIQueryContext, AIQueryResponse } from '@/app/api/external/omnigateway/types/snapfood-ai';
 import { useGatewayClientApiKey } from './useGatewayClientApiKey';
@@ -52,14 +51,51 @@ export const useAIAssistant = () => {
         }
     }, [aiApi]);
 
-    const loadHealthStats = useCallback(async () => {
+    const getInsights = useCallback(async (type: AIAssistantType, startDate?: string, endDate?: string) => {
+        if (!aiApi) return;
+
+        try {
+            const response = await aiApi.getInsights(type, startDate, endDate);
+            return response;
+        } catch (error) {
+            console.error('Failed to load insights:', error);
+            toast({
+                title: "Error",
+                description: "Failed to load insights",
+                variant: "destructive",
+            });
+        }
+    }, [aiApi]);
+
+    const getHealthCheck = useCallback(async () => {
         if (!aiApi) return;
 
         try {
             const response = await aiApi.getHealthCheck();
-            setHealthStats(response.data);
+            return response;
         } catch (error) {
-            console.error('Failed to load health stats:', error);
+            console.error('Failed to load health check:', error);
+            toast({
+                title: "Error",
+                description: "Failed to load health check",
+                variant: "destructive",
+            });
+        }
+    }, [aiApi]);
+
+    const getQuickStats = useCallback(async () => {
+        if (!aiApi) return;
+
+        try {
+            const response = await aiApi.getQuickStats();
+            return response;
+        } catch (error) {
+            console.error('Failed to load quick stats:', error);
+            toast({
+                title: "Error",
+                description: "Failed to load quick stats",
+                variant: "destructive",
+            });
         }
     }, [aiApi]);
 
@@ -70,7 +106,9 @@ export const useAIAssistant = () => {
         healthStats,
         askAssistant,
         loadSuggestions,
-        loadHealthStats,
+        getInsights,
+        getHealthCheck,
+        getQuickStats,
         clearMessages: () => setMessages([])
     };
 };
