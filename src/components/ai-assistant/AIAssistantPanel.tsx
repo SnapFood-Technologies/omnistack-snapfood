@@ -149,7 +149,7 @@ export function AIAssistantPanel({ open, onClose }: AIAssistantPanelProps) {
         setLoadingHealth(true);
         try {
             const data = await getHealthCheck();
-            setHealthCheckData(data.answer);
+            setHealthCheckData(data);
         } catch (error) {
             console.error('Failed to load health check:', error);
         } finally {
@@ -161,7 +161,7 @@ export function AIAssistantPanel({ open, onClose }: AIAssistantPanelProps) {
         setLoadingStats(true);
         try {
             const data = await getQuickStats();
-            setQuickStatsData(data.answer);
+            setQuickStatsData(data);
         } catch (error) {
             console.error('Failed to load quick stats:', error);
         } finally {
@@ -173,7 +173,7 @@ export function AIAssistantPanel({ open, onClose }: AIAssistantPanelProps) {
         setLoadingInsights(true);
         try {
             const data = await getInsights(selectedType);
-            setInsightsData(data.answer);
+            setInsightsData(data);
         } catch (error) {
             console.error('Failed to load insights:', error);
         } finally {
