@@ -1,10 +1,10 @@
 {
   "name": "omnistack-snapfood",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm install && npx prisma generate && next build && npx prisma db push && npx prisma db seed",
+    "build": "npm install && npx prisma generate && next build && npx prisma db push",
     "start": "next start",
     "lint": "next lint",
     "db:seed": "prisma db seed"
