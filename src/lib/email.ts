@@ -7,6 +7,7 @@ interface EmailData {
   to: string;
   subject: string;
   html: string;
+  type?: 'student-verification' | 'password-reset';
 }
 
 export async function sendEmail(emailData: EmailData) {
@@ -15,9 +16,13 @@ export async function sendEmail(emailData: EmailData) {
   }
 
   try {
-    
+    // Choose the appropriate sender based on email type
+    const from = emailData.type === 'password-reset'
+      ? 'SnapFood <no-reply@snapfood.al>'
+      : 'SnapFood <student-verification@snapfood.al>';
+
     const result = await resend.emails.send({
-      from: 'SnapFood <student-verification@snapfood.al>',
+      from,
       to: emailData.to,
       subject: emailData.subject,
       html: emailData.html
