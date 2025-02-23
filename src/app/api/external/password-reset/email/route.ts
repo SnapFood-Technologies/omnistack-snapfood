@@ -103,7 +103,8 @@ export async function POST(request: Request) {
     const result = await sendEmail({
       to: email,
       subject: template.subject,
-      html: processedHtml
+      html: processedHtml,
+      type: 'password-reset'
     });
 
     console.log('Password reset email sent:', result);
