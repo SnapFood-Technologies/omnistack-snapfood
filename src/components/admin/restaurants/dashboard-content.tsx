@@ -1,10 +1,37 @@
-// src/components/restaurant/dashboard-content.tsx
+"use client"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Overview } from "@/components/general/restaurants/overview"
 import { RecentOrders } from "@/components/general/restaurants/recent-orders"
 import { DollarSign, Users, Package, Activity } from "lucide-react"
 
-export function RestaurantDashboardContent() {
+interface RestaurantDashboardContentProps {
+  id: string
+}
+
+export function RestaurantDashboardContent({ id }: RestaurantDashboardContentProps) {
+  const [restaurant, setRestaurant] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchRestaurant() {
+      try {
+        const response = await fetch(`/api/restaurants/${id}`)
+        if (response.ok) {
+          const data = await response.json()
+          setRestaurant(data)
+        }
+      } catch (error) {
+        console.error("Error fetching restaurant:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchRestaurant()
+  }, [id])
+
+  if (loading) return <div>Loading restaurant data...</div>
   return (
     <div className="space-y-6">
       <div>

@@ -5,8 +5,8 @@ import { createSnapFoodVendorApi } from "@/app/api/external/omnigateway/snapfood
 
 export async function POST(req: Request) {
   try {
-    // Get API key from environment
-    const apiKey = process.env.OMNI_GATEWAY_API_KEY;
+    // Get API key known
+    const apiKey = 'sk_f37b183bf20e3bdf9c5ed0a7cc96428d57915bf132caaf96296a0be008cc2994';
     
     if (!apiKey) {
       return NextResponse.json(
@@ -15,12 +15,12 @@ export async function POST(req: Request) {
       );
     }
     
-    // Use the same API client as the hook
+    // Create the API client
     const snapFoodApi = createSnapFoodVendorApi(apiKey);
     
-    // Get vendors using the same function as in the hook
+    // Get vendors 
     const response = await snapFoodApi.getVendors({
-      per_page: 100 // Get more vendors in one request for efficiency
+      per_page: 350 // Get more vendors in one request for efficiency
     });
     
     if (!response.success || !response.data) {
@@ -42,10 +42,25 @@ export async function POST(req: Request) {
     // Process each vendor
     for (const vendor of vendors) {
       try {
+        // Ensure vendorId is a number
+        const vendorId = Number(vendor.externalSnapfoodId);
+        
+        if (isNaN(vendorId)) {
+          errors.push({
+            id: vendor.externalSnapfoodId,
+            error: `Invalid vendor ID format: ${vendor.externalSnapfoodId}`
+          });
+          continue;
+        }
+        
         // Check if restaurant with this external ID already exists
         const existingRestaurant = await prisma.restaurant.findFirst({
-          where: { externalSnapfoodId: vendor.externalSnapfoodId }
+          where: { externalSnapfoodId: vendorId }
         });
+        
+        // Convert coordinates to numbers if needed
+        const latitude = Number(vendor.latitude) || 0;
+        const longitude = Number(vendor.longitude) || 0;
         
         if (existingRestaurant) {
           // Update existing restaurant
@@ -56,9 +71,10 @@ export async function POST(req: Request) {
               description: vendor.description || existingRestaurant.description,
               address: vendor.address || existingRestaurant.address,
               phone: vendor.phone || existingRestaurant.phone,
-              latitude: vendor.latitude || existingRestaurant.latitude ,
-              longitude: vendor.latitude || existingRestaurant.latitude ,
-              isOpen: vendor.isOpen || existingRestaurant.isOpen,
+              latitude: latitude,
+              longitude: longitude,
+              isOpen: vendor.open !== undefined ? vendor.open : existingRestaurant.isOpen,
+              isActive: vendor.isActive !== undefined ? vendor.isActive : existingRestaurant.isActive,
               lastSyncedAt: new Date()
             }
           });
@@ -68,14 +84,15 @@ export async function POST(req: Request) {
           // Create new restaurant
           await prisma.restaurant.create({
             data: {
-              externalSnapfoodId: vendor.externalSnapfoodId,
+              externalSnapfoodId: vendorId,
               name: vendor.name,
               description: vendor.description || "",
               address: vendor.address || "",
               phone: vendor.phone || "",
-              latitude: vendor.latitude || "" ,
-              longitude: vendor.latitude || "" ,
-              isOpen: vendor.isOpen || false,
+              latitude: latitude,
+              longitude: longitude,
+              isOpen: vendor.open !== undefined ? vendor.open : false,
+              isActive: vendor.isActive !== undefined ? vendor.isActive : false,
               email: "",
               status: "ACTIVE",
               lastSyncedAt: new Date()
@@ -87,10 +104,12 @@ export async function POST(req: Request) {
         
         syncedVendors++;
       } catch (error) {
-        console.error(`Error processing vendor ${vendor.externalSnapfoodId}:`, error);
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        
+        
         errors.push({
-          id: vendor.externalSnapfoodId,
-          error: error.message
+          id: vendor?.externalSnapfoodId,
+          error: errorMsg
         });
       }
     }
@@ -105,11 +124,13 @@ export async function POST(req: Request) {
     });
     
   } catch (error) {
-    console.error("Error syncing restaurants:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    
     return NextResponse.json(
       { 
         success: false,
-        error: "Error syncing restaurants: " + error.message
+        error: "Error syncing restaurants: " + errorMessage
       }, 
       { status: 500 }
     );

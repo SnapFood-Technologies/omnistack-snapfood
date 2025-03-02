@@ -1,23 +1,26 @@
-// app/(site)/admin/restaurants/[id]/layout.tsx
+// src/app/(site)/admin/restaurants/[id]/layout.tsx
 import { RestaurantTabs } from "@/components/admin/restaurants/tabs"
 
-export default function RestaurantLayout({
+export default async function RestaurantLayout({
   children,
   params
 }: {
   children: React.ReactNode
-  params: { id: string }
+  params: Promise<{ id: string }> | { id: string }
 }) {
+  // Await the params object itself
+  const resolvedParams = await params;
+  
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold">Pasta Paradise</h2>
+        <h2 className="text-3xl font-bold">Restaurant Details</h2>
         <p className="text-muted-foreground mt-2">
           Manage your restaurant details, menu, and delivery settings
         </p>
       </div>
       
-      <RestaurantTabs restaurantId={params.id} />
+      <RestaurantTabs restaurantId={resolvedParams.id} />
       
       {children}
     </div>

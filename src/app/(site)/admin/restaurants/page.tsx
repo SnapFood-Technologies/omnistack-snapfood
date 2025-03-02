@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function RestaurantsPage() {
     return (
-        <div  className="px-5">
+        <div  className="px-3">
             <RestaurantsContent />
         </div>
     )
