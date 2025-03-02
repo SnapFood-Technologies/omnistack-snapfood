@@ -1,44 +1,38 @@
-// types/snapfood-vendor.ts
+// api/external/omnigateway/types/snapfood-vendor.ts
 export interface Vendor {
-    externalSnapfoodId: number;
+    externalSnapfoodId: number | string;
     name: string;
-    description?: string;
-    address?: string;
-    phone?: string;
-    latitude?: number;
-    longitude?: number;
-    isOpen?: boolean;
-    prefix?: string;
+    description: string;
+    address: string;
+    phone: string;
+    latitude: string | number;
+    longitude: string | number;
+    open: boolean;
+    prefix: string;
     isActive: boolean;
     updatedAt: string;
     createdAt: string;
   }
   
-  export interface VendorParams {
-    page?: number;
-    per_page?: number;
-    limit?: number;
-    search?: string;
+  export interface Pagination {
+    total: number;
+    perPage: number;
+    currentPage: number;
+    lastPage: number;
+  }
+  
+  export interface VendorData {
+    vendors: Vendor[];
+    pagination: Pagination;
   }
   
   export interface VendorListResponse {
     success: boolean;
-    data: {
-      vendors: Vendor[];
-      pagination: {
-        total: number;
-        perPage: number;
-        currentPage: number;
-        lastPage: number;
-      };
-    };
+    data: VendorData | null;
+    error?: string;
   }
   
-  export interface VendorSyncResponse {
-    success: boolean;
-    totalVendors: number;
-    syncedVendors: number;
-    createdVendors: number;
-    updatedVendors: number;
-    errors: { id: number; error: string }[];
+  export interface VendorParams {
+    page?: number;
+    per_page?: number;
   }
