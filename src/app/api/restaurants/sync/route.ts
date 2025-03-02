@@ -1,13 +1,11 @@
-// app/api/restaurants/sync/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createSnapFoodVendorApi } from "@/app/api/external/omnigateway/snapfood-vendor";
 
 export async function POST(req: Request) {
   try {
-    // Get API key known
+    // Get API key
     const apiKey = 'sk_f37b183bf20e3bdf9c5ed0a7cc96428d57915bf132caaf96296a0be008cc2994';
-    
     if (!apiKey) {
       return NextResponse.json(
         { success: false, error: "API key not configured" },
@@ -37,23 +35,21 @@ export async function POST(req: Request) {
     let syncedVendors = 0;
     let createdVendors = 0;
     let updatedVendors = 0;
-    let errors = [];
+    let errors: Array<{ id: string | number; error: string }> = [];
     
-    // Process each vendor
-    for (const vendor of vendors) {
+    // Process vendors concurrently using Promise.all
+    const vendorPromises = vendors.map(async (vendor) => {
       try {
-        // Ensure vendorId is a number
         const vendorId = Number(vendor.externalSnapfoodId);
-        
         if (isNaN(vendorId)) {
           errors.push({
             id: vendor.externalSnapfoodId,
             error: `Invalid vendor ID format: ${vendor.externalSnapfoodId}`
           });
-          continue;
+          return;
         }
         
-        // Check if restaurant with this external ID already exists
+        // Check if restaurant already exists
         const existingRestaurant = await prisma.restaurant.findFirst({
           where: { externalSnapfoodId: vendorId }
         });
@@ -71,14 +67,13 @@ export async function POST(req: Request) {
               description: vendor.description || existingRestaurant.description,
               address: vendor.address || existingRestaurant.address,
               phone: vendor.phone || existingRestaurant.phone,
-              latitude: latitude,
-              longitude: longitude,
+              latitude,
+              longitude,
               isOpen: vendor.open !== undefined ? vendor.open : existingRestaurant.isOpen,
               isActive: vendor.isActive !== undefined ? vendor.isActive : existingRestaurant.isActive,
               lastSyncedAt: new Date()
             }
           });
-          
           updatedVendors++;
         } else {
           // Create new restaurant
@@ -89,8 +84,8 @@ export async function POST(req: Request) {
               description: vendor.description || "",
               address: vendor.address || "",
               phone: vendor.phone || "",
-              latitude: latitude,
-              longitude: longitude,
+              latitude,
+              longitude,
               isOpen: vendor.open !== undefined ? vendor.open : false,
               isActive: vendor.isActive !== undefined ? vendor.isActive : false,
               email: "",
@@ -98,21 +93,21 @@ export async function POST(req: Request) {
               lastSyncedAt: new Date()
             }
           });
-          
           createdVendors++;
         }
         
         syncedVendors++;
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error);
-        
-        
         errors.push({
           id: vendor?.externalSnapfoodId,
           error: errorMsg
         });
       }
-    }
+    });
+    
+    // Wait for all vendor operations to finish
+    await Promise.all(vendorPromises);
     
     return NextResponse.json({
       success: true,
@@ -125,8 +120,6 @@ export async function POST(req: Request) {
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-
-    
     return NextResponse.json(
       { 
         success: false,
