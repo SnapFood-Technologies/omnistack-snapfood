@@ -38,19 +38,12 @@ model Restaurant {
   description       String?
   address           String
   phone             String
-  email             String
+  email             String?
   status            RestaurantStatus @default(PENDING)
   externalSnapfoodId Int?            @unique // External ID from Snapfood vendor table
   latitude          Float?           // Added from vendor table
   longitude         Float?           // Added from vendor table
-  deliveryFee       Float?           // Added from vendor table
-  minDeliveryTime   Int?             // Added from vendor table
-  maxDeliveryTime   Int?             // Added from vendor table
-  minOrderPrice     Float?           // Added from vendor table (delivery_minimum_order_price)
-  maxDeliveryRange  Float?           // Added from vendor table
-  deliveryType      String?          // Added from vendor table
-  openingTime       String?          // Added from vendor table ('from' field)
-  closingTime       String?          // Added from vendor table ('to' field)
+  isOpen            Boolean          @default(true)  // Based on vendor status
   isActive          Boolean          @default(true)  // Based on vendor status
   users             User[]
   menus             Menu[]
