@@ -38,9 +38,11 @@ import {
   Database,
   MapPin,
   Phone,
-  FolderSyncIcon
+  FolderSyncIcon,
+  Eye
 } from "lucide-react";
 import InputSelect from "@/components/Common/InputSelect";
+import Link from "next/link";
 
 export function RestaurantsContent() {
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
@@ -92,7 +94,13 @@ export function RestaurantsContent() {
 
       {/* Search and filters */}
       <Card>
-        <CardContent className="pt-6">
+        <CardHeader>
+          <CardTitle>Search</CardTitle>
+          <CardDescription>
+            Find restaurants by name, location, or other details
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
           <form onSubmit={handleSearchSubmit} className="flex gap-2">
             <Input
               placeholder="Search restaurants..."
@@ -125,18 +133,19 @@ export function RestaurantsContent() {
                 <TableHead>Status</TableHead>
                 <TableHead>Snapfood ID</TableHead>
                 <TableHead>Last Synced</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
+                  <TableCell colSpan={6} className="text-center py-8">
                     <RefreshCw className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
                   </TableCell>
                 </TableRow>
               ) : restaurants.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
+                  <TableCell colSpan={6} className="text-center py-8">
                     <p className="text-muted-foreground">No restaurants found</p>
                     <Button
                       variant="outline"
@@ -210,6 +219,14 @@ export function RestaurantsContent() {
                         <Badge variant="outline">Never</Badge>
                       )}
                     </TableCell>
+                    <TableCell>
+                      <Link href={`/admin/restaurants/${restaurant.id}`}>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Eye className="h-4 w-4" />
+                          <span className="sr-only">View details</span>
+                        </Button>
+                      </Link>
+                    </TableCell>
                   </TableRow>
                 ))
               )}
@@ -280,6 +297,8 @@ export function RestaurantsContent() {
         onClose={() => setIsSyncModalOpen(false)}
         onSuccess={handleSyncSuccess}
       />
+
+      <div className="h-10"></div>
     </div>
   );
 }
