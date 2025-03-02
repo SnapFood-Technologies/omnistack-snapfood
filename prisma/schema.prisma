@@ -33,22 +33,51 @@ model Client {
 }
 
 model Restaurant {
-  id          String           @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
-  description String?
-  address     String
-  phone       String
-  email       String
-  status      RestaurantStatus @default(PENDING)
-  users       User[]
-  menus       Menu[]
-  products    Product[]
-  categories  Category[]
-  orders      Order[]
-  qrCodes     QRCode[]
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id                String           @id @default(auto()) @map("_id") @db.ObjectId
+  name              String
+  description       String?
+  address           String
+  phone             String
+  email             String
+  status            RestaurantStatus @default(PENDING)
+  externalSnapfoodId Int?            @unique // External ID from Snapfood vendor table
+  latitude          Float?           // Added from vendor table
+  longitude         Float?           // Added from vendor table
+  deliveryFee       Float?           // Added from vendor table
+  minDeliveryTime   Int?             // Added from vendor table
+  maxDeliveryTime   Int?             // Added from vendor table
+  minOrderPrice     Float?           // Added from vendor table (delivery_minimum_order_price)
+  maxDeliveryRange  Float?           // Added from vendor table
+  deliveryType      String?          // Added from vendor table
+  openingTime       String?          // Added from vendor table ('from' field)
+  closingTime       String?          // Added from vendor table ('to' field)
+  isActive          Boolean          @default(true)  // Based on vendor status
+  users             User[]
+  menus             Menu[]
+  products          Product[]
+  categories        Category[]
+  orders            Order[]
+  qrCodes           QRCode[]
+  qrConfiguration   QRConfiguration[]
+  lastSyncedAt      DateTime?        // Keep track of last sync time
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 }
+
+model QRConfiguration {
+  id                String      @id @default(auto()) @map("_id") @db.ObjectId
+  qrType            String      @default("app_only") // 'app_only' or 'app_with_google'
+  hasLandingPage    Boolean     @default(false)
+  landingPageUrl    String?
+  feeType           String      @default("none") // 'none', 'fixed', 'percentage'
+  feeAmount         Float?
+  isActive          Boolean     @default(true)
+  restaurantId      String      @db.ObjectId
+  restaurant        Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+}
+
 
 model Menu {
   id           String         @id @default(auto()) @map("_id") @db.ObjectId
