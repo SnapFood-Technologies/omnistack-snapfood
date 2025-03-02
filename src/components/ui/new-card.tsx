@@ -1,3 +1,4 @@
+// components/ui/card.tsx
 import * as React from "react";
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -23,7 +24,7 @@ const CardHeader = React.forwardRef<HTMLDivElement, CardHeaderProps>(
   ({ className = "", ...props }, ref) => (
     <div
       ref={ref}
-      className={`flex items-center gap-3 ${className}`}
+      className={`flex flex-col pb-3 ${className}`}
       {...props}
     />
   )
@@ -38,12 +39,27 @@ const CardTitle = React.forwardRef<HTMLHeadingElement, CardTitleProps>(
   ({ className = "", ...props }, ref) => (
     <h3
       ref={ref}
-      className={`text-lg font-semibold mb-4 ${className}`}
+      className={`text-lg font-semibold ${className}`}
       {...props}
     />
   )
 );
 CardTitle.displayName = "CardTitle";
+
+interface CardDescriptionProps extends React.HTMLAttributes<HTMLParagraphElement> {
+  className?: string;
+}
+
+const CardDescription = React.forwardRef<HTMLParagraphElement, CardDescriptionProps>(
+  ({ className = "", ...props }, ref) => (
+    <p
+      ref={ref}
+      className={`text-sm text-muted-foreground ${className}`}
+      {...props}
+    />
+  )
+);
+CardDescription.displayName = "CardDescription";
 
 interface CardContentProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
@@ -60,4 +76,19 @@ const CardContent = React.forwardRef<HTMLDivElement, CardContentProps>(
 );
 CardContent.displayName = "CardContent";
 
-export { Card, CardHeader, CardTitle, CardContent };
+interface CardFooterProps extends React.HTMLAttributes<HTMLDivElement> {
+  className?: string;
+}
+
+const CardFooter = React.forwardRef<HTMLDivElement, CardFooterProps>(
+  ({ className = "", ...props }, ref) => (
+    <div 
+      ref={ref} 
+      className={`flex items-center pt-4 mt-4 border-t ${className}`}
+      {...props}
+    />
+  )
+);
+CardFooter.displayName = "CardFooter";
+
+export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter };

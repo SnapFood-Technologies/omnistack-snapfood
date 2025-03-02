@@ -16,7 +16,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "@/components/ui/new-card";
 
 interface SyncResult {
   success: boolean;
