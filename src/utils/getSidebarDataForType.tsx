@@ -18,7 +18,8 @@ import {
     DollarSign,
     UserCog,
     Newspaper,
-    LineChart
+    LineChart,
+    BarChart
   } from "lucide-react";
   
   export const getSidebarDataForType = (businessType: string = 'FOOD'): { 
@@ -74,6 +75,12 @@ import {
                 title: "Newsletter Reports",
                 icon: <Newspaper className="w-4 h-4"/>,
                 path: "/admin/dashboard/newsletter-reports",
+              },
+              {
+                id: 17,
+                title: "Landing Page Stats",
+                icon: <BarChart className="w-4 h-4"/>,
+                path: "/admin/dashboard/landing-page-stats",
               }
             ]
           }
