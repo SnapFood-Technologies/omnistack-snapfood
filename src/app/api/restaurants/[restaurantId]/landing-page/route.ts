@@ -3,12 +3,15 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 // GET endpoint to fetch landing page data for a restaurant
+// Get QR configuration for a restaurant
 export async function GET(
   req: Request,
-  { params }: { params: { restaurantId: string } }
+  { params }: { params: Promise<{ restaurantId: string }> | { restaurantId: string } }
 ) {
   try {
-    const { restaurantId } = params;
+    // Await the params object
+    const resolvedParams = await params;
+    const restaurantId = resolvedParams.restaurantId;
 
     // Fetch the landing page data including relations
     const landingPage = await prisma.landingPage.findUnique({

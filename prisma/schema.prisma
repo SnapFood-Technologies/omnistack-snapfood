@@ -251,26 +251,42 @@ model Email {
   updatedAt  DateTime      @updatedAt
 }
 
+model FAQ {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  question      String
+  answer        String
+  isActive      Boolean     @default(true)
+  order         Int         @default(0)
+  landingPageId String      @db.ObjectId
+  landingPage   LandingPage @relation(fields: [landingPageId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
 model LandingPage {
-  id               String            @id @default(auto()) @map("_id") @db.ObjectId
-  restaurantId     String            @db.ObjectId
-  restaurant       Restaurant        @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  isActive         Boolean           @default(true)
-  title            String?
-  subtitle         String?
-  description      String?
-  wifiCode         String?
-  preparationTime  String?
-  googleReviewLink String?
-  appDeepLink      String?
-  logoPath         String?
-  backgroundImage  String?
-  popularItems     PopularItem[]
-  reviews          Review[]
-  testimonials     Testimonial[]
-  stats            LandingPageStat[]
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  id                       String            @id @default(auto()) @map("_id") @db.ObjectId
+  restaurantId             String            @db.ObjectId
+  restaurant               Restaurant        @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  isActive                 Boolean           @default(true)
+  title                    String?
+  subtitle                 String?
+  description              String?
+  wifiCode                 String?
+  preparationTime          String?
+  googleReviewLink         String?
+  appDeepLink              String?
+  logoPath                 String?
+  backgroundImage          String?
+  googlePreviewDescription String?
+  popularItemsTitle        String?
+  popularItemsSubtitle     String?
+  popularItems             PopularItem[]
+  faqs                     FAQ[]
+  reviews                  Review[]
+  testimonials             Testimonial[]
+  stats                    LandingPageStat[]
+  createdAt                DateTime          @default(now())
+  updatedAt                DateTime          @updatedAt
 
   @@unique([restaurantId])
 }

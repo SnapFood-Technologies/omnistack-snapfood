@@ -1,20 +1,21 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/new-card"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/components/ui/use-toast"
 import { Plus, Trash2, Upload, ExternalLink, Loader2, Save } from "lucide-react"
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 
-export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
-  const router = useRouter()
+export function LandingPageEditor({ restaurantId, restaurant }: { 
+    restaurantId: string, 
+    restaurant: any // Ideally type this properly
+  }) {
   const { toast } = useToast()
   
   // Loading state
@@ -36,7 +37,11 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
     popularItems: [],
     reviews: [],
     testimonials: [],
-    stats: []
+    stats: [],
+    faqs: [],
+    googlePreviewDescription: "",
+    popularItemsTitle: "",
+    popularItemsSubtitle: ""
   })
   
   // File upload state
@@ -54,6 +59,19 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
         
         if (response.ok) {
           const data = await response.json()
+
+           // If app deep link is not set, pre-fill it
+           if (!data.appDeepLink && restaurant) {
+            data.appDeepLink = `https://reward.snapfood.al/referral/?link=https://snapfood.al/reward?restaurantId=${restaurant.externalSnapfoodId || ''}&apn=com.snapfood.app&isi=1314003561&ibi=com.snapfood.al`;
+          }
+          
+            // Ensure all array properties exist
+            data.faqs = data.faqs || [];
+            data.popularItems = data.popularItems || [];
+            data.reviews = data.reviews || [];
+            data.testimonials = data.testimonials || [];
+            data.stats = data.stats || [];
+
           setLandingPage(data)
           
           // Set previews if images exist
@@ -64,8 +82,27 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
             setBackgroundPreview(data.backgroundImage)
           }
         } else {
-          // If not found, just use the default empty state
-          console.log("No landing page found, using default empty state")
+           const defaultData = {
+            isActive: true,
+            title: restaurant?.name || "",
+            subtitle: "",
+            description: "",
+            wifiCode: "",
+            preparationTime: "",
+            googleReviewLink: "",
+            appDeepLink: `https://reward.snapfood.al/referral/?link=https://snapfood.al/reward?restaurantId=${restaurant?.externalSnapfoodId || ''}&apn=com.snapfood.app&isi=1314003561&ibi=com.snapfood.al`,
+            logoPath: "",
+            backgroundImage: "",
+            popularItems: [],
+            reviews: [],
+            testimonials: [],
+            stats: [],
+            faqs: [],
+            googlePreviewDescription: "",
+            popularItemsTitle: "",
+            popularItemsSubtitle: ""
+          };
+          setLandingPage(defaultData);
         }
       } catch (error) {
         console.error("Error loading landing page:", error)
@@ -288,6 +325,48 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
     })
   }
   
+  // Handle FAQs
+const addFAQ = () => {
+    setLandingPage(prev => ({
+      ...prev,
+      faqs: [
+        ...prev.faqs,
+        {
+          id: `temp-${Date.now()}`,
+          question: "",
+          answer: "",
+          isActive: true,
+          order: prev.faqs.length
+        }
+      ]
+    }))
+  }
+  
+  const updateFAQ = (index: number, field: string, value: any) => {
+    setLandingPage(prev => {
+      const updatedFAQs = [...prev.faqs]
+      updatedFAQs[index] = {
+        ...updatedFAQs[index],
+        [field]: value
+      }
+      return {
+        ...prev,
+        faqs: updatedFAQs
+      }
+    })
+  }
+  
+  const removeFAQ = (index: number) => {
+    setLandingPage(prev => {
+      const updatedFAQs = [...prev.faqs]
+      updatedFAQs.splice(index, 1)
+      return {
+        ...prev,
+        faqs: updatedFAQs
+      }
+    })
+  }
+
   // Handle drag and drop reordering
   const handleDragEnd = (result: any, listName: string) => {
     if (!result.destination) return
@@ -391,8 +470,8 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
   
   // Handle preview button click
   const handlePreview = () => {
-    // Open the landing page in a new tab
-    window.open(`/landing/${restaurantId}`, '_blank')
+    // Open the landing page in a new tab using hashId directly from props
+    window.open(`https://snapfood.al/landing/${restaurant.hashId}/Delivery`, '_blank')
   }
   
   if (isLoading) {
@@ -407,7 +486,7 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Landing Page Customization</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">Landing Page Customization - {restaurant.name} </h2>
           <p className="text-sm text-muted-foreground mt-1">
             Customize your restaurant landing page that customers will see when scanning your QR code
           </p>
@@ -442,22 +521,27 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
       </div>
       
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid grid-cols-5 w-full">
+        <TabsList className="grid grid-cols-6 w-full">
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="popular-items">Popular Items</TabsTrigger>
           <TabsTrigger value="reviews">Reviews</TabsTrigger>
           <TabsTrigger value="testimonials">Testimonials</TabsTrigger>
           <TabsTrigger value="stats">Stats</TabsTrigger>
+          <TabsTrigger value="faqs">FAQs</TabsTrigger>
         </TabsList>
         
         {/* General Tab */}
         <TabsContent value="general" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-              <CardDescription>
+                 <div className="mb-4">
+                <h2 className="text-lg font-bold tracking-tight">Basic Information</h2>
+                <p className="text-sm text-muted-foreground mt-0">
                 Set the title, subtitle, and description for your landing page
-              </CardDescription>
+                </p>
+            </div>
+             
+            
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -498,10 +582,14 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
           
           <Card>
             <CardHeader>
-              <CardTitle>Additional Information</CardTitle>
-              <CardDescription>
-                Provide additional details for your landing page
-              </CardDescription>
+
+            <div className="mb-4">
+        <h2 className="text-lg font-bold tracking-tight">Additional Information</h2>
+        <p className="text-sm text-muted-foreground mt-0">
+        Provide additional details for your landing page
+        </p>
+      </div>
+             
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -548,15 +636,32 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
                   />
                 </div>
               </div>
+              <div className="space-y-2">
+  <Label htmlFor="googlePreviewDescription">Google Preview Description</Label>
+  <Textarea
+    id="googlePreviewDescription"
+    name="googlePreviewDescription"
+    value={landingPage.googlePreviewDescription || ''}
+    onChange={handleInputChange}
+    placeholder="A short description for search engines and previews"
+    rows={2}
+  />
+  <p className="text-xs text-muted-foreground">
+    This description will be shown in Google search results and social media previews
+  </p>
+</div>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader>
-              <CardTitle>Images</CardTitle>
-              <CardDescription>
+            <div className="mb-4">
+                <h2 className="text-lg font-bold tracking-tight">Images</h2>
+                <p className="text-sm text-muted-foreground mt-0">
                 Upload logo and background images for your landing page
-              </CardDescription>
+                </p>
+            </div>
+            
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-8">
@@ -662,14 +767,37 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
         
         {/* Popular Items Tab */}
         <TabsContent value="popular-items" className="space-y-4">
-          <Card>
+        <div className="grid grid-cols-2 gap-4 p-4 mb-0">
+  <div className="space-y-2">
+    <Label htmlFor="popularItemsTitle">Section Title</Label>
+    <Input
+      id="popularItemsTitle"
+      name="popularItemsTitle"
+      value={landingPage.popularItemsTitle || ''}
+      onChange={handleInputChange}
+      placeholder="Popular Menu Items"
+    />
+  </div>
+  <div className="space-y-2">
+    <Label htmlFor="popularItemsSubtitle">Section Subtitle</Label>
+    <Input
+      id="popularItemsSubtitle"
+      name="popularItemsSubtitle"
+      value={landingPage.popularItemsSubtitle || ''}
+      onChange={handleInputChange}
+      placeholder="Our customers' favorite dishes"
+    />
+  </div>
+        </div>
+                <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Popular Items</CardTitle>
-                <CardDescription>
-                  Add the most popular items from your menu
-                </CardDescription>
-              </div>
+                <div className="mb-4">
+                <h2 className="text-lg font-bold tracking-tight">Popular Items</h2>
+                <p className="text-sm text-muted-foreground mt-0">
+                Add the most popular items from your menu
+                </p>
+            </div>
+              
               <Button onClick={addPopularItem}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Item
@@ -768,12 +896,13 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
         <TabsContent value="reviews" className="space-y-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Customer Reviews</CardTitle>
-                <CardDescription>
-                  Add customer reviews to showcase on your landing page
-                </CardDescription>
-              </div>
+            <div className="mb-4">
+                <h2 className="text-lg font-bold tracking-tight">Customer Reviews</h2>
+                <p className="text-sm text-muted-foreground mt-0">
+                Add customer reviews to showcase on your landing page
+                </p>
+            </div>
+             
               <Button onClick={addReview}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Review
@@ -884,12 +1013,13 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
         <TabsContent value="testimonials" className="space-y-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Testimonials</CardTitle>
-                <CardDescription>
-                  Add testimonial quotes to showcase on your landing page
-                </CardDescription>
-              </div>
+            <div className="mb-4">
+                <h2 className="text-lg font-bold tracking-tight">Testimonials</h2>
+                <p className="text-sm text-muted-foreground mt-0">
+                Add testimonial quotes to showcase on your landing page
+                </p>
+            </div>
+             
               <Button onClick={addTestimonial}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Testimonial
@@ -965,12 +1095,13 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
         <TabsContent value="stats" className="space-y-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Statistics</CardTitle>
-                <CardDescription>
-                  Add impressive statistics about your restaurant
-                </CardDescription>
-              </div>
+            <div className="mb-4">
+                <h2 className="text-lg font-bold tracking-tight">Statistics</h2>
+                <p className="text-sm text-muted-foreground mt-0">
+                Add impressive statistics about your restaurant
+                </p>
+            </div>
+             
               <Button onClick={addStat}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Statistic
@@ -1051,7 +1182,101 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* FAQs Tab */}
+<TabsContent value="faqs" className="space-y-4">
+  <Card>
+    <CardHeader className="flex flex-row items-center justify-between">
+      <div className="mb-4">
+        <h2 className="text-lg font-bold tracking-tight">Frequently Asked Questions</h2>
+        <p className="text-sm text-muted-foreground mt-0">
+          Add common questions and answers about your restaurant
+        </p>
+      </div>
+      <Button onClick={addFAQ}>
+        <Plus className="mr-2 h-4 w-4" />
+        Add FAQ
+      </Button>
+    </CardHeader>
+    <CardContent>
+      <DragDropContext onDragEnd={(result) => handleDragEnd(result, 'faqs')}>
+        <Droppable droppableId="faqs-list">
+          {(provided) => (
+            <div
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+              className="space-y-4"
+            >
+              {landingPage.faqs?.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>No FAQs added yet. Click "Add FAQ" to get started.</p>
+                </div>
+              ) : (
+                landingPage.faqs?.map((faq, index) => (
+                  <Draggable key={faq.id} draggableId={faq.id} index={index}>
+                    {(provided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        className="border rounded-md p-4"
+                      >
+                        <div className="flex justify-between items-start mb-4">
+                          <h3 className="font-medium">FAQ #{index + 1}</h3>
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={faq.isActive}
+                              onCheckedChange={(checked) => updateFAQ(index, 'isActive', checked)}
+                              id={`faq-active-${index}`}
+                            />
+                            <Label htmlFor={`faq-active-${index}`}>Active</Label>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeFAQ(index)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor={`faq-question-${index}`}>Question</Label>
+                            <Input
+                              id={`faq-question-${index}`}
+                              value={faq.question || ''}
+                              onChange={(e) => updateFAQ(index, 'question', e.target.value)}
+                              placeholder="E.g., What are your opening hours?"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor={`faq-answer-${index}`}>Answer</Label>
+                            <Textarea
+                              id={`faq-answer-${index}`}
+                              value={faq.answer || ''}
+                              onChange={(e) => updateFAQ(index, 'answer', e.target.value)}
+                              placeholder="Enter your answer here"
+                              rows={3}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </Draggable>
+                ))
+              )}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
+    </CardContent>
+  </Card>
+</TabsContent>
       </Tabs>
+      <div className="h-8"></div>
     </div>
   )
 }
