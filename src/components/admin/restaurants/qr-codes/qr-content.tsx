@@ -17,6 +17,7 @@ import {
   Link as LinkIcon,
   Upload,
   Info,
+  Edit,
 } from "lucide-react"
 import { Menu, QRCodeData, QRCodeType } from "@/types/qr-code"
 import InputSelect from "@/components/Common/InputSelect"
@@ -419,6 +420,27 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
           {successMessage}
         </div>
       )}
+
+{/* Landing Page CTA - Add this section */}
+
+  <div className="bg-blue-50 p-4 rounded-md mb-4">
+    <div className="flex justify-between items-center">
+      <div>
+        <h3 className="text-lg font-medium">Landing Page Customization</h3>
+        <p className="text-sm text-muted-foreground">
+          Customize the landing page that users will see when they scan your QR code
+        </p>
+      </div>
+      <Button 
+        onClick={() => router.push(`/admin/restaurants/${restaurantId}/landing-page`)}
+        variant="default"
+      >
+        <Edit className="mr-2 h-4 w-4" />
+        Customize Landing Page
+      </Button>
+    </div>
+  </div>
+
 
       {/* Main Content */}
       <div className="flex flex-col lg:flex-row gap-8">
