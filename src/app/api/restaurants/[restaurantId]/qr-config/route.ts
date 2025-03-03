@@ -8,10 +8,12 @@ export async function GET(
   { params }: { params: { restaurantId: string } }
 ) {
   try {
+    const { restaurantId } = params;
+    
     // Find existing configuration or create default
     let qrConfig = await prisma.qRConfiguration.findFirst({
       where: {
-        restaurantId: params.restaurantId,
+        restaurantId,
       },
     })
 
@@ -20,7 +22,7 @@ export async function GET(
       return NextResponse.json({
         feeType: 'none',
         isActive: true,
-        restaurantId: params.restaurantId
+        restaurantId
       })
     }
 
@@ -40,12 +42,13 @@ export async function PUT(
   { params }: { params: { restaurantId: string } }
 ) {
   try {
+    const { restaurantId } = params;
     const body = await req.json()
     
     // Find existing configuration
     const existingConfig = await prisma.qRConfiguration.findFirst({
       where: {
-        restaurantId: params.restaurantId,
+        restaurantId,
       },
     })
 
@@ -59,7 +62,6 @@ export async function PUT(
           id: existingConfig.id,
         },
         data: {
-          qrType: body.qrType,
           feeType: body.feeType,
           feeAmount: body.feeAmount,
           isActive: body.isActive,
@@ -69,11 +71,10 @@ export async function PUT(
       // Create new configuration
       qrConfig = await prisma.qRConfiguration.create({
         data: {
-          qrType: body.qrType,
           feeType: body.feeType,
           feeAmount: body.feeAmount,
           isActive: body.isActive,
-          restaurantId: params.restaurantId,
+          restaurantId,
         },
       })
     }
@@ -83,8 +84,9 @@ export async function PUT(
       qrConfig,
     })
   } catch (error) {
+    console.error('Error updating QR configuration:', error)
     return NextResponse.json(
-      { error: error }, 
+      { error: "Failed to update QR configuration" }, 
       { status: 500 }
     )
   }
