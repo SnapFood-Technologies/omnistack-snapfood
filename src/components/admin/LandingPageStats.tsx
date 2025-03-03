@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Loader2, Download, Eye, Star, Smartphone, UserPlus } from "lucide-react"
 import { format } from "date-fns"
 import { useToast } from "@/components/ui/use-toast"
+import InputSelect from "../Common/InputSelect"
 
 type Restaurant = {
   id: string;
@@ -135,6 +136,22 @@ export function LandingPageStats() {
     link.click();
   }
 
+
+  // Convert restaurants to options format for InputSelect
+  const restaurantOptions = [
+    { value: "all", label: "All Restaurants" },
+    ...restaurants.map(restaurant => ({
+      value: restaurant.id,
+      label: restaurant.name
+    }))
+  ]
+
+  // Handle restaurant select change
+  const handleRestaurantChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedRestaurantId(e.target.value)
+  }
+
+  
   if (loading && !stats.logs.length) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -169,24 +186,15 @@ export function LandingPageStats() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="restaurant-select">Restaurant</Label>
-              <Select
+          <div className="space-y-2">
+              <InputSelect
+                name="restaurant-select"
+                label="Restaurant"
+                options={restaurantOptions}
                 value={selectedRestaurantId}
-                onValueChange={setSelectedRestaurantId}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All Restaurants" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Restaurants</SelectItem>
-                  {restaurants.map((restaurant) => (
-                    <SelectItem key={restaurant.id} value={restaurant.id}>
-                      {restaurant.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                onChange={handleRestaurantChange}
+                // placeholder="Select a restaurant"
+              />
             </div>
             
             <div className="space-y-2">
