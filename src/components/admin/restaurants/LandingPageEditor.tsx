@@ -30,6 +30,7 @@ export function LandingPageEditor({ restaurantId, restaurant }: {
     description: "",
     wifiCode: "",
     preparationTime: "",
+    deliveryTimeMinutes: "",
     googleReviewLink: "",
     appDeepLink: "",
     logoPath: "",
@@ -89,6 +90,7 @@ export function LandingPageEditor({ restaurantId, restaurant }: {
             description: "",
             wifiCode: "",
             preparationTime: "",
+            deliveryTimeMinutes: "",
             googleReviewLink: "",
             appDeepLink: `https://reward.snapfood.al/referral/?link=https://snapfood.al/reward?restaurantId=${restaurant?.externalSnapfoodId || ''}&apn=com.snapfood.app&isi=1314003561&ibi=com.snapfood.al`,
             logoPath: "",
@@ -580,78 +582,87 @@ const addFAQ = () => {
             </CardContent>
           </Card>
           
-          <Card>
-            <CardHeader>
 
+        <Card>
+        <CardHeader>
             <div className="mb-4">
-        <h2 className="text-lg font-bold tracking-tight">Additional Information</h2>
-        <p className="text-sm text-muted-foreground mt-0">
-        Provide additional details for your landing page
-        </p>
-      </div>
-             
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="wifiCode">WiFi Code</Label>
-                  <Input
-                    id="wifiCode"
-                    name="wifiCode"
-                    value={landingPage.wifiCode || ''}
-                    onChange={handleInputChange}
-                    placeholder="Your restaurant WiFi code"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="preparationTime">Preparation Time (minutes)</Label>
-                  <Input
-                    id="preparationTime"
-                    name="preparationTime"
-                    value={landingPage.preparationTime || ''}
-                    onChange={handleInputChange}
-                    placeholder="20"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="googleReviewLink">Google Review Link</Label>
-                  <Input
-                    id="googleReviewLink"
-                    name="googleReviewLink"
-                    value={landingPage.googleReviewLink || ''}
-                    onChange={handleInputChange}
-                    placeholder="https://g.page/r/..."
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="appDeepLink">App Deep Link</Label>
-                  <Input
-                    id="appDeepLink"
-                    name="appDeepLink"
-                    value={landingPage.appDeepLink || ''}
-                    onChange={handleInputChange}
-                    placeholder="https://snapfood.al/restaurant/..."
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-  <Label htmlFor="googlePreviewDescription">Google Preview Description</Label>
-  <Textarea
-    id="googlePreviewDescription"
-    name="googlePreviewDescription"
-    value={landingPage.googlePreviewDescription || ''}
-    onChange={handleInputChange}
-    placeholder="A short description for search engines and previews"
-    rows={2}
-  />
-  <p className="text-xs text-muted-foreground">
-    This description will be shown in Google search results and social media previews
-  </p>
-</div>
-            </CardContent>
-          </Card>
+            <h2 className="text-lg font-bold tracking-tight">Additional Information</h2>
+            <p className="text-sm text-muted-foreground mt-0">
+                Provide additional details for your landing page
+            </p>
+            </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+                <Label htmlFor="wifiCode">WiFi Code</Label>
+                <Input
+                id="wifiCode"
+                name="wifiCode"
+                value={landingPage.wifiCode || ''}
+                onChange={handleInputChange}
+                placeholder="Your restaurant WiFi code"
+                />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="preparationTime">Preparation Time (minutes)</Label>
+                <Input
+                id="preparationTime"
+                name="preparationTime"
+                value={landingPage.preparationTime || ''}
+                onChange={handleInputChange}
+                placeholder="20"
+                />
+            </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+                <Label htmlFor="deliveryTimeMinutes">Delivery Time (minutes)</Label>
+                <Input
+                id="deliveryTimeMinutes"
+                name="deliveryTimeMinutes"
+                value={landingPage.deliveryTimeMinutes || ''}
+                onChange={handleInputChange}
+                placeholder="30"
+                />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="googleReviewLink">Google Review Link</Label>
+                <Input
+                id="googleReviewLink"
+                name="googleReviewLink"
+                value={landingPage.googleReviewLink || ''}
+                onChange={handleInputChange}
+                placeholder="https://g.page/r/..."
+                />
+            </div>
+            </div>
+            <div className="space-y-2">
+            <Label htmlFor="appDeepLink">App Deep Link</Label>
+            <Input
+                id="appDeepLink"
+                name="appDeepLink"
+                value={landingPage.appDeepLink || ''}
+                onChange={handleInputChange}
+                placeholder="https://snapfood.al/restaurant/..."
+            />
+            </div>
+            <div className="space-y-2">
+            <Label htmlFor="googlePreviewDescription">Google Preview Description</Label>
+            <Textarea
+                id="googlePreviewDescription"
+                name="googlePreviewDescription"
+                value={landingPage.googlePreviewDescription || ''}
+                onChange={handleInputChange}
+                placeholder="A short description for search engines and previews"
+                rows={2}
+            />
+            <p className="text-xs text-muted-foreground">
+                This description will be shown in Google search results and social media previews
+            </p>
+            </div>
+        </CardContent>
+        </Card>
           
           <Card>
             <CardHeader>
