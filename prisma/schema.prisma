@@ -157,6 +157,12 @@ model QRCode {
   updatedAt            DateTime    @updatedAt
 }
 
+enum QRFlow {
+  IN_APP_ONLY
+  WITH_GOOGLE_REVIEW
+}
+
+
 model Order {
   id           String      @id @default(auto()) @map("_id") @db.ObjectId
   status       OrderStatus @default(PENDING)

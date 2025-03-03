@@ -22,9 +22,13 @@ export async function GET(req: Request) {
     } : {};
     
     // Query restaurants with filters and pagination
+    // Sort by externalSnapfoodId (ascending)
     const restaurants = await prisma.restaurant.findMany({
       where: searchFilter,
-      orderBy: { lastSyncedAt: 'desc' },
+      orderBy: [
+        { externalSnapfoodId: 'desc' },
+        { lastSyncedAt: 'desc' }
+      ],
       skip,
       take: pageSize,
     });
