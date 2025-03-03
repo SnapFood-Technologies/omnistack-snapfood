@@ -16,8 +16,9 @@ import {
   Type,
   Link as LinkIcon,
   Upload,
+  Info,
 } from "lucide-react"
-import { Menu, QRCodeData } from "@/types/qr-code"
+import { Menu, QRCodeData, QRCodeType } from "@/types/qr-code"
 import InputSelect from "@/components/Common/InputSelect"
 
 export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
@@ -27,15 +28,17 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
   // Loading states
   const [loadingPreview, setLoadingPreview] = useState(false)
   const [loadingGenerate, setLoadingGenerate] = useState(false)
+  const [loadingRestaurant, setLoadingRestaurant] = useState(true)
 
   // Data states
   const [menus, setMenus] = useState<Menu[]>([])
-  const [useCustomUrl, setUseCustomUrl] = useState(false)
-  const [logoPreview, setLogoPreview] = useState<string | null>(null)
+  const [restaurant, setRestaurant] = useState<any>(null)
   const [qrPreview, setQrPreview] = useState<string | null>(null)
   const [qrUrls, setQrUrls] = useState<{ png?: string; svg?: string }>({})
+  const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [generatedUrl, setGeneratedUrl] = useState<string>("")
 
   // Form data
   const [formData, setFormData] = useState<QRCodeData>({
@@ -46,7 +49,7 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
     customText: "",
     hasLogo: false,
     errorLevel: "M",
-    type: "TABLE",
+    type: "PROFILE_WEB",
     customUrl: "",
     logo: null,
   })
@@ -65,10 +68,36 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
   ]
 
   const qrTypes = [
-    { value: "TABLE", label: "Table QR" },
-    { value: "TAKEOUT", label: "Takeout Menu" },
-    { value: "SPECIAL", label: "Special Event" },
+    { value: "PROFILE_WEB", label: "Restaurant Profile in SnapFood Web" },
+    { value: "PROFILE_APP", label: "Restaurant Profile in SnapFood App" },
+    { value: "LANDING_PAGE", label: "Restaurant Landing Page on SnapFood" },
+    { value: "CUSTOM_URL", label: "Custom URL" },
   ]
+
+  // Load restaurant info
+  useEffect(() => {
+    async function loadRestaurant() {
+      setLoadingRestaurant(true)
+      try {
+        const response = await fetch(`/api/restaurants/${restaurantId}`)
+        const data = await response.json()
+        if (!response.ok) {
+          throw new Error('Failed to fetch restaurant')
+        }
+        setRestaurant(data)
+      } catch (error) {
+        console.error("Error loading restaurant:", error)
+        toast({
+          title: "Error",
+          description: "Failed to load restaurant data",
+          variant: "destructive",
+        })
+      } finally {
+        setLoadingRestaurant(false)
+      }
+    }
+    loadRestaurant()
+  }, [restaurantId, toast])
 
   // Load menus on mount
   useEffect(() => {
@@ -78,7 +107,7 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
         const data = await response.json()
         setMenus(data)
 
-        if (data.length > 0 && !useCustomUrl) {
+        if (data.length > 0) {
           setFormData((prev) => ({ ...prev, menuId: data[0].id }))
         }
       } catch (error) {
@@ -91,7 +120,39 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
       }
     }
     loadMenus()
-  }, [restaurantId, toast, useCustomUrl])
+  }, [restaurantId, toast])
+
+  // Generate URL based on QR type when formData.type or restaurant data changes
+  useEffect(() => {
+    if (!restaurant) return;
+
+    const baseUrl = 'https://snapfood.al';
+    let url = '';
+
+    switch (formData.type) {
+      case 'PROFILE_WEB':
+        // Web profile URL - https://snapfood.al/restaurant/{vendor_hash_id}/{vendor_slug}
+        url = `${baseUrl}/restaurant/${restaurant.hashId || ''}/${restaurant.slug || ''}`;
+        break;
+      
+      case 'PROFILE_APP':
+        // App profile URL with deep linking
+        url = `https://reward.snapfood.al/referral/?link=https://snapfood.al/reward?restaurantId=${restaurant.externalSnapfoodId || ''}&apn=com.snapfood.app&isi=1314003561&ibi=com.snapfood.al`;
+        break;
+      
+      case 'LANDING_PAGE': 
+        // Landing page URL - https://snapfood.al/landing/{....}/Delivery
+        url = `${baseUrl}/landing/${restaurant.hashId}/Delivery`;
+        break;
+      
+      case 'CUSTOM_URL':
+        // Use custom URL provided by user
+        url = formData.customUrl || '';
+        break;
+    }
+
+    setGeneratedUrl(url);
+  }, [formData.type, formData.customUrl, restaurant]);
 
   // Cleanup effect
   useEffect(() => {
@@ -109,9 +170,8 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
   }, [logoPreview, qrUrls])
 
   const isValidForm = () => {
-    if (useCustomUrl && !formData.customUrl) return false;
-    if (!useCustomUrl && !formData.menuId) return false;
-    if (formData.type === 'TABLE' && !formData.tableNumber) return false;
+    if (formData.type === 'CUSTOM_URL' && !formData.customUrl) return false;
+    if (formData.hasLogo && !formData.logo) return false;
     return true;
   };
 
@@ -119,16 +179,8 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
 
-    if (!useCustomUrl && !formData.menuId) {
-      newErrors.menuId = "Please select a menu"
-    }
-
-    if (useCustomUrl && !formData.customUrl) {
+    if (formData.type === 'CUSTOM_URL' && !formData.customUrl) {
       newErrors.customUrl = "Please enter a custom URL"
-    }
-
-    if (formData.type === "TABLE" && !formData.tableNumber) {
-      newErrors.tableNumber = "Please enter a table number"
     }
 
     if (formData.hasLogo && !formData.logo) {
@@ -149,9 +201,20 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
       return
     }
 
+    if (!generatedUrl) {
+      toast({
+        title: "Error",
+        description: "Unable to generate URL for the QR code",
+        variant: "destructive",
+      })
+      return
+    }
+
     setLoadingPreview(true)
     try {
       const formDataToSend = new FormData()
+      
+      // Add all form data
       Object.entries(formData).forEach(([key, value]) => {
         if (value !== null && value !== undefined) {
           if (key === "logo" && value instanceof File) {
@@ -161,6 +224,9 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
           }
         }
       })
+      
+      // Add the generated URL
+      formDataToSend.set("qrUrl", generatedUrl)
 
       const response = await fetch(
         `/api/restaurants/${restaurantId}/qr-codes/preview`,
@@ -226,9 +292,20 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
       return
     }
 
+    if (!generatedUrl) {
+      toast({
+        title: "Error",
+        description: "Unable to generate URL for the QR code",
+        variant: "destructive",
+      })
+      return
+    }
+
     setLoadingGenerate(true)
     try {
       const formDataToSend = new FormData()
+      
+      // Add all form data
       Object.entries(formData).forEach(([key, value]) => {
         if (value !== null && value !== undefined) {
           if (key === "logo" && value instanceof File) {
@@ -238,6 +315,9 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
           }
         }
       })
+      
+      // Add the generated URL
+      formDataToSend.set("qrUrl", generatedUrl)
 
       const response = await fetch(`/api/restaurants/${restaurantId}/qr-codes`, {
         method: "POST",
@@ -257,14 +337,6 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
         title: "Success",
         description: "QR code generated and saved successfully",
       })
-
-      // Reset form if needed
-      if (formData.type === "TABLE") {
-        setFormData(prev => ({
-          ...prev,
-          tableNumber: undefined
-        }))
-      }
 
       // Generate new preview
       await handlePreview()
@@ -314,13 +386,21 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
     }))
   }
 
+  if (loadingRestaurant) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
         <h2 className="text-xl font-semibold tracking-tight">QR Codes</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Generate and manage QR codes for your menus
+          Generate and manage QR codes for {restaurant?.name || 'your restaurant'}
         </p>
       </div>
 
@@ -376,39 +456,39 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
             </QRCard>
 
            {/* Action Buttons */}
-<div className="flex gap-2">
-  <Button
-    onClick={handlePreview}
-    variant="soft"
-    className="w-full"
-    disabled={!isValidForm() || loadingPreview}
-  >
-    {loadingPreview ? (
-      <>
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        Generating...
-      </>
-    ) : (
-      "Preview"
-    )}
-  </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={handlePreview}
+                variant="soft"
+                className="w-full"
+                disabled={!isValidForm() || loadingPreview}
+              >
+                {loadingPreview ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  "Preview"
+                )}
+              </Button>
 
-  <Button
-    onClick={handleGenerate}
-    variant="default"
-    className="w-full"
-    disabled={!isValidForm() || loadingGenerate}
-  >
-    {loadingGenerate ? (
-      <>
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        Generating...
-      </>
-    ) : (
-      "Generate"
-    )}
-  </Button>
-</div>
+              <Button
+                onClick={handleGenerate}
+                variant="default"
+                className="w-full"
+                disabled={!isValidForm() || loadingGenerate}
+              >
+                {loadingGenerate ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  "Generate"
+                )}
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -417,103 +497,73 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
           <QRCard title="Customize QR Code" description="Personalize your QR code design">
             {/* Basic Settings */}
             <div className="space-y-6 mb-6">
-              <div className="p-0 bg-muted/50 rounded-lg space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label>Use Custom URL</Label>
-                  <Switch
-                    checked={useCustomUrl}
-                    onCheckedChange={setUseCustomUrl}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <InputSelect
+                    name="type"
+                    label="QR Type"
+                    value={formData.type}
+                    onChange={(e) => {
+                      const newType = e.target.value as QRCodeType;
+                      setFormData((prev) => ({
+                        ...prev,
+                        type: newType,
+                        // Reset customUrl if switching away from custom URL type
+                        customUrl: newType === 'CUSTOM_URL' ? prev.customUrl : '',
+                      }));
+                    }}
+                    options={qrTypes}
+                    required
                   />
                 </div>
 
-                {useCustomUrl ? (
-  <div className="space-y-2">
-    <Label>Custom Menu URL</Label>
-    <Input
-      placeholder="https://your-menu-url.com"
-      value={formData.customUrl}
-      onChange={(e) =>
-        setFormData((prev) => ({
-          ...prev,
-          customUrl: e.target.value,
-          menuId: undefined,
-        }))
-      }
-    />
-    {errors.customUrl && (
-      <p className="text-sm text-destructive">{errors.customUrl}</p>
-    )}
-  </div>
-) : (
-  <div className="space-y-2">
-    <InputSelect
-      name="menuId"
-      label="Select Menu"
-      value={formData.menuId ?? "Select Option"}
-      onChange={(e) => {
-        setFormData((prev) => ({
-          ...prev,
-          menuId: e.target.value,
-          customUrl: undefined,
-        }))
-      }}
-      options={
-        menus && menus.length > 0
-          ? menus.map((menu) => ({
-              value: menu.id,
-              label: menu.name,
-            }))
-          : [
-              {
-                value: "no-menu",
-                label: "No menus available",
-              },
-            ]
-      }
-      required
-    />
-    {errors.menuId && (
-      <p className="text-sm text-destructive">{errors.menuId}</p>
-    )}
-  </div>
-)}
+                {formData.type === 'CUSTOM_URL' ? (
+                  <div className="space-y-2">
+                    <Label>Custom URL</Label>
+                    <Input
+                      placeholder="https://your-custom-url.com"
+                      value={formData.customUrl || ''}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          customUrl: e.target.value,
+                        }))
+                      }
+                    />
+                    {errors.customUrl && (
+                      <p className="text-sm text-destructive">{errors.customUrl}</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label>Generated URL</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={generatedUrl}
+                        disabled
+                        className="flex-1 bg-muted/50"
+                      />
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => {
+                          navigator.clipboard.writeText(generatedUrl);
+                          toast({
+                            title: "URL Copied",
+                            description: "URL copied to clipboard",
+                          });
+                        }}
+                      >
+                        <LinkIcon className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Info className="h-3 w-3" />
+                      This URL is automatically generated based on the QR type
+                    </p>
+                  </div>
+                )}
               </div>
-
-              <div className="space-y-2">
-                <InputSelect
-                  name="type"
-                  label="QR Type"
-                  value={formData.type ?? "Select Option"}
-                  onChange={(e) => {
-                    setFormData((prev) => ({
-                      ...prev,
-                      type: e.target.value as "TABLE" | "TAKEOUT" | "SPECIAL",
-                    }))
-                  }}
-                  options={qrTypes}
-                  required
-                />
-              </div>
-
-              {formData.type === "TABLE" && (
-  <div className="space-y-2">
-    <Label>Table Number</Label>
-    <Input
-      type="number"
-      value={formData.tableNumber || ""}
-      onChange={(e) =>
-        setFormData((prev) => ({
-          ...prev,
-          tableNumber: parseInt(e.target.value) || 0,
-        }))
-      }
-      placeholder="Enter table number"
-    />
-    {errors.tableNumber && (
-      <p className="text-sm text-destructive">{errors.tableNumber}</p>
-    )}
-  </div>
-)}
             </div>
 
             {/* Design Tabs */}
@@ -615,7 +665,7 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
                   <Label>Custom Text</Label>
                   <Input
                     placeholder="Enter text to display below QR code"
-                    value={formData.customText}
+                    value={formData.customText || ""}
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
@@ -650,6 +700,9 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
                       />
                     )}
                   </div>
+                  {errors.logo && (
+                    <p className="text-sm text-destructive">{errors.logo}</p>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -702,6 +755,7 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
           </QRCard>
         </div>
       </div>
+      <div className="h-10"></div>
     </div>
   )
 }

@@ -1,7 +1,6 @@
-// components/admin/qr-code/qr-configuration.tsx
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,38 +21,102 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { Settings, Link as LinkIcon, CreditCard } from "lucide-react"
+import { CreditCard, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import InputSelect from "@/components/Common/InputSelect"
+import { useToast } from "@/components/ui/use-toast"
+import { QRConfigurationData } from "@/types/qr-code"
 
-interface QRConfiguration {
-  qrType: 'app_only' | 'app_with_google';
-  hasLandingPage: boolean;
-  landingPageUrl?: string;
-  feeType: 'none' | 'fixed' | 'percentage';
-  feeAmount?: number;
-  isActive: boolean;
+interface QRConfigurationProps {
+  restaurantId: string;
 }
 
-export function QRConfiguration() {
+export function QRConfiguration({ restaurantId }: QRConfigurationProps) {
+  const { toast } = useToast()
   const [openConfigModal, setOpenConfigModal] = useState(false)
-  const [config, setConfig] = useState<QRConfiguration>({
-    qrType: 'app_only',
-    hasLandingPage: false,
+  const [loading, setLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
+  
+  const [config, setConfig] = useState<QRConfigurationData>({
+    landingPageUrl: "",
     feeType: 'none',
     isActive: true
   })
 
-  const qrTypeOptions = [
-    { value: 'app_only', label: 'Restaurant in App Only' },
-    { value: 'app_with_google', label: 'App with Google Reviews' },
-  ]
+  // Load configuration from API
+  useEffect(() => {
+    const loadConfig = async () => {
+      setLoading(true)
+      try {
+        const response = await fetch(`/api/restaurants/${restaurantId}/qr-config`)
+        if (!response.ok) {
+          throw new Error('Failed to fetch QR configuration')
+        }
+        const data = await response.json()
+        setConfig(data)
+      } catch (error) {
+        console.error('Error loading QR configuration:', error)
+        toast({
+          title: "Error",
+          description: "Failed to load QR configuration",
+          variant: "destructive",
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadConfig()
+  }, [restaurantId, toast])
+
+  const saveConfiguration = async () => {
+    setSaving(true)
+    try {
+      const response = await fetch(`/api/restaurants/${restaurantId}/qr-config`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...config,
+          restaurantId,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update configuration')
+      }
+
+      toast({
+        title: "Success",
+        description: "QR configuration saved successfully",
+      })
+      setOpenConfigModal(false)
+    } catch (error) {
+      console.error('Error saving configuration:', error)
+      toast({
+        title: "Error",
+        description: "Failed to save QR configuration",
+        variant: "destructive",
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const feeOptions = [
     { value: 'none', label: 'Free' },
     { value: 'fixed', label: 'Fixed Fee per Order' },
     { value: 'percentage', label: 'Percentage of Order' },
   ]
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -67,40 +130,26 @@ export function QRConfiguration() {
             </p>
           </div>
           <Button onClick={() => setOpenConfigModal(true)}>
-            <Settings className="mr-2 h-4 w-4" />
-            Configure
+            <CreditCard className="mr-2 h-4 w-4" />
+            Configure Fees
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-6 md:grid-cols-4">
-            {/* QR Type */}
+          <div className="grid gap-6 md:grid-cols-3">
+            {/* Landing Page URL */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium">QR Type</Label>
+              <Label className="text-sm font-medium">Landing Page URL</Label>
               <div className="flex items-center space-x-2">
-                <Badge className="bg-blue-100 text-blue-700 px-2 py-1">
-                  {qrTypeOptions.find(opt => opt.value === config.qrType)?.label}
-                </Badge>
+                {config.landingPageUrl ? (
+                  <p className="text-sm truncate max-w-xs">
+                    {config.landingPageUrl}
+                  </p>
+                ) : (
+                  <Badge className="bg-gray-100 text-gray-700 px-2 py-1">
+                    Not set
+                  </Badge>
+                )}
               </div>
-            </div>
-
-            {/* Landing Page */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Landing Page</Label>
-              <div className="flex items-center space-x-2">
-                <Badge 
-                  className={cn(
-                    "px-2 py-1",
-                    config.hasLandingPage ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"
-                  )}
-                >
-                  {config.hasLandingPage ? 'Enabled' : 'Disabled'}
-                </Badge>
-              </div>
-              {config.hasLandingPage && config.landingPageUrl && (
-                <p className="text-sm text-muted-foreground truncate">
-                  {config.landingPageUrl}
-                </p>
-              )}
             </div>
 
             {/* Fee Configuration */}
@@ -146,91 +195,21 @@ export function QRConfiguration() {
 
       {/* Configuration Modal */}
       <Dialog open={openConfigModal} onOpenChange={setOpenConfigModal}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>QR Code Configuration</DialogTitle>
             <DialogDescription>
-              Configure your QR code settings and fee structure
+              Configure landing page and fee structure
             </DialogDescription>
           </DialogHeader>
 
-          <Tabs defaultValue="settings" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="settings" className="flex items-center gap-2">
-                <LinkIcon className="h-4 w-4" />
-                QR Settings
-              </TabsTrigger>
-              <TabsTrigger value="fees" className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4" />
-                Fee Structure
+          <Tabs defaultValue="fees" className="w-full">
+            <TabsList className="grid w-full">
+              <TabsTrigger value="fees" className="flex items-center justify-center">
+                <CreditCard className="h-4 w-4 mr-2" />
+                <span>Fee Structure</span>
               </TabsTrigger>
             </TabsList>
-
-            <TabsContent value="settings" className="p-4 space-y-4 pt-4">
-              <div className="space-y-4">
-                {/* QR Type Selection */}
-                <InputSelect
-                  name="qrType"
-                  label="QR Code Type"
-                  value={config.qrType}
-                  onChange={(e) => setConfig(prev => ({
-                    ...prev,
-                    qrType: e.target.value as QRConfiguration['qrType']
-                  }))}
-                  options={qrTypeOptions}
-                />
-
-                {/* Landing Page Toggle */}
-                <div className="flex items-center justify-between space-x-2">
-                  <div className="space-y-0.5">
-                    <Label>Landing Page</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Enable custom landing page for this restaurant
-                    </p>
-                  </div>
-                  <Switch
-                    checked={config.hasLandingPage}
-                    onCheckedChange={(checked) => setConfig(prev => ({
-                      ...prev,
-                      hasLandingPage: checked,
-                      landingPageUrl: checked ? prev.landingPageUrl : undefined
-                    }))}
-                  />
-                </div>
-
-                {/* Landing Page URL */}
-                {config.hasLandingPage && (
-                  <div className="space-y-2">
-                    <Label>Landing Page URL</Label>
-                    <Input
-                      placeholder="https://your-landing-page.com"
-                      value={config.landingPageUrl}
-                      onChange={(e) => setConfig(prev => ({
-                        ...prev,
-                        landingPageUrl: e.target.value
-                      }))}
-                    />
-                  </div>
-                )}
-
-                {/* Active Status */}
-                <div className="flex items-center justify-between space-x-2 pt-4">
-                  <div className="space-y-0.5">
-                    <Label>Active Status</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Enable or disable QR code functionality
-                    </p>
-                  </div>
-                  <Switch
-                    checked={config.isActive}
-                    onCheckedChange={(checked) => setConfig(prev => ({
-                      ...prev,
-                      isActive: checked
-                    }))}
-                  />
-                </div>
-              </div>
-            </TabsContent>
 
             <TabsContent value="fees" className="p-4 pt-4">
               <div className="space-y-6">
@@ -240,7 +219,7 @@ export function QRConfiguration() {
                   value={config.feeType}
                   onChange={(e) => setConfig(prev => ({
                     ...prev,
-                    feeType: e.target.value as QRConfiguration['feeType'],
+                    feeType: e.target.value as QRConfigurationData['feeType'],
                     feeAmount: undefined
                   }))}
                   options={feeOptions}
@@ -254,10 +233,10 @@ export function QRConfiguration() {
                     <Input
                       type="number"
                       placeholder={config.feeType === 'fixed' ? "Enter amount in ALL" : "Enter percentage"}
-                      value={config.feeAmount}
+                      value={config.feeAmount || ''}
                       onChange={(e) => setConfig(prev => ({
                         ...prev,
-                        feeAmount: parseFloat(e.target.value)
+                        feeAmount: parseFloat(e.target.value) || undefined
                       }))}
                     />
                   </div>
@@ -270,7 +249,20 @@ export function QRConfiguration() {
             <Button variant="outline" onClick={() => setOpenConfigModal(false)}>
               Cancel
             </Button>
-            <Button type="submit">Save Changes</Button>
+            <Button 
+              type="submit" 
+              onClick={saveConfiguration}
+              disabled={saving}
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

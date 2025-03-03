@@ -1,3 +1,4 @@
+// src/app/api/restaurants/[restaurantId]/qr-codes/preview/route.ts
 import { NextResponse } from "next/server"
 import * as QRCode from "qrcode"
 
@@ -9,17 +10,52 @@ export async function PUT(
     const formData = await req.formData()
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
+    // Get QR configuration first to check if it's active
+    const qrConfigResponse = await fetch(`${baseUrl}/api/restaurants/${params.restaurantId}/qr-config`)
+    
+    if (!qrConfigResponse.ok) {
+      return NextResponse.json(
+        { error: "Failed to fetch QR configuration" },
+        { status: 500 }
+      )
+    }
+    
+    const qrConfig = await qrConfigResponse.json()
+    
+    if (!qrConfig.isActive) {
+      return NextResponse.json(
+        { error: "QR code functionality is disabled for this restaurant" },
+        { status: 403 }
+      )
+    }
+
     const customUrl = formData.get('customUrl') ? String(formData.get('customUrl')) : null
     const menuId = formData.get('menuId') ? String(formData.get('menuId')) : null
     const hasLogo = formData.get('hasLogo') === 'true'
     const customText = formData.get('customText') ? String(formData.get('customText')) : null
     const logoFile = formData.get('logo') as File | null
 
-    const qrUrl = customUrl
-      ? customUrl
-      : menuId
-      ? `${baseUrl}/menu/${menuId}`
-      : `${baseUrl}`
+    // Create QR URL based on configuration
+    let qrUrl: string
+    
+    if (customUrl) {
+      qrUrl = customUrl
+    } else if (menuId) {
+      // Use URL structure based on QR configuration
+      if (qrConfig.qrType === 'app_with_google') {
+        qrUrl = `${baseUrl}/menu/${menuId}?ref=google`
+      } else {
+        qrUrl = `${baseUrl}/menu/${menuId}`
+      }
+    } else {
+      qrUrl = baseUrl
+    }
+
+    // Apply landing page redirection if configured
+    if (qrConfig.hasLandingPage && qrConfig.landingPageUrl) {
+      // Add the target URL as a parameter to the landing page
+      qrUrl = `${qrConfig.landingPageUrl}?redirect=${encodeURIComponent(qrUrl)}`
+    }
 
     // QR code generation options
     const qrOptions: QRCode.QRCodeToStringOptions = {

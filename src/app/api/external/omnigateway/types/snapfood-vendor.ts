@@ -5,6 +5,8 @@ export interface Vendor {
     description: string;
     address: string;
     phone: string;
+    slug: string;
+    hash_id: string;
     latitude: string | number;
     longitude: string | number;
     open: boolean;
