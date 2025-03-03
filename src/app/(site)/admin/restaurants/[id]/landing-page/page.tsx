@@ -36,7 +36,7 @@ export default async function LandingPageEditorPage({ params }: Props) {
   
   return (
     <div className="space-y-8">
-      <LandingPageEditor restaurantId={resolvedParams.id} />
-    </div>
+      <LandingPageEditor restaurantId={resolvedParams.id} restaurant={restaurant} />
+      </div>
   )
 }

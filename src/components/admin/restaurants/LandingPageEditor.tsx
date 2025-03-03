@@ -12,7 +12,10 @@ import { useToast } from "@/components/ui/use-toast"
 import { Plus, Trash2, Upload, ExternalLink, Loader2, Save } from "lucide-react"
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 
-export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
+export function LandingPageEditor({ restaurantId, restaurant }: { 
+    restaurantId: string, 
+    restaurant: any // Ideally type this properly
+  }) {
   const { toast } = useToast()
   
   // Loading state
@@ -52,6 +55,13 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
         
         if (response.ok) {
           const data = await response.json()
+
+           // If app deep link is not set, pre-fill it
+           if (!data.appDeepLink && restaurant) {
+            data.appDeepLink = `https://reward.snapfood.al/referral/?link=https://snapfood.al/reward?restaurantId=${restaurant.externalSnapfoodId || ''}&apn=com.snapfood.app&isi=1314003561&ibi=com.snapfood.al`;
+          }
+          
+
           setLandingPage(data)
           
           // Set previews if images exist
@@ -62,8 +72,23 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
             setBackgroundPreview(data.backgroundImage)
           }
         } else {
-          // If not found, just use the default empty state
-          console.log("No landing page found, using default empty state")
+           const defaultData = {
+            isActive: true,
+            title: restaurant?.name || "",
+            subtitle: "",
+            description: "",
+            wifiCode: "",
+            preparationTime: "",
+            googleReviewLink: "",
+            appDeepLink: `https://reward.snapfood.al/referral/?link=https://snapfood.al/reward?restaurantId=${restaurant?.externalSnapfoodId || ''}&apn=com.snapfood.app&isi=1314003561&ibi=com.snapfood.al`,
+            logoPath: "",
+            backgroundImage: "",
+            popularItems: [],
+            reviews: [],
+            testimonials: [],
+            stats: []
+          };
+          setLandingPage(defaultData);
         }
       } catch (error) {
         console.error("Error loading landing page:", error)
@@ -389,8 +414,8 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
   
   // Handle preview button click
   const handlePreview = () => {
-    // Open the landing page in a new tab
-    window.open(`https://snapfood.al/landing/${restaurantId}/Delivery`, '_blank')
+    // Open the landing page in a new tab using hashId directly from props
+    window.open(`https://snapfood.al/landing/${restaurant.hashId}/Delivery`, '_blank')
   }
   
   if (isLoading) {
@@ -405,7 +430,7 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Landing Page Customization</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">Landing Page Customization - {restaurant.name} </h2>
           <p className="text-sm text-muted-foreground mt-1">
             Customize your restaurant landing page that customers will see when scanning your QR code
           </p>
