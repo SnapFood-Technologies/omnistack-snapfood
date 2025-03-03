@@ -4,12 +4,13 @@ import { prisma } from "@/lib/prisma"
 
 // Get QR configuration for a restaurant
 export async function GET(
-  req: Request,
-  { params }: { params: { restaurantId: string } }
-) {
-  try {
-    const { restaurantId } = params;
-    
+    req: Request,
+    { params }: { params: Promise<{ restaurantId: string }> | { restaurantId: string } }
+  ) {
+    try {
+      // Await the params object
+      const resolvedParams = await params;
+      const restaurantId = resolvedParams.restaurantId;
     // Find existing configuration or create default
     let qrConfig = await prisma.qRConfiguration.findFirst({
       where: {
@@ -38,11 +39,13 @@ export async function GET(
 
 // Create or update QR configuration
 export async function PUT(
-  req: Request,
-  { params }: { params: { restaurantId: string } }
-) {
-  try {
-    const { restaurantId } = params;
+    req: Request,
+    { params }: { params: Promise<{ restaurantId: string }> | { restaurantId: string } }
+  ) {
+    try {
+      // Await the params object
+      const resolvedParams = await params;
+      const restaurantId = resolvedParams.restaurantId;
     const body = await req.json()
     
     // Find existing configuration

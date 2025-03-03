@@ -22,8 +22,8 @@ async function getRestaurant(id: string) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const restaurant = await getRestaurant(params.id)
-  
+  const resolvedParams = await params;
+  const restaurant = await getRestaurant(resolvedParams.id);
   return {
     title: `QR Codes - ${restaurant.name} - SnapFood Admin`,
     description: `Generate and manage QR codes for ${restaurant.name}'s menu and services.`,
@@ -31,15 +31,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function QRCodesPage({ params }: Props) {
-  const restaurant = await getRestaurant(params.id)
+  // Await the params object
+  const resolvedParams = await params;
+  const restaurant = await getRestaurant(resolvedParams.id);
   
   return (
     <div className="space-y-8">
       {/* Configuration Section */}
-      <QRConfiguration restaurantId={params.id} />
+      <QRConfiguration restaurantId={resolvedParams.id} />
       
       {/* Your existing QR code content */}
-      <QRCodeContent restaurantId={params.id} />
+      <QRCodeContent restaurantId={resolvedParams.id} />
     </div>
   )
 }

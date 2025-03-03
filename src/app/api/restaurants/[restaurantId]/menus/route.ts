@@ -4,17 +4,20 @@ import { prisma } from "@/lib/prisma"
 
 export async function GET(
   req: Request,
-  { params }: { params: { restaurantId?: string } }
+  { params }: { params: Promise<{ restaurantId?: string }> | { restaurantId?: string } }
 ) {
   try {
+    // Await the params object
+    const resolvedParams = await params;
+    
     // If no restaurantId is provided, return empty array
-    if (!params?.restaurantId) {
+    if (!resolvedParams?.restaurantId) {
       return NextResponse.json([])
     }
 
     const menus = await prisma.menu.findMany({
       where: {
-        restaurantId: params.restaurantId,
+        restaurantId: resolvedParams.restaurantId,
         isActive: true
       },
       select: {
