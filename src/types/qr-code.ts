@@ -5,6 +5,8 @@ export interface Menu {
 }
 
 export type QRCodeType = 'PROFILE_WEB' | 'PROFILE_APP' | 'LANDING_PAGE' | 'CUSTOM_URL';
+export type QRFlow = 'IN_APP_ONLY' | 'WITH_GOOGLE_REVIEW';
+
 
 export interface QRCodeData {
   design: string
@@ -18,6 +20,7 @@ export interface QRCodeData {
   customUrl?: string
   menuId?: string
   logo?: File | null
+  qrFlow?: QRFlow;
 }
 
 export interface QRConfigurationData {

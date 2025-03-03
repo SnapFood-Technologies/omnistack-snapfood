@@ -74,6 +74,8 @@ export async function POST(
     const hasLogo = formData.get('hasLogo') === 'true'
     const errorLevel = String(formData.get('errorLevel') || 'M')
     const logoFile = formData.get('logo') as File | null
+    // Get QR flow if present (for storage only)
+    const qrFlow = formData.get('qrFlow') ? String(formData.get('qrFlow')) : 'IN_APP_ONLY'
     
     // QR code generation options
     const qrOptions: QRCode.QRCodeToStringOptions = {
@@ -175,6 +177,7 @@ export async function POST(
         hasLogo,
         errorCorrectionLevel: errorLevel,
         restaurantId,
+        qrFlow, // Store the QR flow selection
       },
     })
 

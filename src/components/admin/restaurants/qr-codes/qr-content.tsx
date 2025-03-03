@@ -21,6 +21,9 @@ import {
 import { Menu, QRCodeData, QRCodeType } from "@/types/qr-code"
 import InputSelect from "@/components/Common/InputSelect"
 
+// Add QR Flow type
+type QRFlow = "IN_APP_ONLY" | "WITH_GOOGLE_REVIEW"
+
 export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
   const router = useRouter()
   const { toast } = useToast()
@@ -40,8 +43,8 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [generatedUrl, setGeneratedUrl] = useState<string>("")
 
-  // Form data
-  const [formData, setFormData] = useState<QRCodeData>({
+  // Form data - updated with qrFlow property
+  const [formData, setFormData] = useState<QRCodeData & { qrFlow?: QRFlow }>({
     design: "classic",
     primaryColor: "#000000",
     backgroundColor: "#FFFFFF",
@@ -52,6 +55,7 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
     type: "PROFILE_WEB",
     customUrl: "",
     logo: null,
+    qrFlow: "IN_APP_ONLY", // Default QR flow
   })
 
   // Options
@@ -72,6 +76,12 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
     { value: "PROFILE_APP", label: "Restaurant Profile in SnapFood App" },
     { value: "LANDING_PAGE", label: "Restaurant Landing Page on SnapFood" },
     { value: "CUSTOM_URL", label: "Custom URL" },
+  ]
+
+  // QR Flow options
+  const qrFlowOptions = [
+    { value: "IN_APP_ONLY", label: "In-App Only" },
+    { value: "WITH_GOOGLE_REVIEW", label: "With Google Review" },
   ]
 
   // Load restaurant info
@@ -152,7 +162,7 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
     }
 
     setGeneratedUrl(url);
-  }, [formData.type, formData.customUrl, restaurant]);
+  }, [formData.type, formData.customUrl, formData.qrFlow, restaurant]);
 
   // Cleanup effect
   useEffect(() => {
@@ -534,6 +544,57 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
                       <p className="text-sm text-destructive">{errors.customUrl}</p>
                     )}
                   </div>
+                ) : formData.type === 'LANDING_PAGE' ? (
+                  <>
+                    <div className="space-y-2">
+                      <Label>Generated URL</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          value={generatedUrl}
+                          disabled
+                          className="flex-1 bg-muted/50"
+                        />
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => {
+                            navigator.clipboard.writeText(generatedUrl);
+                            toast({
+                              title: "URL Copied",
+                              description: "URL copied to clipboard",
+                            });
+                          }}
+                        >
+                          <LinkIcon className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Info className="h-3 w-3" />
+                        This URL is automatically generated based on the QR type
+                      </p>
+                    </div>
+                    
+                    {/* New QR Flow dropdown for Landing Page type */}
+                    <div className="space-y-2">
+                      <InputSelect
+                        name="qrFlow"
+                        label="QR Flow"
+                        value={formData.qrFlow || 'IN_APP_ONLY'}
+                        onChange={(e) => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            qrFlow: e.target.value as QRFlow,
+                          }))
+                        }}
+                        options={qrFlowOptions}
+                        required
+                      />
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Info className="h-3 w-3" />
+                        Configure how users will interact with your QR code
+                      </p>
+                    </div>
+                  </>
                 ) : (
                   <div className="space-y-2">
                     <Label>Generated URL</Label>
