@@ -10,11 +10,16 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { hashId, actionType, ipAddress, userAgent, referrer } = body;
+    const { hashId, actionType, userAgent, referrer } = body;
     
     if (!hashId || !actionType) {
       return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
+
+
+     // Extract IP from request headers
+     const forwardedFor = request.headers.get('x-forwarded-for');
+     const ipAddress = forwardedFor ? forwardedFor.split(',')[0].trim() : null;
 
     // Find the restaurant by hashId
     const restaurant = await prisma.restaurant.findFirst({
