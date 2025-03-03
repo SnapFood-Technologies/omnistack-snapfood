@@ -18,8 +18,6 @@ export async function GET(
     // If no configuration exists, return default values
     if (!qrConfig) {
       return NextResponse.json({
-        qrType: 'app_only',
-        hasLandingPage: false,
         feeType: 'none',
         isActive: true,
         restaurantId: params.restaurantId
@@ -62,8 +60,6 @@ export async function PUT(
         },
         data: {
           qrType: body.qrType,
-          hasLandingPage: body.hasLandingPage,
-          landingPageUrl: body.landingPageUrl,
           feeType: body.feeType,
           feeAmount: body.feeAmount,
           isActive: body.isActive,
@@ -74,8 +70,6 @@ export async function PUT(
       qrConfig = await prisma.qRConfiguration.create({
         data: {
           qrType: body.qrType,
-          hasLandingPage: body.hasLandingPage,
-          landingPageUrl: body.landingPageUrl,
           feeType: body.feeType,
           feeAmount: body.feeAmount,
           isActive: body.isActive,
@@ -89,9 +83,8 @@ export async function PUT(
       qrConfig,
     })
   } catch (error) {
-    console.error('Error updating QR configuration:', error)
     return NextResponse.json(
-      { error: "Error updating QR configuration" }, 
+      { error: error }, 
       { status: 500 }
     )
   }

@@ -84,7 +84,7 @@ export function QRConfiguration({ restaurantId }: QRConfigurationProps) {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to update configuration')
+        throw new Error(response)
       }
 
       toast({
@@ -135,22 +135,7 @@ export function QRConfiguration({ restaurantId }: QRConfigurationProps) {
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-6 md:grid-cols-3">
-            {/* Landing Page URL */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium">Landing Page URL</Label>
-              <div className="flex items-center space-x-2">
-                {config.landingPageUrl ? (
-                  <p className="text-sm truncate max-w-xs">
-                    {config.landingPageUrl}
-                  </p>
-                ) : (
-                  <Badge className="bg-gray-100 text-gray-700 px-2 py-1">
-                    Not set
-                  </Badge>
-                )}
-              </div>
-            </div>
+          <div className="grid gap-6 md:grid-cols-2">
 
             {/* Fee Configuration */}
             <div className="space-y-2">

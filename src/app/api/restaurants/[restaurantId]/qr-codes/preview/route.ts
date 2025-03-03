@@ -51,12 +51,6 @@ export async function PUT(
       qrUrl = baseUrl
     }
 
-    // Apply landing page redirection if configured
-    if (qrConfig.hasLandingPage && qrConfig.landingPageUrl) {
-      // Add the target URL as a parameter to the landing page
-      qrUrl = `${qrConfig.landingPageUrl}?redirect=${encodeURIComponent(qrUrl)}`
-    }
-
     // QR code generation options
     const qrOptions: QRCode.QRCodeToStringOptions = {
       type: 'svg',
