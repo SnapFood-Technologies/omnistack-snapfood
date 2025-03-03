@@ -57,6 +57,7 @@ model Restaurant {
   lastSyncedAt       DateTime? // Keep track of last sync time
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
+  LandingPage        LandingPage?
 }
 
 model QRConfiguration {
@@ -162,7 +163,6 @@ enum QRFlow {
   WITH_GOOGLE_REVIEW
 }
 
-
 model Order {
   id           String      @id @default(auto()) @map("_id") @db.ObjectId
   status       OrderStatus @default(PENDING)
@@ -249,4 +249,79 @@ model Email {
   error      String?
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
+}
+
+model LandingPage {
+  id               String            @id @default(auto()) @map("_id") @db.ObjectId
+  restaurantId     String            @db.ObjectId
+  restaurant       Restaurant        @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  isActive         Boolean           @default(true)
+  title            String?
+  subtitle         String?
+  description      String?
+  wifiCode         String?
+  preparationTime  String?
+  googleReviewLink String?
+  appDeepLink      String?
+  logoPath         String?
+  backgroundImage  String?
+  popularItems     PopularItem[]
+  reviews          Review[]
+  testimonials     Testimonial[]
+  stats            LandingPageStat[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@unique([restaurantId])
+}
+
+model PopularItem {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  price         Float
+  description   String?
+  imagePath     String?
+  isActive      Boolean     @default(true)
+  order         Int         @default(0)
+  landingPageId String      @db.ObjectId
+  landingPage   LandingPage @relation(fields: [landingPageId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Review {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  title         String
+  content       String
+  rating        Float       @default(5.0)
+  isActive      Boolean     @default(true)
+  order         Int         @default(0)
+  landingPageId String      @db.ObjectId
+  landingPage   LandingPage @relation(fields: [landingPageId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Testimonial {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  content       String
+  isActive      Boolean     @default(true)
+  order         Int         @default(0)
+  landingPageId String      @db.ObjectId
+  landingPage   LandingPage @relation(fields: [landingPageId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model LandingPageStat {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  value         String
+  isActive      Boolean     @default(true)
+  order         Int         @default(0)
+  landingPageId String      @db.ObjectId
+  landingPage   LandingPage @relation(fields: [landingPageId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
