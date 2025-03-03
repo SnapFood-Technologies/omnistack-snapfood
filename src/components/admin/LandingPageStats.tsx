@@ -23,7 +23,7 @@ export function LandingPageStats() {
   const { toast } = useToast()
   const [loading, setLoading] = useState(true)
   const [restaurants, setRestaurants] = useState<Restaurant[]>([])
-  const [selectedRestaurantId, setSelectedRestaurantId] = useState<string>("")
+  const [selectedRestaurantId, setSelectedRestaurantId] = useState<string>("all")
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date } | null>(null)
   const [stats, setStats] = useState<any>({
     stats: [],
@@ -55,7 +55,7 @@ export function LandingPageStats() {
       try {
         const queryParams = new URLSearchParams()
         
-        if (selectedRestaurantId) {
+        if (selectedRestaurantId && selectedRestaurantId !== "all") {
           queryParams.append('restaurantId', selectedRestaurantId)
         }
         
@@ -162,7 +162,7 @@ export function LandingPageStats() {
         <CardHeader>
         <div>
           <h2 className="text-2xl font-semibold tracking-tight">Filters</h2>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-muted-foreground mt-1 mb-4">
           Filter statistics by restaurant and date range
           </p>
         </div>
@@ -179,7 +179,7 @@ export function LandingPageStats() {
                   <SelectValue placeholder="All Restaurants" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Restaurants</SelectItem>
+                  <SelectItem value="all">All Restaurants</SelectItem>
                   {restaurants.map((restaurant) => (
                     <SelectItem key={restaurant.id} value={restaurant.id}>
                       {restaurant.name}
@@ -249,8 +249,8 @@ export function LandingPageStats() {
           <Card>
             <CardHeader>
             <div>
-            <h2 className="text-2xl font-semibold tracking-tight">Activity Over Time</h2>
-            <p className="text-sm text-muted-foreground mt-1">
+            <h2 className="text-xl font-semibold tracking-tight">Activity Over Time</h2>
+            <p className="text-sm text-muted-foreground mt-1 mb-4">
             Track all landing page actions over time
             </p>
             </div>
@@ -276,8 +276,8 @@ export function LandingPageStats() {
           <Card>
             <CardHeader>
             <div>
-            <h2 className="text-2xl font-semibold tracking-tight">Actions Comparison</h2>
-            <p className="text-sm text-muted-foreground mt-1">
+            <h2 className="text-xl font-semibold tracking-tight">Actions Comparison</h2>
+            <p className="text-sm text-muted-foreground mt-1 mb-4">
             Compare different types of actions
             </p>
             </div>
@@ -311,8 +311,8 @@ export function LandingPageStats() {
           <Card>
             <CardHeader>
             <div>
-            <h2 className="text-2xl font-semibold tracking-tight">Recent Activities</h2>
-            <p className="text-sm text-muted-foreground mt-1">
+            <h2 className="text-xl font-semibold tracking-tight">Recent Activities</h2>
+            <p className="text-sm text-muted-foreground mt-1 mb-4">
             Recent landing page interactions
             </p>
             </div>
@@ -362,6 +362,7 @@ export function LandingPageStats() {
           </Card>
         </TabsContent>
       </Tabs>
+      <div className="h-8"></div>
     </div>
   )
 }

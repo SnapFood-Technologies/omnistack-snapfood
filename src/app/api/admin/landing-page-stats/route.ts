@@ -1,4 +1,3 @@
-// app/api/admin/landing-page-stats/route.ts
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
@@ -35,7 +34,7 @@ export async function GET(request: Request) {
     }
 
     // Get aggregated stats
-    const stats = await prisma.landingPageStat.findMany({
+    const stats = await prisma.landingPageClickStat.findMany({
       where: restaurantId ? { restaurantId } : {},
       include: {
         restaurant: {
@@ -65,20 +64,51 @@ export async function GET(request: Request) {
       }
     });
 
-    // Compute daily stats for charts
-    const dailyStats = await prisma.$queryRaw`
-      SELECT 
-        DATE_TRUNC('day', timestamp) as date,
-        "actionType",
-        "restaurantId",
-        COUNT(*) as count
-      FROM "LandingPageActionLog"
-      WHERE ${restaurantId ? `"restaurantId" = ${restaurantId} AND` : ''}
-            timestamp >= ${startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)}
-            AND timestamp <= ${endDate ? new Date(endDate) : new Date()}
-      GROUP BY DATE_TRUNC('day', timestamp), "actionType", "restaurantId"
-      ORDER BY date ASC
-    `;
+    // For dailyStats, instead of using $queryRaw, fetch all logs and process in memory
+    const defaultStartDate = new Date();
+    defaultStartDate.setDate(defaultStartDate.getDate() - 30); // 30 days ago
+    
+    const logsForDailyStats = await prisma.landingPageActionLog.findMany({
+      where: {
+        ...(restaurantId ? { restaurantId } : {}),
+        timestamp: {
+          gte: startDate ? new Date(startDate) : defaultStartDate,
+          lte: endDate ? new Date(endDate) : new Date()
+        }
+      },
+      select: {
+        timestamp: true,
+        actionType: true,
+        restaurantId: true
+      }
+    });
+
+    // Process logs to create daily aggregations
+    const dailyStatsMap = new Map();
+    
+    logsForDailyStats.forEach(log => {
+      // Format the date to YYYY-MM-DD for grouping
+      const dateStr = log.timestamp.toISOString().split('T')[0];
+      const key = `${dateStr}_${log.actionType}_${log.restaurantId}`;
+      
+      if (dailyStatsMap.has(key)) {
+        dailyStatsMap.set(key, {
+          ...dailyStatsMap.get(key),
+          count: dailyStatsMap.get(key).count + 1
+        });
+      } else {
+        dailyStatsMap.set(key, {
+          date: new Date(dateStr),
+          actionType: log.actionType,
+          restaurantId: log.restaurantId,
+          count: 1
+        });
+      }
+    });
+
+    const dailyStats = Array.from(dailyStatsMap.values()).sort((a, b) => 
+      a.date.getTime() - b.date.getTime()
+    );
 
     return NextResponse.json({
       stats,
@@ -89,7 +119,7 @@ export async function GET(request: Request) {
     console.error('Error fetching landing page stats:', error);
     return NextResponse.json({ 
       error: error instanceof Error ? error.message : 'Failed to fetch stats',
-      details: error
+      details: error instanceof Error ? { message: error.message } : error
     }, { status: 500 });
   }
 }

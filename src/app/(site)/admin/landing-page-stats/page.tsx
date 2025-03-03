@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function LandingPageStatsPage() {
   return (
-    <div className="p-6">
+    <div className="space-y-8">
       <LandingPageStats />
     </div>
   )
