@@ -57,7 +57,7 @@ model Restaurant {
   lastSyncedAt       DateTime? // Keep track of last sync time
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
-  LandingPage        LandingPage?
+  landingPage        LandingPage?
 }
 
 model QRConfiguration {
