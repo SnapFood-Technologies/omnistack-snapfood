@@ -45,6 +45,8 @@ model Restaurant {
   longitude          Float? // Added from vendor table
   isOpen             Boolean           @default(true) // Based on vendor status
   isActive           Boolean           @default(true) // Based on vendor status
+  slug               String?
+  hashId             String?
   users              User[]
   menus              Menu[]
   products           Product[]
@@ -58,17 +60,14 @@ model Restaurant {
 }
 
 model QRConfiguration {
-  id             String     @id @default(auto()) @map("_id") @db.ObjectId
-  qrType         String     @default("app_only") // 'app_only' or 'app_with_google'
-  hasLandingPage Boolean    @default(false)
-  landingPageUrl String?
-  feeType        String     @default("none") // 'none', 'fixed', 'percentage'
-  feeAmount      Float?
-  isActive       Boolean    @default(true)
-  restaurantId   String     @db.ObjectId
-  restaurant     Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  feeType      String     @default("none") // 'none', 'fixed', 'percentage'
+  feeAmount    Float?
+  isActive     Boolean    @default(true)
+  restaurantId String     @db.ObjectId
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 }
 
 model Menu {
@@ -139,7 +138,7 @@ model QRCode {
   name                 String?
   code                 String      @unique
   design               String      @default("classic")
-  type                 QRCodeType  @default(TABLE)
+  type                 QRCodeType  @default(PROFILE_WEB)
   primaryColor         String      @default("#000000")
   backgroundColor      String      @default("#FFFFFF")
   size                 String      @default("medium")
@@ -203,9 +202,10 @@ enum OrderMethod {
 }
 
 enum QRCodeType {
-  TABLE
-  TAKEOUT
-  SPECIAL
+  PROFILE_WEB
+  PROFILE_APP
+  LANDING_PAGE
+  CUSTOM_URL
 }
 
 enum EmailStatus {

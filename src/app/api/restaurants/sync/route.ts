@@ -71,6 +71,8 @@ export async function POST(req: Request) {
               longitude,
               isOpen: vendor.open !== undefined ? vendor.open : existingRestaurant.isOpen,
               isActive: vendor.isActive !== undefined ? vendor.isActive : existingRestaurant.isActive,
+              slug: vendor.slug || existingRestaurant.slug,
+              hashId: vendor.hash_id || existingRestaurant.hashId,
               lastSyncedAt: new Date()
             }
           });
@@ -84,6 +86,8 @@ export async function POST(req: Request) {
               description: vendor.description || "",
               address: vendor.address || "",
               phone: vendor.phone || "",
+              slug: vendor.slug || "",
+              hashId: vendor.hash_id || "",
               latitude,
               longitude,
               isOpen: vendor.open !== undefined ? vendor.open : false,

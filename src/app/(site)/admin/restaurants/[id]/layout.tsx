@@ -14,7 +14,7 @@ export default async function RestaurantLayout({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold">Restaurant Details</h2>
+        <h2 className="text-2xl font-bold">Restaurant Details</h2>
         <p className="text-muted-foreground mt-2">
           Manage your restaurant details, menu, and delivery settings
         </p>
