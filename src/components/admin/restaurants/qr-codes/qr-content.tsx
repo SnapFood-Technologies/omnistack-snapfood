@@ -407,21 +407,7 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-xl font-semibold tracking-tight">QR Codes</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Generate and manage QR codes for {restaurant?.name || 'your restaurant'}
-        </p>
-      </div>
-
-      {successMessage && (
-        <div className="bg-green-50 text-green-700 p-3 rounded-md">
-          {successMessage}
-        </div>
-      )}
-
-{/* Landing Page CTA - Add this section */}
+      {/* Landing Page CTA - Add this section */}
 
   <div className="bg-blue-50 p-4 rounded-md mb-4">
     <div className="flex justify-between items-center">
@@ -440,6 +426,21 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
       </Button>
     </div>
   </div>
+      {/* Header */}
+      <div>
+        <h2 className="text-xl font-semibold tracking-tight">QR Codes</h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Generate and manage QR codes for {restaurant?.name || 'your restaurant'}
+        </p>
+      </div>
+
+      {successMessage && (
+        <div className="bg-green-50 text-green-700 p-3 rounded-md">
+          {successMessage}
+        </div>
+      )}
+
+
 
 
       {/* Main Content */}

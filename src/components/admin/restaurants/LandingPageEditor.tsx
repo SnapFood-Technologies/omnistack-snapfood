@@ -37,7 +37,11 @@ export function LandingPageEditor({ restaurantId, restaurant }: {
     popularItems: [],
     reviews: [],
     testimonials: [],
-    stats: []
+    stats: [],
+    faqs: [],
+    googlePreviewDescription: "",
+    popularItemsTitle: "",
+    popularItemsSubtitle: ""
   })
   
   // File upload state
@@ -61,6 +65,12 @@ export function LandingPageEditor({ restaurantId, restaurant }: {
             data.appDeepLink = `https://reward.snapfood.al/referral/?link=https://snapfood.al/reward?restaurantId=${restaurant.externalSnapfoodId || ''}&apn=com.snapfood.app&isi=1314003561&ibi=com.snapfood.al`;
           }
           
+            // Ensure all array properties exist
+            data.faqs = data.faqs || [];
+            data.popularItems = data.popularItems || [];
+            data.reviews = data.reviews || [];
+            data.testimonials = data.testimonials || [];
+            data.stats = data.stats || [];
 
           setLandingPage(data)
           
@@ -86,7 +96,11 @@ export function LandingPageEditor({ restaurantId, restaurant }: {
             popularItems: [],
             reviews: [],
             testimonials: [],
-            stats: []
+            stats: [],
+            faqs: [],
+            googlePreviewDescription: "",
+            popularItemsTitle: "",
+            popularItemsSubtitle: ""
           };
           setLandingPage(defaultData);
         }
@@ -311,6 +325,48 @@ export function LandingPageEditor({ restaurantId, restaurant }: {
     })
   }
   
+  // Handle FAQs
+const addFAQ = () => {
+    setLandingPage(prev => ({
+      ...prev,
+      faqs: [
+        ...prev.faqs,
+        {
+          id: `temp-${Date.now()}`,
+          question: "",
+          answer: "",
+          isActive: true,
+          order: prev.faqs.length
+        }
+      ]
+    }))
+  }
+  
+  const updateFAQ = (index: number, field: string, value: any) => {
+    setLandingPage(prev => {
+      const updatedFAQs = [...prev.faqs]
+      updatedFAQs[index] = {
+        ...updatedFAQs[index],
+        [field]: value
+      }
+      return {
+        ...prev,
+        faqs: updatedFAQs
+      }
+    })
+  }
+  
+  const removeFAQ = (index: number) => {
+    setLandingPage(prev => {
+      const updatedFAQs = [...prev.faqs]
+      updatedFAQs.splice(index, 1)
+      return {
+        ...prev,
+        faqs: updatedFAQs
+      }
+    })
+  }
+
   // Handle drag and drop reordering
   const handleDragEnd = (result: any, listName: string) => {
     if (!result.destination) return
@@ -465,12 +521,13 @@ export function LandingPageEditor({ restaurantId, restaurant }: {
       </div>
       
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid grid-cols-5 w-full">
+        <TabsList className="grid grid-cols-6 w-full">
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="popular-items">Popular Items</TabsTrigger>
           <TabsTrigger value="reviews">Reviews</TabsTrigger>
           <TabsTrigger value="testimonials">Testimonials</TabsTrigger>
           <TabsTrigger value="stats">Stats</TabsTrigger>
+          <TabsTrigger value="faqs">FAQs</TabsTrigger>
         </TabsList>
         
         {/* General Tab */}
@@ -579,6 +636,20 @@ export function LandingPageEditor({ restaurantId, restaurant }: {
                   />
                 </div>
               </div>
+              <div className="space-y-2">
+  <Label htmlFor="googlePreviewDescription">Google Preview Description</Label>
+  <Textarea
+    id="googlePreviewDescription"
+    name="googlePreviewDescription"
+    value={landingPage.googlePreviewDescription || ''}
+    onChange={handleInputChange}
+    placeholder="A short description for search engines and previews"
+    rows={2}
+  />
+  <p className="text-xs text-muted-foreground">
+    This description will be shown in Google search results and social media previews
+  </p>
+</div>
             </CardContent>
           </Card>
           
@@ -696,7 +767,29 @@ export function LandingPageEditor({ restaurantId, restaurant }: {
         
         {/* Popular Items Tab */}
         <TabsContent value="popular-items" className="space-y-4">
-          <Card>
+        <div className="grid grid-cols-2 gap-4 p-4 mb-0">
+  <div className="space-y-2">
+    <Label htmlFor="popularItemsTitle">Section Title</Label>
+    <Input
+      id="popularItemsTitle"
+      name="popularItemsTitle"
+      value={landingPage.popularItemsTitle || ''}
+      onChange={handleInputChange}
+      placeholder="Popular Menu Items"
+    />
+  </div>
+  <div className="space-y-2">
+    <Label htmlFor="popularItemsSubtitle">Section Subtitle</Label>
+    <Input
+      id="popularItemsSubtitle"
+      name="popularItemsSubtitle"
+      value={landingPage.popularItemsSubtitle || ''}
+      onChange={handleInputChange}
+      placeholder="Our customers' favorite dishes"
+    />
+  </div>
+        </div>
+                <Card>
             <CardHeader className="flex flex-row items-center justify-between">
                 <div className="mb-4">
                 <h2 className="text-lg font-bold tracking-tight">Popular Items</h2>
@@ -1089,6 +1182,99 @@ export function LandingPageEditor({ restaurantId, restaurant }: {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* FAQs Tab */}
+<TabsContent value="faqs" className="space-y-4">
+  <Card>
+    <CardHeader className="flex flex-row items-center justify-between">
+      <div className="mb-4">
+        <h2 className="text-lg font-bold tracking-tight">Frequently Asked Questions</h2>
+        <p className="text-sm text-muted-foreground mt-0">
+          Add common questions and answers about your restaurant
+        </p>
+      </div>
+      <Button onClick={addFAQ}>
+        <Plus className="mr-2 h-4 w-4" />
+        Add FAQ
+      </Button>
+    </CardHeader>
+    <CardContent>
+      <DragDropContext onDragEnd={(result) => handleDragEnd(result, 'faqs')}>
+        <Droppable droppableId="faqs-list">
+          {(provided) => (
+            <div
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+              className="space-y-4"
+            >
+              {landingPage.faqs?.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>No FAQs added yet. Click "Add FAQ" to get started.</p>
+                </div>
+              ) : (
+                landingPage.faqs?.map((faq, index) => (
+                  <Draggable key={faq.id} draggableId={faq.id} index={index}>
+                    {(provided) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        className="border rounded-md p-4"
+                      >
+                        <div className="flex justify-between items-start mb-4">
+                          <h3 className="font-medium">FAQ #{index + 1}</h3>
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={faq.isActive}
+                              onCheckedChange={(checked) => updateFAQ(index, 'isActive', checked)}
+                              id={`faq-active-${index}`}
+                            />
+                            <Label htmlFor={`faq-active-${index}`}>Active</Label>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeFAQ(index)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor={`faq-question-${index}`}>Question</Label>
+                            <Input
+                              id={`faq-question-${index}`}
+                              value={faq.question || ''}
+                              onChange={(e) => updateFAQ(index, 'question', e.target.value)}
+                              placeholder="E.g., What are your opening hours?"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor={`faq-answer-${index}`}>Answer</Label>
+                            <Textarea
+                              id={`faq-answer-${index}`}
+                              value={faq.answer || ''}
+                              onChange={(e) => updateFAQ(index, 'answer', e.target.value)}
+                              placeholder="Enter your answer here"
+                              rows={3}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </Draggable>
+                ))
+              )}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
+    </CardContent>
+  </Card>
+</TabsContent>
       </Tabs>
       <div className="h-8"></div>
     </div>
