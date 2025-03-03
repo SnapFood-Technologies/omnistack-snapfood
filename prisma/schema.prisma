@@ -33,18 +33,18 @@ model Client {
 }
 
 model Restaurant {
-  id                 String            @id @default(auto()) @map("_id") @db.ObjectId
+  id                 String                 @id @default(auto()) @map("_id") @db.ObjectId
   name               String
   description        String?
   address            String
   phone              String
   email              String?
-  status             RestaurantStatus  @default(PENDING)
+  status             RestaurantStatus       @default(PENDING)
   externalSnapfoodId Int? // External ID from Snapfood vendor table
   latitude           Float? // Added from vendor table
   longitude          Float? // Added from vendor table
-  isOpen             Boolean           @default(true) // Based on vendor status
-  isActive           Boolean           @default(true) // Based on vendor status
+  isOpen             Boolean                @default(true) // Based on vendor status
+  isActive           Boolean                @default(true) // Based on vendor status
   slug               String?
   hashId             String?
   users              User[]
@@ -55,9 +55,11 @@ model Restaurant {
   qrCodes            QRCode[]
   qrConfiguration    QRConfiguration[]
   lastSyncedAt       DateTime? // Keep track of last sync time
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
   landingPage        LandingPage?
+  landingPageStats   LandingPageClickStat[]
+  landingPageLogs    LandingPageActionLog[]
 }
 
 model QRConfiguration {
@@ -340,4 +342,34 @@ model LandingPageStat {
   landingPage   LandingPage @relation(fields: [landingPageId], references: [id], onDelete: Cascade)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+}
+
+enum LandingPageActionType {
+  PAGE_VIEW
+  GOOGLE_REVIEW_CLICK
+  APP_LINK_CLICK
+  REGISTRATION_START
+}
+
+model LandingPageClickStat {
+  id           String                @id @default(auto()) @map("_id") @db.ObjectId
+  restaurantId String                @db.ObjectId
+  restaurant   Restaurant            @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  actionType   LandingPageActionType
+  count        Int                   @default(0)
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+
+  @@unique([restaurantId, actionType])
+}
+
+model LandingPageActionLog {
+  id           String                @id @default(auto()) @map("_id") @db.ObjectId
+  restaurantId String                @db.ObjectId
+  restaurant   Restaurant            @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  actionType   LandingPageActionType
+  ipAddress    String?
+  userAgent    String?
+  referrer     String?
+  timestamp    DateTime              @default(now())
 }
