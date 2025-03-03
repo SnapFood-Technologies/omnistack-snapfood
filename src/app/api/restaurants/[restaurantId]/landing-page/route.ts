@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 // GET endpoint to fetch landing page data for a restaurant
-// Get QR configuration for a restaurant
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ restaurantId: string }> | { restaurantId: string } }
@@ -32,6 +31,10 @@ export async function GET(
           orderBy: { order: "asc" },
         },
         stats: {
+          where: { isActive: true },
+          orderBy: { order: "asc" },
+        },
+        faqs: {
           where: { isActive: true },
           orderBy: { order: "asc" },
         },
@@ -91,7 +94,11 @@ export async function POST(
       reviews,
       testimonials,
       stats,
+      faqs,
       isActive = true,
+      googlePreviewDescription,
+      popularItemsTitle,
+      popularItemsSubtitle,
     } = data;
 
     // Check if a landing page already exists for this restaurant
@@ -116,6 +123,9 @@ export async function POST(
           logoPath,
           backgroundImage,
           isActive,
+          googlePreviewDescription,
+          popularItemsTitle,
+          popularItemsSubtitle,
         },
       });
     } else {
@@ -133,6 +143,9 @@ export async function POST(
           logoPath,
           backgroundImage,
           isActive,
+          googlePreviewDescription,
+          popularItemsTitle,
+          popularItemsSubtitle,
         },
       });
     }
@@ -240,6 +253,31 @@ export async function POST(
       );
     }
 
+    // Handle FAQs (if provided)
+    if (faqs && Array.isArray(faqs)) {
+      // Delete existing FAQs if we're updating
+      if (existingLandingPage) {
+        await prisma.fAQ.deleteMany({
+          where: { landingPageId: landingPage.id },
+        });
+      }
+
+      // Create new FAQs
+      await Promise.all(
+        faqs.map((faq, index) =>
+          prisma.fAQ.create({
+            data: {
+              landingPageId: landingPage.id,
+              question: faq.question,
+              answer: faq.answer,
+              isActive: faq.isActive ?? true,
+              order: faq.order ?? index,
+            },
+          })
+        )
+      );
+    }
+
     // Fetch the complete landing page with all relations
     const completeLandingPage = await prisma.landingPage.findUnique({
       where: { id: landingPage.id },
@@ -254,6 +292,9 @@ export async function POST(
           orderBy: { order: "asc" },
         },
         stats: {
+          orderBy: { order: "asc" },
+        },
+        faqs: {
           orderBy: { order: "asc" },
         },
       },
