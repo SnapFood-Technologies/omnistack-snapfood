@@ -275,6 +275,7 @@ model LandingPage {
   description              String?
   wifiCode                 String?
   preparationTime          String?
+  deliveryTimeMinutes      String?
   googleReviewLink         String?
   appDeepLink              String?
   logoPath                 String?

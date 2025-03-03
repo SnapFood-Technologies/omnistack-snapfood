@@ -89,6 +89,7 @@ export async function GET(
         description: restaurant.landingPage.description,
         wifiCode: restaurant.landingPage.wifiCode,
         preparationTime: restaurant.landingPage.preparationTime,
+        deliveryTimeMinutes: restaurant.landingPage.deliveryTimeMinutes, 
         googleReviewLink: restaurant.landingPage.googleReviewLink,
         appDeepLink: restaurant.landingPage.appDeepLink,
         logoPath: restaurant.landingPage.logoPath,
