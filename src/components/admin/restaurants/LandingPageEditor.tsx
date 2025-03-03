@@ -1,20 +1,18 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/new-card"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/components/ui/use-toast"
 import { Plus, Trash2, Upload, ExternalLink, Loader2, Save } from "lucide-react"
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 
 export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
-  const router = useRouter()
   const { toast } = useToast()
   
   // Loading state
@@ -392,7 +390,7 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
   // Handle preview button click
   const handlePreview = () => {
     // Open the landing page in a new tab
-    window.open(`/landing/${restaurantId}`, '_blank')
+    window.open(`https://snapfood.al/landing/${restaurantId}/Delivery`, '_blank')
   }
   
   if (isLoading) {
@@ -454,10 +452,14 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
         <TabsContent value="general" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-              <CardDescription>
+                 <div className="mb-4">
+                <h2 className="text-lg font-bold tracking-tight">Basic Information</h2>
+                <p className="text-sm text-muted-foreground mt-0">
                 Set the title, subtitle, and description for your landing page
-              </CardDescription>
+                </p>
+            </div>
+             
+            
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -498,10 +500,14 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
           
           <Card>
             <CardHeader>
-              <CardTitle>Additional Information</CardTitle>
-              <CardDescription>
-                Provide additional details for your landing page
-              </CardDescription>
+
+            <div className="mb-4">
+        <h2 className="text-lg font-bold tracking-tight">Additional Information</h2>
+        <p className="text-sm text-muted-foreground mt-0">
+        Provide additional details for your landing page
+        </p>
+      </div>
+             
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -553,10 +559,13 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
           
           <Card>
             <CardHeader>
-              <CardTitle>Images</CardTitle>
-              <CardDescription>
+            <div className="mb-4">
+                <h2 className="text-lg font-bold tracking-tight">Images</h2>
+                <p className="text-sm text-muted-foreground mt-0">
                 Upload logo and background images for your landing page
-              </CardDescription>
+                </p>
+            </div>
+            
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-8">
@@ -664,12 +673,13 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
         <TabsContent value="popular-items" className="space-y-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Popular Items</CardTitle>
-                <CardDescription>
-                  Add the most popular items from your menu
-                </CardDescription>
-              </div>
+                <div className="mb-4">
+                <h2 className="text-lg font-bold tracking-tight">Popular Items</h2>
+                <p className="text-sm text-muted-foreground mt-0">
+                Add the most popular items from your menu
+                </p>
+            </div>
+              
               <Button onClick={addPopularItem}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Item
@@ -768,12 +778,13 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
         <TabsContent value="reviews" className="space-y-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Customer Reviews</CardTitle>
-                <CardDescription>
-                  Add customer reviews to showcase on your landing page
-                </CardDescription>
-              </div>
+            <div className="mb-4">
+                <h2 className="text-lg font-bold tracking-tight">Customer Reviews</h2>
+                <p className="text-sm text-muted-foreground mt-0">
+                Add customer reviews to showcase on your landing page
+                </p>
+            </div>
+             
               <Button onClick={addReview}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Review
@@ -884,12 +895,13 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
         <TabsContent value="testimonials" className="space-y-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Testimonials</CardTitle>
-                <CardDescription>
-                  Add testimonial quotes to showcase on your landing page
-                </CardDescription>
-              </div>
+            <div className="mb-4">
+                <h2 className="text-lg font-bold tracking-tight">Testimonials</h2>
+                <p className="text-sm text-muted-foreground mt-0">
+                Add testimonial quotes to showcase on your landing page
+                </p>
+            </div>
+             
               <Button onClick={addTestimonial}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Testimonial
@@ -965,12 +977,13 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
         <TabsContent value="stats" className="space-y-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Statistics</CardTitle>
-                <CardDescription>
-                  Add impressive statistics about your restaurant
-                </CardDescription>
-              </div>
+            <div className="mb-4">
+                <h2 className="text-lg font-bold tracking-tight">Statistics</h2>
+                <p className="text-sm text-muted-foreground mt-0">
+                Add impressive statistics about your restaurant
+                </p>
+            </div>
+             
               <Button onClick={addStat}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Statistic
@@ -1052,6 +1065,7 @@ export function LandingPageEditor({ restaurantId }: { restaurantId: string }) {
           </Card>
         </TabsContent>
       </Tabs>
+      <div className="h-8"></div>
     </div>
   )
 }
