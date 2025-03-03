@@ -8,25 +8,11 @@ export async function GET(
   { params }: { params: { restaurantId: string } }
 ) {
   try {
-    // Check if QR functionality is enabled
-    const qrConfig = await prisma.qRConfiguration.findFirst({
-      where: {
-        restaurantId: params.restaurantId,
-      },
-    })
-
-    // If QR functionality is disabled, return empty list with a status flag
-    if (qrConfig && !qrConfig.isActive) {
-      return NextResponse.json({
-        qrCodes: [],
-        isActive: false
-      })
-    }
-
-    // Fetch QR codes
+    const { restaurantId } = params;
+    
     const qrCodes = await prisma.qRCode.findMany({
       where: {
-        restaurantId: params.restaurantId,
+        restaurantId,
       },
       include: {
         menu: true
@@ -36,10 +22,7 @@ export async function GET(
       },
     })
 
-    return NextResponse.json({
-      qrCodes,
-      isActive: true
-    })
+    return NextResponse.json(qrCodes)
   } catch (error) {
     console.log('Error fetching QR codes:', error)
     return NextResponse.json(
@@ -54,10 +37,13 @@ export async function POST(
   { params }: { params: { restaurantId: string } }
 ) {
   try {
+    const { restaurantId } = params;
+    const formData = await req.formData()
+    
     // Check if QR functionality is enabled
     const qrConfig = await prisma.qRConfiguration.findFirst({
       where: {
-        restaurantId: params.restaurantId,
+        restaurantId,
       },
     })
 
@@ -67,44 +53,38 @@ export async function POST(
         { status: 403 }
       )
     }
-
-    const formData = await req.formData()
     
-    // Extract data from form
-    const customUrl = formData.get('customUrl') ? String(formData.get('customUrl')) : null
-    const menuId = formData.get('menuId') ? String(formData.get('menuId')) : null
-    const hasLogo = formData.get('hasLogo') === 'true'
-    const customText = formData.get('customText') ? String(formData.get('customText')) : null
-    const logoFile = formData.get('logo') as File | null
-
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-
-    // Create QR URL based on configuration
-    let qrUrl: string
+    // Get the QR URL directly from the form data
+    const qrUrl = formData.get('qrUrl') ? String(formData.get('qrUrl')) : '';
     
-    if (customUrl) {
-      qrUrl = customUrl
-    } else if (menuId) {
-      // Use URL structure based on QR configuration
-      if (qrConfig?.qrType === 'app_with_google') {
-        qrUrl = `${baseUrl}/menu/${menuId}?ref=google`
-      } else {
-        qrUrl = `${baseUrl}/menu/${menuId}`
-      }
-    } else {
-      qrUrl = baseUrl
+    if (!qrUrl) {
+      return NextResponse.json(
+        { error: "No URL provided for QR code" },
+        { status: 400 }
+      )
     }
-
+    
+    // Extract form data
+    const design = String(formData.get('design') || 'classic')
+    const type = String(formData.get('type') || 'PROFILE_WEB')
+    const primaryColor = String(formData.get('primaryColor') || '#000000')
+    const backgroundColor = String(formData.get('backgroundColor') || '#FFFFFF') 
+    const size = String(formData.get('size') || 'medium')
+    const customText = formData.get('customText') ? String(formData.get('customText')) : null
+    const hasLogo = formData.get('hasLogo') === 'true'
+    const errorLevel = String(formData.get('errorLevel') || 'M')
+    const logoFile = formData.get('logo') as File | null
+    
     // QR code generation options
     const qrOptions: QRCode.QRCodeToStringOptions = {
       type: 'svg',
       color: {
-        dark: String(formData.get('primaryColor') || '#000000'),
-        light: String(formData.get('backgroundColor') || '#FFFFFF'),
+        dark: primaryColor,
+        light: backgroundColor,
       },
-      errorCorrectionLevel: (formData.get('errorLevel') as 'L' | 'M' | 'Q' | 'H') || 'M',
+      errorCorrectionLevel: errorLevel as 'L' | 'M' | 'Q' | 'H',
       margin: 1,
-      width: formData.get('size') === 'large' ? 400 : formData.get('size') === 'medium' ? 300 : 200,
+      width: size === 'large' ? 400 : size === 'medium' ? 300 : 200,
     }
 
     // Generate QR code as SVG
@@ -178,31 +158,23 @@ export async function POST(
       }
     }
 
-    // Apply fee tracking parameters if applicable
-    if (qrConfig?.feeType !== 'none' && qrConfig?.feeAmount) {
-      // Add a tracking parameter to the QR content to indicate fee should be applied
-      const feeTrackingId = `ft-${Date.now()}-${Math.floor(Math.random() * 1000)}`
-      
-      // Let's add a metadata comment in the SVG to track this
-      qrSvg = qrSvg.replace('<svg ', `<svg data-fee-tracking="${feeTrackingId}" data-fee-type="${qrConfig.feeType}" data-fee-amount="${qrConfig.feeAmount}" `)
-    }
+    // Add hidden metadata about the URL in the SVG
+    qrSvg = qrSvg.replace('<svg ', `<svg data-qr-url="${qrUrl}" `)
 
     // Create QR code record
     const qrCode = await prisma.qRCode.create({
       data: {
         code: qrSvg,
         name: customText,
-        design: String(formData.get('design')),
-        primaryColor: String(formData.get('primaryColor')),
-        backgroundColor: String(formData.get('backgroundColor')),
-        size: String(formData.get('size')),
-        customText: customText,
-        hasLogo: hasLogo,
-        errorCorrectionLevel: String(formData.get('errorLevel')),
-        type: customUrl ? 'SPECIAL' : String(formData.get('type')) as 'TABLE' | 'TAKEOUT' | 'SPECIAL',
-        tableNumber: formData.get('tableNumber') ? Number(formData.get('tableNumber')) : null,
-        menuId: menuId,
-        restaurantId: params.restaurantId
+        design,
+        type,
+        primaryColor,
+        backgroundColor,
+        size,
+        customText,
+        hasLogo,
+        errorCorrectionLevel: errorLevel,
+        restaurantId,
       },
     })
 
@@ -212,10 +184,10 @@ export async function POST(
       svgString: qrSvg
     })
 
-  } catch (error: any) {
+  } catch (error) {
     console.log('Error creating QR code:', error)
     return NextResponse.json(
-      { error: error.message || "Failed to generate QR code" }, 
+      { error: "Failed to generate QR code" }, 
       { status: 500 }
     )
   }

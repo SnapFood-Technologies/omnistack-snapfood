@@ -7,11 +7,15 @@ export async function PUT(
   { params }: { params: { restaurantId: string } }
 ) {
   try {
+    const { restaurantId } = params;
     const formData = await req.formData()
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-
+    
     // Get QR configuration first to check if it's active
-    const qrConfigResponse = await fetch(`${baseUrl}/api/restaurants/${params.restaurantId}/qr-config`)
+    const qrConfigResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL || ''}/api/restaurants/${restaurantId}/qr-config`, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
     
     if (!qrConfigResponse.ok) {
       return NextResponse.json(
@@ -29,27 +33,19 @@ export async function PUT(
       )
     }
 
-    const customUrl = formData.get('customUrl') ? String(formData.get('customUrl')) : null
-    const menuId = formData.get('menuId') ? String(formData.get('menuId')) : null
+    // Get the QR URL directly from the form data
+    const qrUrl = formData.get('qrUrl') ? String(formData.get('qrUrl')) : '';
+    
+    if (!qrUrl) {
+      return NextResponse.json(
+        { error: "No URL provided for QR code" },
+        { status: 400 }
+      )
+    }
+    
     const hasLogo = formData.get('hasLogo') === 'true'
     const customText = formData.get('customText') ? String(formData.get('customText')) : null
     const logoFile = formData.get('logo') as File | null
-
-    // Create QR URL based on configuration
-    let qrUrl: string
-    
-    if (customUrl) {
-      qrUrl = customUrl
-    } else if (menuId) {
-      // Use URL structure based on QR configuration
-      if (qrConfig.qrType === 'app_with_google') {
-        qrUrl = `${baseUrl}/menu/${menuId}?ref=google`
-      } else {
-        qrUrl = `${baseUrl}/menu/${menuId}`
-      }
-    } else {
-      qrUrl = baseUrl
-    }
 
     // QR code generation options
     const qrOptions: QRCode.QRCodeToStringOptions = {
