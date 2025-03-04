@@ -162,10 +162,10 @@ export async function POST(
         // Convert logo to base64
         const logoBuffer = Buffer.from(await logoFile.arrayBuffer())
         const logoBase64 = logoBuffer.toString('base64')
-        const logoMimeType = logoFile.type
+        const logoMimeType = logoFile.type || 'image/png' // Default to PNG if type is missing
         
-        // Calculate logo size (15% of the QR code size)
-        const logoSize = svgSize * 0.15
+        // Calculate logo size (20% of the QR code size for better visibility)
+        const logoSize = svgSize * 0.2
         const logoX = (svgSize - logoSize) / 2
         const logoY = (svgSize - logoSize) / 2
         
@@ -178,7 +178,7 @@ export async function POST(
           fill="${backgroundColor}"
         />\n`
         
-        // Add the logo
+        // Add the logo with proper data URI format
         code += `<image
           x="${logoX}"
           y="${logoY}"
