@@ -16,10 +16,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
 
-
-     // Extract IP from request headers
-     const forwardedFor = request.headers.get('x-forwarded-for');
-     const ipAddress = forwardedFor ? forwardedFor.split(',')[0].trim() : null;
+    // Extract IP from request headers
+    const forwardedFor = request.headers.get('x-forwarded-for');
+    const ipAddress = forwardedFor ? forwardedFor.split(',')[0].trim() : null;
 
     // Find the restaurant by hashId
     const restaurant = await prisma.restaurant.findFirst({
@@ -42,25 +41,36 @@ export async function POST(request: Request) {
       }
     });
 
-    // Update aggregate stats
-    await prisma.landingPageStat.upsert({
+    // First try to find existing stat
+    const existingStat = await prisma.landingPageClickStat.findFirst({
       where: {
-        restaurantId_actionType: {
-          restaurantId: restaurant.id,
-          actionType
-        }
-      },
-      create: {
         restaurantId: restaurant.id,
-        actionType,
-        count: 1
-      },
-      update: {
-        count: {
-          increment: 1
-        }
+        actionType
       }
     });
+
+    if (existingStat) {
+      // Update existing stat
+      await prisma.landingPageClickStat.update({
+        where: {
+          id: existingStat.id
+        },
+        data: {
+          count: {
+            increment: 1
+          }
+        }
+      });
+    } else {
+      // Create new stat
+      await prisma.landingPageClickStat.create({
+        data: {
+          restaurantId: restaurant.id,
+          actionType,
+          count: 1
+        }
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
