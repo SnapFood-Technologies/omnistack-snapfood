@@ -67,10 +67,13 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
   ]
 
   const sizes = [
+    { value: "tiny", label: "Tiny (100x100)" },
     { value: "small", label: "Small (200x200)" },
     { value: "medium", label: "Medium (300x300)" },
     { value: "large", label: "Large (400x400)" },
-  ]
+    { value: "xlarge", label: "Extra Large (500x500)" },
+  ];
+  
 
   const qrTypes = [
     { value: "PROFILE_WEB", label: "Restaurant Profile in SnapFood Web" },
@@ -271,96 +274,169 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
     }
   }
 
-  const handleDownload = async (format: "svg" | "png") => {
-    if (!qrUrls[format]) return
 
+const handleDownload = async (format: "svg" | "png") => {
+  if (format === "svg") {
+    // Use your existing code for SVG
+    if (!qrUrls.svg) return;
+    
     try {
-      const response = await fetch(qrUrls[format]!)
-      const blob = await response.blob()
-      const element = document.createElement("a")
-      element.href = URL.createObjectURL(blob)
-      element.download = `qr-code-${Date.now()}.${format}`
-      document.body.appendChild(element)
-      element.click()
-      document.body.removeChild(element)
-      URL.revokeObjectURL(element.href)
+      const response = await fetch(qrUrls.svg);
+      const blob = await response.blob();
+      const element = document.createElement("a");
+      element.href = URL.createObjectURL(blob);
+      element.download = `qr-code-${Date.now()}.svg`;
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+      URL.revokeObjectURL(element.href);
     } catch (error) {
       toast({
         title: "Error",
-        description: `Failed to download ${format.toUpperCase()} file`,
+        description: "Failed to download SVG file",
         variant: "destructive",
-      })
+      });
     }
-  }
-
-  const handleGenerate = async () => {
-    if (!validateForm()) {
-      toast({
-        title: "Validation Error",
-        description: "Please check all required fields",
-        variant: "destructive",
-      })
-      return
-    }
-
-    if (!generatedUrl) {
-      toast({
-        title: "Error",
-        description: "Unable to generate URL for the QR code",
-        variant: "destructive",
-      })
-      return
-    }
-
-    setLoadingGenerate(true)
+  } else if (format === "png") {
+    // Generate PNG from SVG on the client-side
+    if (!qrPreview) return;
+    
     try {
-      const formDataToSend = new FormData()
+      // Create a canvas element
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
       
-      // Add all form data
-      Object.entries(formData).forEach(([key, value]) => {
-        if (value !== null && value !== undefined) {
-          if (key === "logo" && value instanceof File) {
-            formDataToSend.append("logo", value)
-          } else {
-            formDataToSend.append(key, String(value))
+      // Get the size from the SVG
+      const parser = new DOMParser();
+      const svgDoc = parser.parseFromString(qrPreview, 'image/svg+xml');
+      const svgElement = svgDoc.documentElement;
+      
+      const size = parseInt(svgElement.getAttribute('width') || '300', 10);
+      canvas.width = size;
+      canvas.height = size;
+      
+      // Draw a white background
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Create an image from the SVG
+      const img = new Image();
+      img.src = `data:image/svg+xml;base64,${btoa(qrPreview)}`;
+      
+      // When the image loads, draw it on the canvas and download
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0);
+        
+        // Convert canvas to PNG and download
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            toast({
+              title: "Error",
+              description: "Failed to generate PNG",
+              variant: "destructive",
+            });
+            return;
           }
-        }
-      })
+          
+          const element = document.createElement("a");
+          element.href = URL.createObjectURL(blob);
+          element.download = `qr-code-${Date.now()}.png`;
+          document.body.appendChild(element);
+          element.click();
+          document.body.removeChild(element);
+          URL.revokeObjectURL(element.href);
+        }, 'image/png');
+      };
       
-      // Add the generated URL
-      formDataToSend.set("qrUrl", generatedUrl)
-
-      const response = await fetch(`/api/restaurants/${restaurantId}/qr-codes`, {
-        method: "POST",
-        body: formDataToSend,
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to generate QR code")
-      }
-
-      setSuccessMessage("QR code generated successfully!")
-      setTimeout(() => setSuccessMessage(null), 3000)
-
-      toast({
-        title: "Success",
-        description: "QR code generated and saved successfully",
-      })
-
-      // Generate new preview
-      await handlePreview()
-    } catch (error: any) {
+      img.onerror = () => {
+        toast({
+          title: "Error",
+          description: "Failed to convert SVG to PNG",
+          variant: "destructive",
+        });
+      };
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message || "Failed to generate QR code",
+        description: "Failed to download PNG file",
         variant: "destructive",
-      })
-    } finally {
-      setLoadingGenerate(false)
+      });
     }
   }
+};
+  
+
+  // In QRCodeContent component, update the handleGenerate function
+
+const handleGenerate = async () => {
+  if (!validateForm()) {
+    toast({
+      title: "Validation Error",
+      description: "Please check all required fields",
+      variant: "destructive",
+    })
+    return
+  }
+
+  if (!generatedUrl) {
+    toast({
+      title: "Error",
+      description: "Unable to generate URL for the QR code",
+      variant: "destructive",
+    })
+    return
+  }
+
+  setLoadingGenerate(true)
+  try {
+    const formDataToSend = new FormData()
+    
+    // Add all form data
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        if (key === "logo" && value instanceof File) {
+          formDataToSend.append("logo", value)
+        } else {
+          formDataToSend.append(key, String(value))
+        }
+      }
+    })
+    
+    // Add the generated URL
+    formDataToSend.set("qrUrl", generatedUrl)
+
+    const response = await fetch(`/api/restaurants/${restaurantId}/qr-codes`, {
+      method: "POST",
+      body: formDataToSend,
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to generate QR code")
+    }
+
+    setSuccessMessage("QR code generated successfully!")
+    setTimeout(() => setSuccessMessage(null), 3000)
+
+    toast({
+      title: "Success",
+      description: "QR code generated and saved successfully",
+    })
+
+    // After successful generation, immediately update the preview with the new QR code
+    setQrPreview(data.svgString)
+    setQrUrls({ svg: data.svgDataUrl, png: data.pngDataUrl })
+  } catch (error: any) {
+    toast({
+      title: "Error",
+      description: error.message || "Failed to generate QR code",
+      variant: "destructive",
+    })
+  } finally {
+    setLoadingGenerate(false)
+  }
+}
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
