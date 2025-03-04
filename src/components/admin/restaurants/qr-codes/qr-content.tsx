@@ -293,74 +293,77 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
     }
   }
 
-  const handleGenerate = async () => {
-    if (!validateForm()) {
-      toast({
-        title: "Validation Error",
-        description: "Please check all required fields",
-        variant: "destructive",
-      })
-      return
-    }
+  // In QRCodeContent component, update the handleGenerate function
 
-    if (!generatedUrl) {
-      toast({
-        title: "Error",
-        description: "Unable to generate URL for the QR code",
-        variant: "destructive",
-      })
-      return
-    }
-
-    setLoadingGenerate(true)
-    try {
-      const formDataToSend = new FormData()
-      
-      // Add all form data
-      Object.entries(formData).forEach(([key, value]) => {
-        if (value !== null && value !== undefined) {
-          if (key === "logo" && value instanceof File) {
-            formDataToSend.append("logo", value)
-          } else {
-            formDataToSend.append(key, String(value))
-          }
-        }
-      })
-      
-      // Add the generated URL
-      formDataToSend.set("qrUrl", generatedUrl)
-
-      const response = await fetch(`/api/restaurants/${restaurantId}/qr-codes`, {
-        method: "POST",
-        body: formDataToSend,
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to generate QR code")
-      }
-
-      setSuccessMessage("QR code generated successfully!")
-      setTimeout(() => setSuccessMessage(null), 3000)
-
-      toast({
-        title: "Success",
-        description: "QR code generated and saved successfully",
-      })
-
-      // Generate new preview
-      await handlePreview()
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to generate QR code",
-        variant: "destructive",
-      })
-    } finally {
-      setLoadingGenerate(false)
-    }
+const handleGenerate = async () => {
+  if (!validateForm()) {
+    toast({
+      title: "Validation Error",
+      description: "Please check all required fields",
+      variant: "destructive",
+    })
+    return
   }
+
+  if (!generatedUrl) {
+    toast({
+      title: "Error",
+      description: "Unable to generate URL for the QR code",
+      variant: "destructive",
+    })
+    return
+  }
+
+  setLoadingGenerate(true)
+  try {
+    const formDataToSend = new FormData()
+    
+    // Add all form data
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        if (key === "logo" && value instanceof File) {
+          formDataToSend.append("logo", value)
+        } else {
+          formDataToSend.append(key, String(value))
+        }
+      }
+    })
+    
+    // Add the generated URL
+    formDataToSend.set("qrUrl", generatedUrl)
+
+    const response = await fetch(`/api/restaurants/${restaurantId}/qr-codes`, {
+      method: "POST",
+      body: formDataToSend,
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to generate QR code")
+    }
+
+    setSuccessMessage("QR code generated successfully!")
+    setTimeout(() => setSuccessMessage(null), 3000)
+
+    toast({
+      title: "Success",
+      description: "QR code generated and saved successfully",
+    })
+
+    // After successful generation, immediately update the preview with the new QR code
+    setQrPreview(data.svgString)
+    setQrUrls({ svg: data.svgDataUrl, png: data.pngDataUrl })
+  } catch (error: any) {
+    toast({
+      title: "Error",
+      description: error.message || "Failed to generate QR code",
+      variant: "destructive",
+    })
+  } finally {
+    setLoadingGenerate(false)
+  }
+}
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]

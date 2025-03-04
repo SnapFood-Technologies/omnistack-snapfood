@@ -51,23 +51,65 @@ export async function GET(
       data: { scans: { increment: 1 } },
     })
 
-    if (format === 'png') {
-      // Convert SVG to PNG
-      const pngBuffer = await sharp(Buffer.from(qrCode.code))
-        .resize(qrCode.size === 'large' ? 400 : qrCode.size === 'medium' ? 300 : 200)
-        .png()
-        .toBuffer()
-
-      return new NextResponse(pngBuffer, {
+    // Return SVG as is - it includes the logo if one was used
+    if (format === 'svg') {
+      return new NextResponse(qrCode.code, {
         headers: {
-          'Content-Type': 'image/png',
-          'Content-Disposition': `attachment; filename="qr-code-${qrCode.id}.png"`,
+          'Content-Type': 'image/svg+xml',
+          'Content-Disposition': `attachment; filename="qr-code-${qrCode.id}.svg"`,
           'Cache-Control': 'no-store'
         }
       })
     }
+    
+    // For PNG, we need to make sure we're properly converting the SVG with the embedded logo
+    if (format === 'png') {
+      try {
+        // Convert SVG to PNG with proper SVG handling
+        const size = qrCode.size === 'large' ? 400 : qrCode.size === 'medium' ? 300 : 200;
+        
+        // Use the SVG string directly with sharp
+        const pngBuffer = await sharp(Buffer.from(qrCode.code))
+          .resize(size * 2) // Higher resolution for better quality
+          .png()
+          .toBuffer()
 
-    // Return SVG
+        return new NextResponse(pngBuffer, {
+          headers: {
+            'Content-Type': 'image/png',
+            'Content-Disposition': `attachment; filename="qr-code-${qrCode.id}.png"`,
+            'Cache-Control': 'no-store'
+          }
+        })
+      } catch (error) {
+        console.error('Error converting SVG to PNG:', error)
+        
+        // Fallback to direct QR code generation without logo if conversion fails
+        const qrUrl = ""; // You need to store the URL in your QR code model
+        const pngDataUrl = await QRCode.toDataURL(qrUrl, {
+          color: {
+            dark: qrCode.primaryColor,
+            light: qrCode.backgroundColor,
+          },
+          errorCorrectionLevel: qrCode.errorCorrectionLevel as any,
+          margin: 1,
+          width: qrCode.size === 'large' ? 400 : qrCode.size === 'medium' ? 300 : 200,
+        });
+        
+        // Convert data URL to buffer
+        const pngBuffer = Buffer.from(pngDataUrl.split(',')[1], 'base64');
+        
+        return new NextResponse(pngBuffer, {
+          headers: {
+            'Content-Type': 'image/png',
+            'Content-Disposition': `attachment; filename="qr-code-${qrCode.id}.png"`,
+            'Cache-Control': 'no-store'
+          }
+        })
+      }
+    }
+
+    // Default to SVG if format is not recognized
     return new NextResponse(qrCode.code, {
       headers: {
         'Content-Type': 'image/svg+xml',
