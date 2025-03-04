@@ -67,10 +67,13 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
   ]
 
   const sizes = [
+    { value: "tiny", label: "Tiny (100x100)" },
     { value: "small", label: "Small (200x200)" },
     { value: "medium", label: "Medium (300x300)" },
     { value: "large", label: "Large (400x400)" },
-  ]
+    { value: "xlarge", label: "Extra Large (500x500)" },
+  ];
+  
 
   const qrTypes = [
     { value: "PROFILE_WEB", label: "Restaurant Profile in SnapFood Web" },
@@ -272,26 +275,28 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
   }
 
   const handleDownload = async (format: "svg" | "png") => {
-    if (!qrUrls[format]) return
-
-    try {
-      const response = await fetch(qrUrls[format]!)
-      const blob = await response.blob()
-      const element = document.createElement("a")
-      element.href = URL.createObjectURL(blob)
-      element.download = `qr-code-${Date.now()}.${format}`
-      document.body.appendChild(element)
-      element.click()
-      document.body.removeChild(element)
-      URL.revokeObjectURL(element.href)
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: `Failed to download ${format.toUpperCase()} file`,
-        variant: "destructive",
-      })
+    // If we're downloading a preview, use the data URLs
+    if (qrUrls[format]) {
+      try {
+        const response = await fetch(qrUrls[format]!)
+        const blob = await response.blob()
+        const element = document.createElement("a")
+        element.href = URL.createObjectURL(blob)
+        element.download = `qr-code-${Date.now()}.${format}`
+        document.body.appendChild(element)
+        element.click()
+        document.body.removeChild(element)
+        URL.revokeObjectURL(element.href)
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: `Failed to download ${format.toUpperCase()} file`,
+          variant: "destructive",
+        })
+      }
     }
-  }
+  };
+  
 
   // In QRCodeContent component, update the handleGenerate function
 

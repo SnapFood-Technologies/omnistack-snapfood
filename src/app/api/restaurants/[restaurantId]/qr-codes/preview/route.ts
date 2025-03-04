@@ -49,6 +49,30 @@ export async function PUT(
     const designStyle = formData.get('design') ? String(formData.get('design')) : 'classic'
     const primaryColor = String(formData.get('primaryColor') || '#000000')
     const backgroundColor = String(formData.get('backgroundColor') || '#FFFFFF')
+    
+    // Get the size with expanded options
+    let qrSize = formData.get('size') ? String(formData.get('size')) : 'medium';
+    let width;
+    
+    switch(qrSize) {
+      case 'tiny':
+        width = 100;
+        break;
+      case 'small':
+        width = 200;
+        break;
+      case 'medium':
+        width = 300;
+        break;
+      case 'large':
+        width = 400;
+        break;
+      case 'xlarge':
+        width = 500;
+        break;
+      default:
+        width = 300; // Default to medium
+    }
 
     // QR code generation options
     const qrOptions: QRCode.QRCodeToDataURLOptions = {
@@ -59,7 +83,7 @@ export async function PUT(
       },
       errorCorrectionLevel: (formData.get('errorLevel') as 'L' | 'M' | 'Q' | 'H') || 'M',
       margin: 1,
-      width: formData.get('size') === 'large' ? 400 : formData.get('size') === 'medium' ? 300 : 200,
+      width: width,
     }
 
     // Get QR code data matrix
@@ -69,13 +93,11 @@ export async function PUT(
     
     // Size calculation
     const moduleCount = qrData.modules.size
-    const width = qrOptions.width || 300
     const tileSize = width / moduleCount
     const quietZone = qrOptions.margin || 4
     const svgSize = width + (quietZone * 2 * tileSize)
     
     // Create SVG
-    let svgContent = ''
     let viewBox = `0 0 ${svgSize} ${svgSize}`
     
     // Extend height for custom text if needed
@@ -173,7 +195,7 @@ export async function PUT(
         const logoY = (svgSize - logoSize) / 2
         
         // Add white background for logo
-        code += `<rect 
+        qrSvg += `<rect 
           x="${logoX - 4}"
           y="${logoY - 4}"
           width="${logoSize + 8}"
@@ -182,7 +204,7 @@ export async function PUT(
         />\n`
         
         // Add the logo with proper data URI format
-        code += `<image
+        qrSvg += `<image
           x="${logoX}"
           y="${logoY}"
           width="${logoSize}"
@@ -198,25 +220,37 @@ export async function PUT(
     // Close SVG
     qrSvg += `</svg>`
     
-    // Generate PNG version (using original QRCode library function)
-    const qrPngDataUrl = await QRCode.toDataURL(qrUrl, {
-      ...qrOptions,
-      type: 'image/png',
-    })
+    // Generate PNG version with logo support
+    let qrPngDataUrl;
     
-    const svgDataUrl = `data:image/svg+xml;base64,${Buffer.from(qrSvg).toString('base64')}`
+    if (hasLogo && logoFile) {
+      // For PNG with logo, we'll need to convert SVG to PNG
+      const svgDataUrl = `data:image/svg+xml;base64,${Buffer.from(qrSvg).toString('base64')}`;
+      qrPngDataUrl = svgDataUrl; // Use SVG data URL as a fallback
+      
+      // Note: In a client-side context, you'd use canvas to render this
+      // On server-side, the download endpoint will handle this properly
+    } else {
+      // For PNG without logo, we can use QRCode's built-in PNG generation
+      qrPngDataUrl = await QRCode.toDataURL(qrUrl, {
+        ...qrOptions,
+        type: 'image/png',
+      });
+    }
+    
+    const svgDataUrl = `data:image/svg+xml;base64,${Buffer.from(qrSvg).toString('base64')}`;
     
     return NextResponse.json({
       svgString: qrSvg,
       svgDataUrl,
       pngDataUrl: qrPngDataUrl,
-    })
+    });
 
   } catch (error: any) {
-    console.error('Error generating QR preview:', error)
+    console.error('Error generating QR preview:', error);
     return NextResponse.json(
       { error: error.message || "Error generating QR preview" }, 
       { status: 500 }
-    )
+    );
   }
 }

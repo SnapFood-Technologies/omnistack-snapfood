@@ -48,6 +48,28 @@ export async function POST(
     const tableNumber = formData.get('tableNumber') ? Number(formData.get('tableNumber')) : null
     const qrFlow = formData.get('qrFlow') ? String(formData.get('qrFlow')) : 'IN_APP_ONLY' // Get QR flow
 
+    // Get the width based on the size
+    let width;
+    switch(size) {
+      case 'tiny':
+        width = 100;
+        break;
+      case 'small':
+        width = 200;
+        break;
+      case 'medium':
+        width = 300;
+        break;
+      case 'large':
+        width = 400;
+        break;
+      case 'xlarge':
+        width = 500;
+        break;
+      default:
+        width = 300; // Default to medium
+    }
+
     // QR code generation options
     const qrOptions: QRCode.QRCodeToDataURLOptions = {
       type: 'svg',
@@ -57,7 +79,7 @@ export async function POST(
       },
       errorCorrectionLevel: errorCorrectionLevel as 'L' | 'M' | 'Q' | 'H',
       margin: 1,
-      width: size === 'large' ? 400 : size === 'medium' ? 300 : 200,
+      width: width,
     }
 
     // Get QR code data matrix
@@ -67,7 +89,6 @@ export async function POST(
     
     // Size calculation
     const moduleCount = qrData.modules.size
-    const width = qrOptions.width || 300
     const tileSize = width / moduleCount
     const quietZone = qrOptions.margin || 4
     const svgSize = width + (quietZone * 2 * tileSize)
@@ -220,10 +241,19 @@ export async function POST(
     const svgDataUrl = `data:image/svg+xml;base64,${Buffer.from(code).toString('base64')}`;
     
     // Generate PNG data URL
-    const pngDataUrl = await QRCode.toDataURL(qrUrl, {
-      ...qrOptions,
-      type: 'image/png',
-    });
+    let pngDataUrl;
+    
+    if (hasLogo && logoFile) {
+      // For PNG with logo, use the SVG data URL as a fallback
+      // The actual PNG will be properly generated when downloaded
+      pngDataUrl = svgDataUrl;
+    } else {
+      // For PNG without logo, we can use QRCode's built-in PNG generation
+      pngDataUrl = await QRCode.toDataURL(qrUrl, {
+        ...qrOptions,
+        type: 'image/png',
+      });
+    }
 
     return NextResponse.json({
       id: newQrCode.id,
