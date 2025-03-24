@@ -275,95 +275,100 @@ export function QRCodeContent({ restaurantId }: { restaurantId: string }) {
   }
 
 
-const handleDownload = async (format: "svg" | "png") => {
-  if (format === "svg") {
-    // Use your existing code for SVG
-    if (!qrUrls.svg) return;
+  const handleDownload = async (format: "svg" | "png") => {
+    // Create a sanitized filename with restaurant name
+    const restaurantName = restaurant?.name || 'qr-code';
+    const sanitizedName = restaurantName.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+    const filename = `${sanitizedName}-qr-code`;
     
-    try {
-      const response = await fetch(qrUrls.svg);
-      const blob = await response.blob();
-      const element = document.createElement("a");
-      element.href = URL.createObjectURL(blob);
-      element.download = `qr-code-${Date.now()}.svg`;
-      document.body.appendChild(element);
-      element.click();
-      document.body.removeChild(element);
-      URL.revokeObjectURL(element.href);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to download SVG file",
-        variant: "destructive",
-      });
-    }
-  } else if (format === "png") {
-    // Generate PNG from SVG on the client-side
-    if (!qrPreview) return;
-    
-    try {
-      // Create a canvas element
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+    if (format === "svg") {
+      // Use your existing code for SVG
+      if (!qrUrls.svg) return;
       
-      // Get the size from the SVG
-      const parser = new DOMParser();
-      const svgDoc = parser.parseFromString(qrPreview, 'image/svg+xml');
-      const svgElement = svgDoc.documentElement;
-      
-      const size = parseInt(svgElement.getAttribute('width') || '300', 10);
-      canvas.width = size;
-      canvas.height = size;
-      
-      // Draw a white background
-      ctx.fillStyle = 'white';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      // Create an image from the SVG
-      const img = new Image();
-      img.src = `data:image/svg+xml;base64,${btoa(qrPreview)}`;
-      
-      // When the image loads, draw it on the canvas and download
-      img.onload = () => {
-        ctx.drawImage(img, 0, 0);
-        
-        // Convert canvas to PNG and download
-        canvas.toBlob((blob) => {
-          if (!blob) {
-            toast({
-              title: "Error",
-              description: "Failed to generate PNG",
-              variant: "destructive",
-            });
-            return;
-          }
-          
-          const element = document.createElement("a");
-          element.href = URL.createObjectURL(blob);
-          element.download = `qr-code-${Date.now()}.png`;
-          document.body.appendChild(element);
-          element.click();
-          document.body.removeChild(element);
-          URL.revokeObjectURL(element.href);
-        }, 'image/png');
-      };
-      
-      img.onerror = () => {
+      try {
+        const response = await fetch(qrUrls.svg);
+        const blob = await response.blob();
+        const element = document.createElement("a");
+        element.href = URL.createObjectURL(blob);
+        element.download = `${filename}.svg`;
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+        URL.revokeObjectURL(element.href);
+      } catch (error) {
         toast({
           title: "Error",
-          description: "Failed to convert SVG to PNG",
+          description: "Failed to download SVG file",
           variant: "destructive",
         });
-      };
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to download PNG file",
-        variant: "destructive",
-      });
+      }
+    } else if (format === "png") {
+      // Generate PNG from SVG on the client-side
+      if (!qrPreview) return;
+      
+      try {
+        // Create a canvas element
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Get the size from the SVG
+        const parser = new DOMParser();
+        const svgDoc = parser.parseFromString(qrPreview, 'image/svg+xml');
+        const svgElement = svgDoc.documentElement;
+        
+        const size = parseInt(svgElement.getAttribute('width') || '300', 10);
+        canvas.width = size;
+        canvas.height = size;
+        
+        // Draw a white background
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Create an image from the SVG
+        const img = new Image();
+        img.src = `data:image/svg+xml;base64,${btoa(qrPreview)}`;
+        
+        // When the image loads, draw it on the canvas and download
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0);
+          
+          // Convert canvas to PNG and download
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              toast({
+                title: "Error",
+                description: "Failed to generate PNG",
+                variant: "destructive",
+              });
+              return;
+            }
+            
+            const element = document.createElement("a");
+            element.href = URL.createObjectURL(blob);
+            element.download = `${filename}.png`;
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+            URL.revokeObjectURL(element.href);
+          }, 'image/png');
+        };
+        
+        img.onerror = () => {
+          toast({
+            title: "Error",
+            description: "Failed to convert SVG to PNG",
+            variant: "destructive",
+          });
+        };
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to download PNG file",
+          variant: "destructive",
+        });
+      }
     }
-  }
-};
+  };
   
 
   // In QRCodeContent component, update the handleGenerate function

@@ -20,7 +20,8 @@ export async function GET(
         restaurantId: params.restaurantId,
       },
       include: {
-        menu: true
+        menu: true,
+        restaurant: true
       }
     });
 
@@ -31,6 +32,11 @@ export async function GET(
       );
     }
 
+
+    const restaurantName = qrCode.restaurant?.name || 'qr-code';
+    const sanitizedName = restaurantName.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+    const filename = `${sanitizedName}-${qrCode.id}`;
+    
     // Update download count
     await prisma.qRCode.update({
       where: { id: params.id },
@@ -44,12 +50,13 @@ export async function GET(
       return new NextResponse(svgCode, {
         headers: {
           'Content-Type': 'image/svg+xml',
-          'Content-Disposition': `attachment; filename="qr-code-${qrCode.id}.svg"`,
+          'Content-Disposition': `attachment; filename="${filename}.svg"`,
           'Cache-Control': 'no-store'
         }
       });
     } 
     
+
     // For PNG, we need to regenerate it to ensure it's valid
     if (format === 'png') {
       try {
@@ -108,7 +115,7 @@ export async function GET(
           return new NextResponse(pngBuffer, {
             headers: {
               'Content-Type': 'image/png',
-              'Content-Disposition': `attachment; filename="qr-code-${qrCode.id}.png"`,
+              'Content-Disposition': `attachment; filename="${filename}.png"`,
               'Cache-Control': 'no-store'
             }
           });
