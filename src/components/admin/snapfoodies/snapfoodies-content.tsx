@@ -372,58 +372,74 @@ export function SnapFoodiesContent() {
       </Card>
 
       {/* Devices Modal */}
-      <Dialog open={isDevicesModalOpen} onOpenChange={setIsDevicesModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Device Information</DialogTitle>
-            <DialogDescription>
-              {selectedUser && `Details for ${selectedUser.name} ${selectedUser.surname !== "-" ? selectedUser.surname : ""}`}
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedUser && (
-            <div className="space-y-4">
-              {hasLegacyDevices(selectedUser) ? (
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Legacy Devices</h3>
-                  {(() => {
-                    try {
-                      const devices = JSON.parse(selectedUser.metadata.legacy_devices);
-                      return (
-                        <div className="space-y-4">
-                          {devices.map((device, index) => (
-                            <Card key={index}>
-                              <CardContent className="pt-4">
-                                <div className="grid grid-cols-2 gap-2">
-                                  <div><span className="font-medium">Model:</span> {device.model || 'Unknown'}</div>
-                                  <div><span className="font-medium">Platform:</span> {device.platform || 'Unknown'}</div>
-                                  <div><span className="font-medium">Version:</span> {device.version || 'Unknown'}</div>
-                                  <div><span className="font-medium">Created:</span> {device.created_at || 'Unknown'}</div>
-                                  {device.token && (
-                                    <div className="col-span-2 overflow-hidden text-ellipsis">
-                                      <span className="font-medium">Token:</span> 
-                                      <span className="text-xs break-all">{device.token}</span>
-                                    </div>
-                                  )}
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      );
-                    } catch (e) {
-                      return <p className="text-red-500">Error parsing device data</p>;
-                    }
-                  })()}
-                </div>
-              ) : (
-                <p className="text-muted-foreground">No legacy device information available</p>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
+<Dialog open={isDevicesModalOpen} onOpenChange={setIsDevicesModalOpen}>
+  <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+    <DialogHeader>
+      <DialogTitle>Device Information</DialogTitle>
+      <DialogDescription>
+        {selectedUser && `Details for ${selectedUser.name} ${selectedUser.surname !== "-" ? selectedUser.surname : ""}`}
+      </DialogDescription>
+    </DialogHeader>
+    
+    {selectedUser && (
+      <div className="space-y-4">
+        {hasLegacyDevices(selectedUser) ? (
+          <div>
+            <h3 className="text-lg font-medium mb-2">Legacy Devices</h3>
+            {(() => {
+              try {
+                const devices = JSON.parse(selectedUser.metadata.legacy_devices);
+                // Sort devices by created_at date in descending order (newest first)
+                const sortedDevices = devices.sort((a, b) => {
+                  const dateA = new Date(a.created_at || '1970-01-01');
+                  const dateB = new Date(b.created_at || '1970-01-01');
+                  return dateB.getTime() - dateA.getTime();
+                });
+                
+                return (
+                  <div className="space-y-4">
+                    {sortedDevices.map((device, index) => (
+                      <Card key={index}>
+                        <CardContent className="pt-4">
+                          <div className="grid grid-cols-2 gap-2">
+                            <div><span className="font-medium">Device ID:</span> {device.id || 'N/A'}</div>
+                            <div><span className="font-medium">Model:</span> {device.model || 'Unknown'}</div>
+                            <div><span className="font-medium">Platform:</span> {device.platform || 'Unknown'}</div>
+                            <div><span className="font-medium">Version:</span> {device.version || 'Unknown'}</div>
+                            <div><span className="font-medium">Created:</span> {device.created_at || 'Unknown'}</div>
+                            <div><span className="font-medium">Updated:</span> {device.updated_at || 'Unknown'}</div>
+                            {device.uuid && (
+                              <div className="col-span-2 overflow-hidden text-ellipsis">
+                                <span className="font-medium">UUID:</span> 
+                                <span className="text-xs break-all">{device.uuid}</span>
+                              </div>
+                            )}
+                            {device.token && (
+                              <div className="col-span-2 overflow-hidden text-ellipsis">
+                                <span className="font-medium">Token:</span> 
+                                <span className="text-xs break-all">{device.token}</span>
+                              </div>
+                            )}
+                            <div><span className="font-medium">Subscribed:</span> {device.is_subscribed ? 'Yes' : 'No'}</div>
+                            <div><span className="font-medium">Admin Subscribed:</span> {device.is_subscribed_from_admin ? 'Yes' : 'No'}</div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                );
+              } catch (e) {
+                return <p className="text-red-500">Error parsing device data: {e.message}</p>;
+              }
+            })()}
+          </div>
+        ) : (
+          <p className="text-muted-foreground">No legacy device information available</p>
+        )}
+      </div>
+    )}
+  </DialogContent>
+</Dialog>
       {/* Notifications Modal */}
       <Dialog open={isNotificationsModalOpen} onOpenChange={setIsNotificationsModalOpen}>
         <DialogContent className="max-w-md">
