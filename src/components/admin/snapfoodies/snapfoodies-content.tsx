@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { useSnapFoodUsers } from "@/hooks/useSnapFoodUsers";
 import { SyncModal } from "@/components/admin/snapfoodies/SyncModal";
+import { LoginModal } from "@/components/admin/snapfoodies/LoginModal";
 import {
   Table,
   TableBody,
@@ -62,11 +63,14 @@ export function SnapFoodiesContent() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [isDevicesModalOpen, setIsDevicesModalOpen] = useState(false);
   const [isNotificationsModalOpen, setIsNotificationsModalOpen] = useState(false);
-  
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+
   const {
     users,
     isLoading,
     page,
+    isLoggingIn,
+    loginData,
     pageSize,
     totalItems,
     totalPages,
@@ -75,6 +79,7 @@ export function SnapFoodiesContent() {
     handleSearch,
     fetchUsers,
     syncUsers,
+    loginAsUser
   } = useSnapFoodUsers();
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -97,6 +102,14 @@ export function SnapFoodiesContent() {
     setIsNotificationsModalOpen(true);
   };
 
+
+  const handleLoginAsUser = async (user) => {
+    const data = await loginAsUser(user);
+    if (data) {
+      setIsLoginModalOpen(true);
+    }
+  };
+  
   const pageSizeOptions = [
     { value: "10", label: "10 per page" },
     { value: "20", label: "20 per page" },
@@ -288,22 +301,37 @@ export function SnapFoodiesContent() {
                         <span className="sr-only">View devices</span>
                       </Button>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Link href={`/admin/users/${user._id}`}>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <Eye className="h-4 w-4" />
-                            <span className="sr-only">View details</span>
-                          </Button>
-                        </Link>
-                        {user.external_ids?.snapFoodId && (
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <LogIn className="h-4 w-4" />
-                            <span className="sr-only">Login as user</span>
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
+                   <TableCell>
+  <div className="flex space-x-2">
+    <Link href={`/admin/users/${user._id}`}>
+      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+        <Eye className="h-4 w-4" />
+        <span className="sr-only">View details</span>
+      </Button>
+    </Link>
+    {user.external_ids?.snapFoodId && (
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        className="h-8 w-8 p-0"
+        onClick={async () => {
+          const data = await loginAsUser(user);
+          if (data) {
+            setIsLoginModalOpen(true);
+          }
+        }}
+        disabled={isLoggingIn}
+      >
+        {isLoggingIn ? (
+          <RefreshCw className="h-4 w-4 animate-spin" />
+        ) : (
+          <LogIn className="h-4 w-4" />
+        )}
+        <span className="sr-only">Login as user</span>
+      </Button>
+    )}
+  </div>
+</TableCell>
                   </TableRow>
                 ))
               )}
@@ -497,6 +525,12 @@ export function SnapFoodiesContent() {
         onSync={handleSyncUsers}
         onSuccess={handleSyncSuccess}
       />
+
+<LoginModal
+  isOpen={isLoginModalOpen}
+  onClose={() => setIsLoginModalOpen(false)}
+  loginData={loginData}
+/>
     </div>
   );
 }

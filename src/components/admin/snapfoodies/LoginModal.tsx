@@ -1,40 +1,48 @@
 // components/admin/snapfoodies/LoginModal.tsx
-"use client";
-
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { CopyIcon, CheckIcon } from "lucide-react";
-import { toast } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  userData: {
-    userId: string;
+  loginData: {
+    id: string;
     token: string;
   } | null;
 }
 
-export function LoginModal({ isOpen, onClose, userData }: LoginModalProps) {
-  const [copied, setCopied] = useState<{ userId: boolean; token: boolean }>({
-    userId: false,
+export const LoginModal: React.FC<LoginModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  loginData 
+}) => {
+  const [copied, setCopied] = useState<{ id: boolean; token: boolean }>({
+    id: false,
     token: false
   });
 
-  const handleCopy = (text: string, field: 'userId' | 'token') => {
+  const handleCopy = (text: string, field: 'id' | 'token') => {
     navigator.clipboard.writeText(text)
       .then(() => {
-        setCopied({ ...copied, [field]: true });
-        toast.success(`${field === 'userId' ? 'User ID' : 'Token'} copied to clipboard`);
+        setCopied(prev => ({ ...prev, [field]: true }));
+        toast.success(`${field === 'id' ? 'ID' : 'Token'} copied to clipboard`);
         
-        // Reset the copied state after 2 seconds
         setTimeout(() => {
-          setCopied({ ...copied, [field]: false });
+          setCopied(prev => ({ ...prev, [field]: false }));
         }, 2000);
       })
-      .catch(() => {
-        toast.error("Failed to copy to clipboard");
+      .catch(error => {
+        console.error('Failed to copy:', error);
+        toast.error('Failed to copy to clipboard');
       });
   };
 
@@ -42,13 +50,13 @@ export function LoginModal({ isOpen, onClose, userData }: LoginModalProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>User Authentication Data</DialogTitle>
+          <DialogTitle>SnapFood Login Details</DialogTitle>
           <DialogDescription>
-            Authentication details for impersonating this user
+            Authentication data for this user
           </DialogDescription>
         </DialogHeader>
         
-        {userData ? (
+        {loginData ? (
           <div className="space-y-4">
             <div className="space-y-2">
               <div className="flex justify-between items-center">
@@ -56,14 +64,18 @@ export function LoginModal({ isOpen, onClose, userData }: LoginModalProps) {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  onClick={() => handleCopy(userData.userId, 'userId')}
+                  onClick={() => handleCopy(loginData.id, 'id')}
                   className="h-8 w-8 p-0"
                 >
-                  {copied.userId ? <CheckIcon className="h-4 w-4 text-green-500" /> : <CopyIcon className="h-4 w-4" />}
+                  {copied.id ? (
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <CopyIcon className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
-              <div className="bg-muted p-2 rounded text-xs break-all">
-                {userData.userId}
+              <div className="bg-secondary p-2 rounded text-xs break-all">
+                {loginData.id}
               </div>
             </div>
             
@@ -73,29 +85,27 @@ export function LoginModal({ isOpen, onClose, userData }: LoginModalProps) {
                 <Button 
                   variant="ghost" 
                   size="sm" 
-                  onClick={() => handleCopy(userData.token, 'token')}
+                  onClick={() => handleCopy(loginData.token, 'token')}
                   className="h-8 w-8 p-0"
                 >
-                  {copied.token ? <CheckIcon className="h-4 w-4 text-green-500" /> : <CopyIcon className="h-4 w-4" />}
+                  {copied.token ? (
+                    <CheckIcon className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <CopyIcon className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
-              <div className="bg-muted p-2 rounded text-xs break-all">
-                {userData.token}
+              <div className="bg-secondary p-2 rounded text-xs break-all">
+                {loginData.token}
               </div>
-            </div>
-            
-            <div className="flex justify-end space-x-2">
-              <Button onClick={onClose}>
-                Close
-              </Button>
             </div>
           </div>
         ) : (
           <div className="py-4 text-center text-muted-foreground">
-            No authentication data available
+            No login data available
           </div>
         )}
       </DialogContent>
     </Dialog>
   );
-}
+};
