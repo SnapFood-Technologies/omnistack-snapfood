@@ -144,7 +144,7 @@ export function SnapFoodiesContent() {
         <CardHeader>
           <CardTitle>Search SnapFoodies</CardTitle>
           <CardDescription>
-            Find SnapFoodie accounts by name, email, or phone number
+            Find SnapFoodie accounts by name
           </CardDescription>
         </CardHeader>
         <CardContent>
