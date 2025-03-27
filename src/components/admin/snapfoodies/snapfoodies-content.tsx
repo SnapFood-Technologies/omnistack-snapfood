@@ -102,13 +102,6 @@ export function SnapFoodiesContent() {
     setIsNotificationsModalOpen(true);
   };
 
-
-  const handleLoginAsUser = async (user) => {
-    const data = await loginAsUser(user);
-    if (data) {
-      setIsLoginModalOpen(true);
-    }
-  };
   
   const pageSizeOptions = [
     { value: "10", label: "10 per page" },
