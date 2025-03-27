@@ -216,7 +216,7 @@ export function SnapFoodiesContent() {
                           </div>
                           {user.external_ids?.snapFoodId && (
                             <div className="text-xs text-muted-foreground">
-                              ID: {user.external_ids.snapFoodId}
+                              SnapFood ID: {user.external_ids.snapFoodId}
                             </div>
                           )}
                         </div>
@@ -227,10 +227,6 @@ export function SnapFoodiesContent() {
                         <div className="flex items-center">
                           <Mail className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
                           {user.email || "No email"}
-                        </div>
-                        <div className="flex items-center">
-                          <Phone className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
-                          {user.phone || "No phone"}
                         </div>
                       </div>
                     </TableCell>

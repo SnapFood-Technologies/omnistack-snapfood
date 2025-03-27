@@ -1,4 +1,4 @@
-// components/admin/snapfood-users/SyncModal.tsx
+// components/admin/snapfoodies/SyncModal.tsx
 import { useState } from "react";
 import {
   Dialog,
@@ -10,13 +10,14 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Loader2, AlertCircle, CheckCircle2, Info } from "lucide-react";
 import {
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/new-card";
+import { ProgressBar } from "@/components/ui/progress-bar";
 
 interface SyncResult {
   success: boolean;
@@ -39,16 +40,18 @@ export function SyncModal({ isOpen, onClose, onSync, onSuccess }: SyncModalProps
   const [isSyncing, setIsSyncing] = useState(false);
   const [result, setResult] = useState<SyncResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [batchCount, setBatchCount] = useState(1);
 
   const handleSync = async () => {
     setIsSyncing(true);
     setError(null);
+    setBatchCount(1);
 
     try {
       const data = await onSync();
 
       if (!data.success) {
-        throw new Error(data.message || 'Failed to sync users');
+        throw new Error(data.message || 'Failed to sync SnapFoodies');
       }
 
       setResult(data);
@@ -73,9 +76,9 @@ export function SyncModal({ isOpen, onClose, onSync, onSuccess }: SyncModalProps
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Sync SnapFood Users</DialogTitle>
+          <DialogTitle>Sync SnapFoodies</DialogTitle>
           <DialogDescription>
-            Fetch user data from SnapFood and update your database.
+            Fetch user data from SnapFood and update your local database.
           </DialogDescription>
         </DialogHeader>
 
@@ -131,20 +134,54 @@ export function SyncModal({ isOpen, onClose, onSync, onSuccess }: SyncModalProps
               <Alert>
                 <AlertTitle>Errors occurred</AlertTitle>
                 <AlertDescription>
-                  {result.errors} users could not be synced
+                  {result.errors} SnapFoodies could not be synced
                 </AlertDescription>
               </Alert>
             )}
+
+            <Alert variant="info">
+              <Info className="h-4 w-4" />
+              <AlertTitle>Batch Processing</AlertTitle>
+              <AlertDescription>
+                This operation synchronized the latest 50 SnapFoodies in one batch. 
+                For larger datasets, you may need to run the sync multiple times to 
+                process all users. Each batch processes a new set of users.
+              </AlertDescription>
+            </Alert>
           </div>
         ) : (
-          <div className="py-4 text-center text-sm text-muted-foreground">
-            This will fetch all users from SnapFood and update your local database.
+          <div className="py-4 space-y-4">
+            <div className="text-center text-sm text-muted-foreground">
+              This will fetch SnapFoodies from the platform and update your local database.
+              The sync processes users in batches of 50 at a time.
+            </div>
+            
+            {isSyncing && (
+              <div className="space-y-2">
+                <div className="flex justify-between items-center text-sm">
+                  <span>Syncing batch {batchCount}...</span>
+                  <span className="text-muted-foreground">50 users per batch</span>
+                </div>
+                <ProgressBar value={65} className="h-2" />
+              </div>
+            )}
           </div>
         )}
 
         <DialogFooter className="sm:justify-between">
           {result ? (
-            <Button onClick={handleClose}>Close</Button>
+            <>
+              <Button variant="outline" onClick={handleClose}>
+                Close
+              </Button>
+              <Button onClick={() => {
+                setResult(null);
+                setBatchCount(prev => prev + 1);
+                handleSync();
+              }}>
+                Sync Next Batch
+              </Button>
+            </>
           ) : (
             <>
               <Button variant="outline" onClick={handleClose}>
