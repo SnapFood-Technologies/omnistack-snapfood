@@ -32,7 +32,7 @@ interface SyncResult {
 interface SyncModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSync: (batchPage?: number) => Promise<any>;
+  onSync: (batchPage?: number, batchSize?: number) => Promise<any>;
   onSuccess?: () => void;
 }
 
@@ -41,14 +41,15 @@ export function SyncModal({ isOpen, onClose, onSync, onSuccess }: SyncModalProps
   const [result, setResult] = useState<SyncResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [batchPage, setBatchPage] = useState(1);
-  const BATCH_SIZE = 200; // Updated batch size
+  const BATCH_SIZE = 200;
 
   const handleSync = async () => {
     setIsSyncing(true);
     setError(null);
 
     try {
-      const data = await onSync(batchPage);
+      console.log(`Syncing batch page ${batchPage} with size ${BATCH_SIZE}`); // Debug log
+      const data = await onSync(batchPage, BATCH_SIZE);
 
       if (!data.success) {
         throw new Error(data.message || 'Failed to sync SnapFoodies');
@@ -74,10 +75,28 @@ export function SyncModal({ isOpen, onClose, onSync, onSuccess }: SyncModalProps
   };
 
   const handleNextBatch = () => {
-    setBatchPage(prevPage => prevPage + 1);
+    const nextPage = batchPage + 1;
+    setBatchPage(nextPage);
     setResult(null);
+    
+    // We need to use the updated nextPage value immediately rather than relying on state
     setTimeout(() => {
-      handleSync();
+      console.log(`Next batch with page ${nextPage}`); // Debug log
+      onSync(nextPage, BATCH_SIZE).then(data => {
+        if (data.success) {
+          setResult(data);
+          if (onSuccess) {
+            onSuccess();
+          }
+        } else {
+          setError(data.message || 'Failed to sync next batch');
+        }
+      }).catch(err => {
+        console.error('Next batch sync error:', err);
+        setError(err.message || 'An unexpected error occurred');
+      }).finally(() => {
+        setIsSyncing(false);
+      });
     }, 100);
   };
 
@@ -187,8 +206,15 @@ export function SyncModal({ isOpen, onClose, onSync, onSuccess }: SyncModalProps
               <Button variant="outline" onClick={handleClose}>
                 Close
               </Button>
-              <Button onClick={handleNextBatch}>
-                Sync Next Batch
+              <Button onClick={handleNextBatch} disabled={isSyncing}>
+                {isSyncing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Syncing...
+                  </>
+                ) : (
+                  "Sync Next Batch"
+                )}
               </Button>
             </>
           ) : (

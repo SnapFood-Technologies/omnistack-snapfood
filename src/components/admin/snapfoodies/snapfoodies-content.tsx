@@ -108,6 +108,12 @@ export function SnapFoodiesContent() {
     return user.metadata && user.metadata.legacy_devices;
   };
 
+  const handleSyncUsers = async (batchPage = 1, batchSize = 200) => {
+    // Ensure both parameters are passed to syncUsers
+    console.log(`SnapFoodiesContent calling syncUsers with page ${batchPage} and size ${batchSize}`);
+    return await syncUsers(batchPage, batchSize);
+  };
+
   // Helper to determine if a user has notification settings
   const hasNotifications = (user) => {
     return user.notifications && (
@@ -469,10 +475,10 @@ export function SnapFoodiesContent() {
       </Dialog>
 
       {/* Sync Modal */}
-      <SyncModal
+       <SyncModal
         isOpen={isSyncModalOpen}
         onClose={() => setIsSyncModalOpen(false)}
-        onSync={syncUsers}
+        onSync={handleSyncUsers}
         onSuccess={handleSyncSuccess}
       />
     </div>

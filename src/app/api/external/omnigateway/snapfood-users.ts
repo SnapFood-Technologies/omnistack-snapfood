@@ -45,9 +45,11 @@ export const createSnapFoodUsersApi = (clientApiKey: string) => {
     },
     
     syncUsers: async (params: { page?: number; limit?: number } = {}): Promise<SyncResponse> => {
+      console.log('Syncing with params:', params); // Debug log
+      
       const { data } = await omniGateway.post('/snapfoodie/users/sync', {
         page: params.page || 1,
-        limit: params.limit || 50
+        limit: params.limit || 200 // Changed default from 50 to 200
       });
       return data;
     }

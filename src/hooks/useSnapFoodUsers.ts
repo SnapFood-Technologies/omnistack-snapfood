@@ -52,16 +52,19 @@ export const useSnapFoodUsers = () => {
     }
   }, [snapFoodUsersApi, page, pageSize, searchQuery]);
 
-  const syncUsers = useCallback(async (batchPage: number = 1) => {
+  const syncUsers = useCallback(async (batchPage: number = 1, batchSize: number = 200) => {
     if (!snapFoodUsersApi) {
       return null;
     }
     
     try {
       setIsSyncing(true);
+      console.log(`Syncing with page ${batchPage} and limit ${batchSize}`); // Debug log
+      
+      // Pass both batchPage and batchSize parameters
       const response = await snapFoodUsersApi.syncUsers({
         page: batchPage,
-        limit: 200 // Increased batch size to 200 users at once
+        limit: batchSize
       });
       
       return response;
