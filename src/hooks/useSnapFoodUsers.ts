@@ -1,12 +1,12 @@
 // hooks/useSnapFoodUsers.ts
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useClient } from './useClient';
-import { createOmniGateway } from '@/app/api/external/omnigateway';
+import { createSnapFoodUsersApi } from '@/app/api/external/omnigateway/snapfood-users';
 import toast from 'react-hot-toast';
 
 interface UserParams {
   page?: number;
-  per_page?: number;
+  per_page?: number; // We'll map this to 'limit' in the API
   search?: string;
 }
 
@@ -22,56 +22,54 @@ export const useSnapFoodUsers = () => {
 
   const { gatewayApiKey } = useClient();
   
-  const omniGateway = useMemo(() => {
-    return gatewayApiKey ? createOmniGateway(gatewayApiKey) : null;
+  const snapFoodUsersApi = useMemo(() => {
+    return gatewayApiKey ? createSnapFoodUsersApi(gatewayApiKey) : null;
   }, [gatewayApiKey]);
 
   const fetchUsers = useCallback(async (params: UserParams = {}) => {
-    if (!omniGateway) {
+    if (!snapFoodUsersApi) {
       return;
     }
     
     try {
       setIsLoading(true);
-      const { data } = await omniGateway.get('/users/snapfood', { 
-        params: {
-          page: params.page || page,
-          limit: params.per_page || pageSize,
-          search: params.search || searchQuery
-        }
+      const response = await snapFoodUsersApi.getUsers({ 
+        page: params.page || page,
+        limit: params.per_page || pageSize,
+        search: params.search || searchQuery
       });
       
-      setUsers(data.data || []);
-      setTotalItems(data.meta.total);
-      setTotalPages(data.meta.pages);
+      setUsers(response.data || []);
+      setTotalItems(response.meta.total);
+      setTotalPages(response.meta.pages);
     } catch (error) {
       console.error('Error fetching SnapFood users:', error);
       toast.error('Failed to fetch SnapFood users');
     } finally {
       setIsLoading(false);
     }
-  }, [omniGateway, page, pageSize, searchQuery]);
+  }, [snapFoodUsersApi, page, pageSize, searchQuery]);
 
   const syncUsers = useCallback(async () => {
-    if (!omniGateway) {
+    if (!snapFoodUsersApi) {
       return null;
     }
     
     try {
       setIsSyncing(true);
-      const { data } = await omniGateway.post('/snapfoodie/users/sync', {
+      const response = await snapFoodUsersApi.syncUsers({
         page: 1,
         limit: 100 // Sync a larger batch at once
       });
       
-      return data;
+      return response;
     } catch (error) {
       console.error('Error syncing SnapFood users:', error);
       throw error;
     } finally {
       setIsSyncing(false);
     }
-  }, [omniGateway]);
+  }, [snapFoodUsersApi]);
 
   const handlePageChange = useCallback((newPage: number) => {
     setPage(newPage);
@@ -89,10 +87,10 @@ export const useSnapFoodUsers = () => {
 
   // Initial fetch
   useEffect(() => {
-    if (omniGateway) {
+    if (snapFoodUsersApi) {
       fetchUsers();
     }
-  }, [omniGateway, fetchUsers, page, pageSize, searchQuery]);
+  }, [snapFoodUsersApi, fetchUsers, page, pageSize, searchQuery]);
 
   return {
     users,
@@ -107,6 +105,6 @@ export const useSnapFoodUsers = () => {
     handleSearch,
     fetchUsers,
     syncUsers,
-    isInitialized: !!omniGateway
+    isInitialized: !!snapFoodUsersApi
   };
 };
