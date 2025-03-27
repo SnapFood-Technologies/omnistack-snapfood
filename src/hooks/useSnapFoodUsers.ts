@@ -14,12 +14,14 @@ interface UserParams {
 export const useSnapFoodUsers = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [users, setUsers] = useState([]);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
+  const [loginData, setLoginData] = useState<{ id: string; token: string } | null>(null);
 
   const { gatewayApiKey } = useClient();
   
@@ -76,6 +78,28 @@ export const useSnapFoodUsers = () => {
     }
   }, [snapFoodUsersApi]);
 
+  // Login function using the API in the gateway
+  const loginAsUser = useCallback(async (user) => {
+    if (!snapFoodUsersApi) {
+      return null;
+    }
+    
+    setIsLoggingIn(true);
+    try {
+      // Use the gateway API's loginAsUser function
+      const data = await snapFoodUsersApi.loginAsUser(user);
+      setLoginData(data);
+      return data;
+    } catch (error) {
+      console.error('Error logging in as user:', error);
+      const errorMessage = error.message || 'Unknown error';
+      toast.error(`Login failed: ${errorMessage}`);
+      return null;
+    } finally {
+      setIsLoggingIn(false);
+    }
+  }, [snapFoodUsersApi]);
+
   const handlePageChange = useCallback((newPage: number) => {
     setPage(newPage);
   }, []);
@@ -101,6 +125,8 @@ export const useSnapFoodUsers = () => {
     users,
     isLoading,
     isSyncing,
+    isLoggingIn,
+    loginData,
     page,
     pageSize,
     totalItems,
@@ -110,6 +136,7 @@ export const useSnapFoodUsers = () => {
     handleSearch,
     fetchUsers,
     syncUsers,
+    loginAsUser,
     isInitialized: !!snapFoodUsersApi
   };
 };

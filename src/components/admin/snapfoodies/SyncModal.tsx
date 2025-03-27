@@ -1,4 +1,3 @@
-// components/admin/snapfoodies/SyncModal.tsx
 import { useState } from "react";
 import {
   Dialog,
@@ -18,6 +17,7 @@ import {
   CardTitle,
 } from "@/components/ui/new-card";
 import { ProgressBar } from "@/components/ui/progress-bar";
+import { Input } from "@/components/ui/input";
 
 interface SyncResult {
   success: boolean;
@@ -41,6 +41,7 @@ export function SyncModal({ isOpen, onClose, onSync, onSuccess }: SyncModalProps
   const [result, setResult] = useState<SyncResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [batchPage, setBatchPage] = useState(1);
+  const [batchInput, setBatchInput] = useState("1");
   const BATCH_SIZE = 200;
 
   const handleSync = async () => {
@@ -48,8 +49,12 @@ export function SyncModal({ isOpen, onClose, onSync, onSuccess }: SyncModalProps
     setError(null);
 
     try {
-      console.log(`Syncing batch page ${batchPage} with size ${BATCH_SIZE}`); // Debug log
-      const data = await onSync(batchPage, BATCH_SIZE);
+      // Use the batch page from input
+      const pageNum = parseInt(batchInput, 10) || 1;
+      setBatchPage(pageNum);
+      
+      console.log(`Syncing batch page ${pageNum} with size ${BATCH_SIZE}`);
+      const data = await onSync(pageNum, BATCH_SIZE);
 
       if (!data.success) {
         throw new Error(data.message || 'Failed to sync SnapFoodies');
@@ -71,33 +76,35 @@ export function SyncModal({ isOpen, onClose, onSync, onSuccess }: SyncModalProps
     setResult(null);
     setError(null);
     setBatchPage(1);
+    setBatchInput("1");
     onClose();
   };
 
   const handleNextBatch = () => {
     const nextPage = batchPage + 1;
     setBatchPage(nextPage);
+    setBatchInput(nextPage.toString());
     setResult(null);
+    setError(null);
+    setIsSyncing(true);
     
-    // We need to use the updated nextPage value immediately rather than relying on state
-    setTimeout(() => {
-      console.log(`Next batch with page ${nextPage}`); // Debug log
-      onSync(nextPage, BATCH_SIZE).then(data => {
-        if (data.success) {
-          setResult(data);
-          if (onSuccess) {
-            onSuccess();
-          }
-        } else {
-          setError(data.message || 'Failed to sync next batch');
+    onSync(nextPage, BATCH_SIZE)
+      .then(data => {
+        if (!data.success) {
+          throw new Error(data.message || 'Failed to sync SnapFoodies');
         }
-      }).catch(err => {
+        setResult(data);
+        if (onSuccess) {
+          onSuccess();
+        }
+      })
+      .catch(err => {
         console.error('Next batch sync error:', err);
         setError(err.message || 'An unexpected error occurred');
-      }).finally(() => {
+      })
+      .finally(() => {
         setIsSyncing(false);
       });
-    }, 100);
   };
 
   return (
@@ -172,20 +179,40 @@ export function SyncModal({ isOpen, onClose, onSync, onSuccess }: SyncModalProps
               <AlertTitle>Batch Processing - Page {batchPage}</AlertTitle>
               <AlertDescription>
                 This operation synchronized up to {BATCH_SIZE} SnapFoodies in batch #{batchPage}. 
-                For larger datasets, you can continue with the next batch using the button below.
+                For larger datasets, you can continue with the next batch or choose a specific batch.
               </AlertDescription>
             </Alert>
+
+            {/* Batch selection for next sync */}
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <Input
+                  type="number"
+                  min="1"
+                  value={batchInput}
+                  onChange={(e) => setBatchInput(e.target.value)}
+                  placeholder="Batch number"
+                />
+              </div>
+            </div>
           </div>
         ) : (
           <div className="py-4 space-y-4">
             <div className="text-center text-sm text-muted-foreground">
               This will fetch SnapFoodies from the platform and update your local database.
               The sync processes users in batches of {BATCH_SIZE} at a time.
-              {batchPage > 1 && (
-                <p className="mt-2 font-medium">
-                  Current batch: #{batchPage}
-                </p>
-              )}
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <Input
+                  type="number"
+                  min="1"
+                  value={batchInput}
+                  onChange={(e) => setBatchInput(e.target.value)}
+                  placeholder="Starting batch number"
+                />
+              </div>
             </div>
             
             {isSyncing && (
@@ -206,16 +233,16 @@ export function SyncModal({ isOpen, onClose, onSync, onSuccess }: SyncModalProps
               <Button variant="outline" onClick={handleClose}>
                 Close
               </Button>
-              <Button onClick={handleNextBatch} disabled={isSyncing}>
-                {isSyncing ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Syncing...
-                  </>
-                ) : (
-                  "Sync Next Batch"
-                )}
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={handleSync} disabled={isSyncing}>
+                  {isSyncing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Sync Selected Batch
+                </Button>
+                <Button onClick={handleNextBatch} disabled={isSyncing}>
+                  {isSyncing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Next Batch
+                </Button>
+              </div>
             </>
           ) : (
             <>
