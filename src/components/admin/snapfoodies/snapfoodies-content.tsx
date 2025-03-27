@@ -69,7 +69,7 @@ export function SnapFoodiesContent() {
     users,
     isLoading,
     page,
-    isLoggingIn,
+    loggingInUserId,
     loginData,
     pageSize,
     totalItems,
@@ -311,24 +311,24 @@ export function SnapFoodiesContent() {
     </Link>
     {user.external_ids?.snapFoodId && (
       <Button 
-        variant="ghost" 
-        size="sm" 
-        className="h-8 w-8 p-0"
-        onClick={async () => {
-          const data = await loginAsUser(user);
-          if (data) {
-            setIsLoginModalOpen(true);
-          }
-        }}
-        disabled={isLoggingIn}
-      >
-        {isLoggingIn ? (
-          <RefreshCw className="h-4 w-4 animate-spin" />
-        ) : (
-          <LogIn className="h-4 w-4" />
-        )}
-        <span className="sr-only">Login as user</span>
-      </Button>
+      variant="ghost" 
+      size="sm" 
+      className="h-8 w-8 p-0"
+      onClick={async () => {
+        const data = await loginAsUser(user);
+        if (data) {
+          setIsLoginModalOpen(true);
+        }
+      }}
+      disabled={loggingInUserId === user._id}
+    >
+      {loggingInUserId === user._id ? (
+        <RefreshCw className="h-4 w-4 animate-spin" />
+      ) : (
+        <LogIn className="h-4 w-4" />
+      )}
+      <span className="sr-only">Login as user</span>
+    </Button>
     )}
   </div>
 </TableCell>

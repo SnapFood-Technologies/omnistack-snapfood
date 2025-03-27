@@ -14,7 +14,7 @@ interface UserParams {
 export const useSnapFoodUsers = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [loggingInUserId, setLoggingInUserId] = useState<string | null>(null);
   const [users, setUsers] = useState([]);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -84,7 +84,7 @@ export const useSnapFoodUsers = () => {
       return null;
     }
     
-    setIsLoggingIn(true);
+    setLoggingInUserId(user._id);
     try {
       // Use the gateway API's loginAsUser function
       const data = await snapFoodUsersApi.loginAsUser(user);
@@ -96,7 +96,7 @@ export const useSnapFoodUsers = () => {
       toast.error(`Login failed: ${errorMessage}`);
       return null;
     } finally {
-      setIsLoggingIn(false);
+      setLoggingInUserId(null);
     }
   }, [snapFoodUsersApi]);
 
@@ -125,7 +125,7 @@ export const useSnapFoodUsers = () => {
     users,
     isLoading,
     isSyncing,
-    isLoggingIn,
+    loggingInUserId,
     loginData,
     page,
     pageSize,

@@ -74,7 +74,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   )}
                 </Button>
               </div>
-              <div className="bg-secondary p-2 rounded text-xs break-all">
+              <div className="bg-secondary p-2 text-white rounded text-xs break-all">
                 {loginData.id}
               </div>
             </div>
@@ -95,7 +95,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   )}
                 </Button>
               </div>
-              <div className="bg-secondary p-2 rounded text-xs break-all">
+              <div className="bg-secondary text-white p-2 rounded text-xs break-all">
                 {loginData.token}
               </div>
             </div>
