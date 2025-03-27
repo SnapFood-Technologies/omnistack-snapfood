@@ -5,6 +5,7 @@ interface UserParams {
   page?: number;
   limit?: number;
   search?: string;
+  sort?: string;
 }
 
 interface UserResponse {
@@ -32,12 +33,22 @@ export const createSnapFoodUsersApi = (clientApiKey: string) => {
 
   return {
     getUsers: async (params: UserParams = {}): Promise<UserResponse> => {
-      const { data } = await omniGateway.get('/snapfoodie/users', { params });
+      const { data } = await omniGateway.get('/users/snapfood', { 
+        params: {
+          page: params.page || 1,
+          limit: params.limit || 10,
+          search: params.search || '',
+          sort: params.sort || '-external_ids.snapFoodId'
+        } 
+      });
       return data;
     },
     
     syncUsers: async (params: { page?: number; limit?: number } = {}): Promise<SyncResponse> => {
-      const { data } = await omniGateway.post('/snapfoodie/users/sync', params);
+      const { data } = await omniGateway.post('/snapfoodie/users/sync', {
+        page: params.page || 1,
+        limit: params.limit || 50
+      });
       return data;
     }
   };

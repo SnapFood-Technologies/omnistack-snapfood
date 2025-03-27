@@ -6,8 +6,9 @@ import toast from 'react-hot-toast';
 
 interface UserParams {
   page?: number;
-  per_page?: number; // We'll map this to 'limit' in the API
+  per_page?: number;
   search?: string;
+  sort?: string;
 }
 
 export const useSnapFoodUsers = () => {
@@ -36,7 +37,8 @@ export const useSnapFoodUsers = () => {
       const response = await snapFoodUsersApi.getUsers({ 
         page: params.page || page,
         limit: params.per_page || pageSize,
-        search: params.search || searchQuery
+        search: params.search || searchQuery,
+        sort: '-external_ids.snapFoodId' // Sort by SnapFood ID in descending order
       });
       
       setUsers(response.data || []);
