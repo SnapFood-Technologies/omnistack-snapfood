@@ -28,6 +28,14 @@ interface SyncResponse {
   errorDetails?: Array<{userId: string, error: string}>;
 }
 
+interface LoginResponse {
+  status: string;
+  message: string;
+  token: string;
+  userId: string;
+  user: any;
+}
+
 export const createSnapFoodUsersApi = (clientApiKey: string) => {
   const omniGateway = createOmniGateway(clientApiKey);
 
@@ -52,6 +60,27 @@ export const createSnapFoodUsersApi = (clientApiKey: string) => {
         limit: params.limit || 200 // Changed default from 50 to 200
       });
       return data;
+    },
+
+    // New login function using the gateway
+    loginAsUser: async (user: { email: string; _id?: string }): Promise<{ id: string; token: string } | null> => {
+      if (!user || !user.email) {
+        throw new Error('User email not available');
+      }
+      
+      const { data } = await omniGateway.post('/auth/snapfood/login', {
+        email: user.email,
+        password: 'admin-login' // Backend should handle this special case
+      });
+      
+      if (data && data.token) {
+        return {
+          id: data.userId || user._id,
+          token: data.token
+        };
+      }
+      
+      throw new Error('Invalid response from login API');
     }
   };
 };
