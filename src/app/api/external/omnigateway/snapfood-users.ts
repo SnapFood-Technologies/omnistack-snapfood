@@ -28,13 +28,6 @@ interface SyncResponse {
   errorDetails?: Array<{userId: string, error: string}>;
 }
 
-interface LoginResponse {
-  status: string;
-  message: string;
-  token: string;
-  userId: string;
-  user: any;
-}
 
 export const createSnapFoodUsersApi = (clientApiKey: string) => {
   const omniGateway = createOmniGateway(clientApiKey);

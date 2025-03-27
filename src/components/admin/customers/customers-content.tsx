@@ -31,6 +31,8 @@ import InputSelect from "@/components/Common/InputSelect";
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import React from "react";
+import { useRouter } from 'next/navigation';
+
 
 export function CustomersContent() {
     const { 
@@ -43,6 +45,7 @@ export function CustomersContent() {
         isInitialized 
     } = useSnapFoodCustomers();
 
+    const router = useRouter();
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
 
@@ -112,6 +115,14 @@ const endItem = Math.min(currentPage * pageSize, totalItems);
                         <TrendingUp className="h-4 w-4 mr-2" />
                         Export List
                     </Button>
+                    <Button 
+  className="h-10"
+  variant="soft"
+  onClick={() => router.push('/admin/snapfoodies')}
+>
+  <Users className="h-4 w-4 mr-2" />
+  Snapfoodies Sync
+</Button>
                 </div>
             </div>
 
