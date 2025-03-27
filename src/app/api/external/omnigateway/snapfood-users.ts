@@ -32,7 +32,7 @@ export const createSnapFoodUsersApi = (clientApiKey: string) => {
 
   return {
     getUsers: async (params: UserParams = {}): Promise<UserResponse> => {
-      const { data } = await omniGateway.get('/users/snapfood', { params });
+      const { data } = await omniGateway.get('/snapfoodie/users', { params });
       return data;
     },
     

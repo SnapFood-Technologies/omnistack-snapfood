@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { useSnapFoodUsers } from "@/hooks/useSnapFoodUsers";
-import { SyncModal } from "@/components/admin/snapfood-users/SyncModal";
+import { SyncModal } from "@/components/admin/snapfoodies/SyncModal";
 import {
   Table,
   TableBody,
