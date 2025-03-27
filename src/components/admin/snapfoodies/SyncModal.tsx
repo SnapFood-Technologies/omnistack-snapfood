@@ -32,7 +32,7 @@ interface SyncResult {
 interface SyncModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSync: () => Promise<any>;
+  onSync: (batchPage?: number) => Promise<any>;
   onSuccess?: () => void;
 }
 
@@ -40,15 +40,15 @@ export function SyncModal({ isOpen, onClose, onSync, onSuccess }: SyncModalProps
   const [isSyncing, setIsSyncing] = useState(false);
   const [result, setResult] = useState<SyncResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [batchCount, setBatchCount] = useState(1);
+  const [batchPage, setBatchPage] = useState(1);
+  const BATCH_SIZE = 200; // Updated batch size
 
   const handleSync = async () => {
     setIsSyncing(true);
     setError(null);
-    setBatchCount(1);
 
     try {
-      const data = await onSync();
+      const data = await onSync(batchPage);
 
       if (!data.success) {
         throw new Error(data.message || 'Failed to sync SnapFoodies');
@@ -69,7 +69,16 @@ export function SyncModal({ isOpen, onClose, onSync, onSuccess }: SyncModalProps
   const handleClose = () => {
     setResult(null);
     setError(null);
+    setBatchPage(1);
     onClose();
+  };
+
+  const handleNextBatch = () => {
+    setBatchPage(prevPage => prevPage + 1);
+    setResult(null);
+    setTimeout(() => {
+      handleSync();
+    }, 100);
   };
 
   return (
@@ -141,11 +150,10 @@ export function SyncModal({ isOpen, onClose, onSync, onSuccess }: SyncModalProps
 
             <Alert variant="info">
               <Info className="h-4 w-4" />
-              <AlertTitle>Batch Processing</AlertTitle>
+              <AlertTitle>Batch Processing - Page {batchPage}</AlertTitle>
               <AlertDescription>
-                This operation synchronized the latest 50 SnapFoodies in one batch. 
-                For larger datasets, you may need to run the sync multiple times to 
-                process all users. Each batch processes a new set of users.
+                This operation synchronized up to {BATCH_SIZE} SnapFoodies in batch #{batchPage}. 
+                For larger datasets, you can continue with the next batch using the button below.
               </AlertDescription>
             </Alert>
           </div>
@@ -153,14 +161,19 @@ export function SyncModal({ isOpen, onClose, onSync, onSuccess }: SyncModalProps
           <div className="py-4 space-y-4">
             <div className="text-center text-sm text-muted-foreground">
               This will fetch SnapFoodies from the platform and update your local database.
-              The sync processes users in batches of 50 at a time.
+              The sync processes users in batches of {BATCH_SIZE} at a time.
+              {batchPage > 1 && (
+                <p className="mt-2 font-medium">
+                  Current batch: #{batchPage}
+                </p>
+              )}
             </div>
             
             {isSyncing && (
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-sm">
-                  <span>Syncing batch {batchCount}...</span>
-                  <span className="text-muted-foreground">50 users per batch</span>
+                  <span>Syncing batch #{batchPage}...</span>
+                  <span className="text-muted-foreground">{BATCH_SIZE} users per batch</span>
                 </div>
                 <ProgressBar value={65} className="h-2" />
               </div>
@@ -174,11 +187,7 @@ export function SyncModal({ isOpen, onClose, onSync, onSuccess }: SyncModalProps
               <Button variant="outline" onClick={handleClose}>
                 Close
               </Button>
-              <Button onClick={() => {
-                setResult(null);
-                setBatchCount(prev => prev + 1);
-                handleSync();
-              }}>
+              <Button onClick={handleNextBatch}>
                 Sync Next Batch
               </Button>
             </>

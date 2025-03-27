@@ -38,7 +38,7 @@ export const useSnapFoodUsers = () => {
         page: params.page || page,
         limit: params.per_page || pageSize,
         search: params.search || searchQuery,
-        sort: '-external_ids.snapFoodId' // Sort by SnapFood ID in descending order
+        sort: '-external_ids.snapFoodId'
       });
       
       setUsers(response.data || []);
@@ -46,13 +46,13 @@ export const useSnapFoodUsers = () => {
       setTotalPages(response.meta.pages);
     } catch (error) {
       console.error('Error fetching SnapFood users:', error);
-      toast.error('Failed to fetch SnapFood users');
+      toast.error('Failed to fetch SnapFoodies');
     } finally {
       setIsLoading(false);
     }
   }, [snapFoodUsersApi, page, pageSize, searchQuery]);
 
-  const syncUsers = useCallback(async () => {
+  const syncUsers = useCallback(async (batchPage: number = 1) => {
     if (!snapFoodUsersApi) {
       return null;
     }
@@ -60,8 +60,8 @@ export const useSnapFoodUsers = () => {
     try {
       setIsSyncing(true);
       const response = await snapFoodUsersApi.syncUsers({
-        page: 1,
-        limit: 100 // Sync a larger batch at once
+        page: batchPage,
+        limit: 200 // Increased batch size to 200 users at once
       });
       
       return response;
