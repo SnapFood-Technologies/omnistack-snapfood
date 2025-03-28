@@ -4,12 +4,6 @@ import { useClient } from './useClient';
 import { createNotificationsApi } from '@/app/api/external/omnigateway/notifications';
 import toast from 'react-hot-toast';
 
-interface NotificationParams {
-  page?: number;
-  per_page?: number;
-  search?: string;
-  sort?: string;
-}
 
 export const useNotifications = () => {
   const [isLoading, setIsLoading] = useState(false);
