@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RefreshCw, Search } from "lucide-react";
 
-export function NotificationsList() {
+export function NotificationsContent() {
   const [searchInput, setSearchInput] = useState("");
   
   const {
