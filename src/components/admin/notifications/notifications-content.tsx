@@ -170,6 +170,8 @@ export function NotificationsContent() {
           </Table>
         </CardContent>
       </Card>
+
+      <div className="h-4"></div>
     </div>
   );
 }
