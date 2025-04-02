@@ -11,6 +11,15 @@ interface UserParams {
   sort?: string;
 }
 
+// Add typing for login params
+interface LoginParams {
+  email?: string;
+  external_ids?: {
+    snapFoodId?: string;
+  };
+  _id?: string;
+}
+
 export const useSnapFoodUsers = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -22,6 +31,7 @@ export const useSnapFoodUsers = () => {
   const [pageSize, setPageSize] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
   const [loginData, setLoginData] = useState<{ id: string; token: string } | null>(null);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
 
   const { gatewayApiKey } = useClient();
   
@@ -78,16 +88,40 @@ export const useSnapFoodUsers = () => {
     }
   }, [snapFoodUsersApi]);
 
-  // Login function using the API in the gateway
-  const loginAsUser = useCallback(async (user) => {
+  // Enhanced login function that supports both email and snapFoodId
+  const loginAsUser = useCallback(async (userOrLoginParams: any) => {
     if (!snapFoodUsersApi) {
       return null;
     }
     
-    setLoggingInUserId(user._id);
+    // Store the user for reference in the modal
+    setSelectedUser(userOrLoginParams);
+    
+    // Check if we're dealing with a full user object or just login params
+    const isFullUser = userOrLoginParams._id && 
+                      (userOrLoginParams.email || userOrLoginParams.external_ids);
+    
+    if (isFullUser) {
+      setLoggingInUserId(userOrLoginParams._id);
+    }
+    
     try {
-      // Use the gateway API's loginAsUser function
-      const data = await snapFoodUsersApi.loginAsUser(user);
+      let loginPayload: any = {};
+      
+      // Handle different input formats
+      if (userOrLoginParams.email) {
+        loginPayload.email = userOrLoginParams.email;
+      } else if (userOrLoginParams.external_ids?.snapFoodId) {
+        loginPayload.snapFoodId = userOrLoginParams.external_ids.snapFoodId;
+      } else {
+        throw new Error('No valid login credentials (email or SnapFood ID) provided');
+      }
+      
+      // Add admin flag if needed
+      loginPayload.adminLogin = true;
+      
+      // Call the API
+      const data = await snapFoodUsersApi.loginAsUser(loginPayload);
       setLoginData(data);
       return data;
     } catch (error) {
@@ -114,6 +148,11 @@ export const useSnapFoodUsers = () => {
     setPage(1); // Reset to first page when searching
   }, []);
 
+  // Add a function to explicitly update the selected user
+  const updateSelectedUser = useCallback((user: any) => {
+    setSelectedUser(user);
+  }, []);
+
   // Initial fetch
   useEffect(() => {
     if (snapFoodUsersApi) {
@@ -127,6 +166,8 @@ export const useSnapFoodUsers = () => {
     isSyncing,
     loggingInUserId,
     loginData,
+    selectedUser,
+    setSelectedUser: updateSelectedUser, // Add this function to the return object
     page,
     pageSize,
     totalItems,
