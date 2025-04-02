@@ -28,6 +28,15 @@ interface SyncResponse {
   errorDetails?: Array<{userId: string, error: string}>;
 }
 
+// Login parameters supporting both email and SnapFood ID
+interface LoginParams {
+  email?: string;
+  snapFoodId?: string;
+  external_ids?: {
+    snapFoodId?: string;
+  };
+  _id?: string;
+}
 
 export const createSnapFoodUsersApi = (clientApiKey: string) => {
   const omniGateway = createOmniGateway(clientApiKey);
@@ -55,25 +64,40 @@ export const createSnapFoodUsersApi = (clientApiKey: string) => {
       return data;
     },
 
-    // New login function using the gateway
-    loginAsUser: async (user: { email: string; _id?: string }): Promise<{ id: string; token: string } | null> => {
-      if (!user || !user.email) {
-        throw new Error('User email not available');
+    // Enhanced login function supporting both email and SnapFood ID
+    loginAsUser: async (loginParams: LoginParams): Promise<{ id: string; token: string } | null> => {
+      // Prepare login payload
+      const payload: any = {};
+      
+      // Support different input formats
+      if (loginParams.email) {
+        payload.email = loginParams.email;
+      } else if (loginParams.snapFoodId) {
+        payload.snapFoodId = loginParams.snapFoodId;
+      } else if (loginParams.external_ids?.snapFoodId) {
+        payload.snapFoodId = loginParams.external_ids.snapFoodId;
+      } else {
+        throw new Error('No valid login credentials provided');
       }
       
-      const { data } = await omniGateway.post('/auth/snapfood/login', {
-        email: user.email,
-        password: 'admin-login' // Backend should handle this special case
-      });
+      // Add admin login flag if needed
+      payload.adminLogin = true;
       
-      if (data && data.token) {
-        return {
-          id: data.userId || user._id,
-          token: data.token
-        };
+      try {
+        const { data } = await omniGateway.post('/auth/snapfood/login', payload);
+        
+        if (data && data.token) {
+          return {
+            id: data.userId || loginParams._id || '',
+            token: data.token
+          };
+        }
+        
+        throw new Error('Invalid response from login API');
+      } catch (error) {
+        console.error('Login API error:', error);
+        throw error;
       }
-      
-      throw new Error('Invalid response from login API');
     }
   };
 };
