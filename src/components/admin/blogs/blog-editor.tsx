@@ -109,6 +109,18 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
     loadBlog();
   }, [blogId, isNew, fetchBlog, toast]);
   
+  const getImageUrl = (path: string | null) => {
+    if (!path) return null;
+    
+    // Check if the path already includes the base URL
+    if (path.startsWith('http')) {
+      return path;
+    }
+    
+    // Otherwise, prepend the base URL
+    return `https://snapfoodal.imgix.net/${path}`;
+  };
+  
   // Handle file uploads
   const handleCoverUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -187,6 +199,7 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
       
       let success = false;
       
+     
       if (isNew) {
         // Create new blog
         success = await createBlog({
@@ -405,7 +418,6 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
                     label=""
                     options={[
                       { value: "0", label: "No" },
-                      { value: "1", label: "Yes" },
                     ]}
                     onChange={handleSelectChange}
                     value={blog.send_notification}
@@ -456,8 +468,9 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
                 <div className="flex flex-col items-center justify-center border-2 border-dashed rounded-md p-6">
                   {coverPreview ? (
                     <div className="relative w-full">
-                      <img 
-                        src={coverPreview} 
+                      <img
+                      src={getImageUrl(coverPreview)} 
+                        // src={coverPreview} 
                         alt="Blog cover preview" 
                         className="object-cover w-full h-64 rounded-md"
                       />

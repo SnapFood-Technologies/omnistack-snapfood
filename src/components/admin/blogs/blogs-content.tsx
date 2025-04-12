@@ -312,11 +312,15 @@ export function BlogsContent() {
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {blog.categories && blog.categories.map((category, i) => (
-                            <Badge key={i} variant="outline" className="mr-1">
-                              {category}
-                            </Badge>
-                          ))}
+                        <TableCell>
+  <div className="flex flex-wrap gap-1">
+    {blog.categories && blog.categories.map((category, i) => (
+      <Badge key={i} variant="neutral" className="mr-1">
+        {category.title}
+      </Badge>
+    ))}
+  </div>
+</TableCell>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -477,4 +481,5 @@ export function BlogsContent() {
 
       <div className="h-10"></div>
     </div>
-  );
+  )
+}

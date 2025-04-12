@@ -237,7 +237,7 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess }: CreateBlogModalP
                 label=""
                 options={[
                   { value: "0", label: "No" },
-                  { value: "1", label: "Yes" },
+                  // { value: "1", label: "Yes" },
                 ]}
                 onChange={(e) => setSendNotification(e.target.value)}
                 value={sendNotification}

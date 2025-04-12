@@ -7,7 +7,7 @@ import {
   CreateBlogData,
   UpdateBlogData,
   SendNotificationData
-} from '@/types/snapfood-blog';
+} from '@/app/api/external/omnigateway/types/snapfood-blog';
 import { useClient } from './useClient';
 import { createBlogApi } from '@/app/api/external/omnigateway/snapfood-blog';
 import toast from 'react-hot-toast';
@@ -125,6 +125,7 @@ export const useSnapFoodBlogs = () => {
   const updateBlog = useCallback(async (id: number | string, blogData: Partial<CreateBlogData>) => {
     if (!blogApi) return false;
     
+   
     try {
       setIsLoading(true);
       const response = await blogApi.updateBlog(id, blogData);
