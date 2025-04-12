@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
 import { 
@@ -248,10 +247,13 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
         <div className="grid gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-              <CardDescription>
+            <div>
+                <h2 className="text-xl font-semibold tracking-tight">Basic Information</h2>
+                <p className="text-sm text-muted-foreground mt-1 mb-4">
                 Set the title, content, and author for your blog post
-              </CardDescription>
+                </p>
+            </div>
+              
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -321,10 +323,13 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
           
           <Card>
             <CardHeader>
-              <CardTitle>Categories & Settings</CardTitle>
-              <CardDescription>
+            <div>
+                <h2 className="text-xl font-semibold tracking-tight">Categories & Settings</h2>
+                <p className="text-sm text-muted-foreground mt-1 mb-4">
                 Configure categories and additional settings for your blog
-              </CardDescription>
+                </p>
+            </div>
+              
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -361,10 +366,12 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
           
           <Card>
             <CardHeader>
-              <CardTitle>Notifications</CardTitle>
-              <CardDescription>
+            <div>
+                <h2 className="text-xl font-semibold tracking-tight">Notifications</h2>
+                <p className="text-sm text-muted-foreground mt-1 mb-4">
                 Configure push notifications for this blog post
-              </CardDescription>
+                </p>
+            </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -412,10 +419,13 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
           
           <Card>
             <CardHeader>
-              <CardTitle>Blog Cover Image</CardTitle>
-              <CardDescription>
+            <div>
+                <h2 className="text-xl font-semibold tracking-tight">Blog Cover Image</h2>
+                <p className="text-sm text-muted-foreground mt-1 mb-4">
                 Upload a cover image for your blog post
-              </CardDescription>
+                </p>
+            </div>
+              
             </CardHeader>
             <CardContent>
               <div className="space-y-4">

@@ -164,10 +164,12 @@ export function BlogsContent() {
       {/* Search and filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Search</CardTitle>
-          <CardDescription>
-            Find blogs by title, author, or content
-          </CardDescription>
+            <div>
+            <h2 className="text-xl font-semibold tracking-tight">Search</h2>
+                <p className="text-sm text-muted-foreground mt-1 mb-4">
+                Find blogs by title, author, or content
+                </p>
+            </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSearchSubmit} className="flex gap-2">
@@ -188,10 +190,12 @@ export function BlogsContent() {
       {/* Blog Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Blog List</CardTitle>
-          <CardDescription>
-            {totalItems} blogs found in your database
-          </CardDescription>
+            <div>
+        <h2 className="text-xl font-semibold tracking-tight">Blog List</h2>
+                <p className="text-sm text-muted-foreground mt-1 mb-4">
+                {totalItems} blogs found in your database
+                </p>
+            </div>
         </CardHeader>
         <CardContent>
           <div className="table-container overflow-x-auto">
