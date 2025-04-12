@@ -16,8 +16,8 @@ export interface Blog {
     updated_at: string;
     slug?: string;
     hash_id?: string;
-    categories: string[];
-    blog_categories: BlogCategory[];
+    categories: BlogCategory[]; // Changed from string[] to BlogCategory[]
+    blog_categories?: BlogCategory[]; // Made optional as it might not always be present  
     send_notification?: string;
     notification_title?: string;
     notification_title_en?: string;

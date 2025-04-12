@@ -7,7 +7,7 @@ import {
   CreateBlogData,
   UpdateBlogData,
   SendNotificationData
-} from '@/types/snapfood-blog';
+} from '@/app/api/external/omnigateway/types/snapfood-blog';
 import { useClient } from './useClient';
 import { createBlogApi } from '@/app/api/external/omnigateway/snapfood-blog';
 import toast from 'react-hot-toast';
