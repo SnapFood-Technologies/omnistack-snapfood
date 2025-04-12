@@ -1,7 +1,6 @@
-// components/admin/blogs/blogs-content.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import {
   Table,
@@ -34,89 +33,68 @@ import {
   Edit,
   Eye,
   Plus,
-  Filter,
+  Bell,
+  MoreVertical,
+  Trash2,
+  PowerOff,
 } from "lucide-react";
 import InputSelect from "@/components/Common/InputSelect";
 import Link from "next/link";
 import { CreateBlogModal } from "./create-blog-modal";
-
-// Mock data for blogs
-const mockBlogs = [
-  {
-    id: 1,
-    title: "10 Best Foods to Try in Spring",
-    title_en: "10 Best Foods to Try in Spring",
-    author: "John Doe",
-    read_count: 2543,
-    notifications_sent: 1200,
-    notifications_read_count: 987,
-    active: 1,
-    created_at: "2024-03-15T08:30:00",
-    categories: ["Food", "Health"],
-  },
-  {
-    id: 2,
-    title: "How to Order Food Online Safely",
-    title_en: "How to Order Food Online Safely",
-    author: "Sarah Johnson",
-    read_count: 1875,
-    notifications_sent: 950,
-    notifications_read_count: 730,
-    active: 1,
-    created_at: "2024-03-10T10:15:00",
-    categories: ["Safety", "Tips"],
-  },
-  {
-    id: 3,
-    title: "Summer Food Trends to Watch",
-    title_en: "Summer Food Trends to Watch",
-    author: "Michael Smith",
-    read_count: 3240,
-    notifications_sent: 1800,
-    notifications_read_count: 1450,
-    active: 0,
-    created_at: "2024-03-05T14:45:00",
-    categories: ["Trends", "Seasonal"],
-  },
-  {
-    id: 4,
-    title: "Restaurant Etiquette Guide",
-    title_en: "Restaurant Etiquette Guide",
-    author: "Emily Wilson",
-    read_count: 1290,
-    notifications_sent: 850,
-    notifications_read_count: 620,
-    active: 1,
-    created_at: "2024-02-28T16:20:00",
-    categories: ["Etiquette", "Dining"],
-  },
-  {
-    id: 5,
-    title: "Healthy Eating on a Budget",
-    title_en: "Healthy Eating on a Budget",
-    author: "David Brown",
-    read_count: 2100,
-    notifications_sent: 1100,
-    notifications_read_count: 890,
-    active: 1,
-    created_at: "2024-02-20T09:10:00",
-    categories: ["Health", "Budget"],
-  },
-];
+import { SendNotificationModal } from "./send-notification-modal";
+import { useSnapFoodBlogs } from "@/hooks/useSnapFoodBlogs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function BlogsContent() {
+  const { 
+    blogs, 
+    totalItems, 
+    totalPages, 
+    isLoading, 
+    fetchBlogs,
+    toggleBlogStatus,
+    deleteBlog
+  } = useSnapFoodBlogs();
+  
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [searchInput, setSearchInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [filterActive, setFilterActive] = useState<boolean | undefined>(undefined);
   
   // Pagination state
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   
-  // Use mock data for now
-  const blogs = mockBlogs;
-  const totalItems = blogs.length;
-  const totalPages = Math.ceil(totalItems / pageSize);
+  // Notification state
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+  const [selectedBlogId, setSelectedBlogId] = useState<number | null>(null);
+  
+  // Delete confirmation
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [blogToDelete, setBlogToDelete] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetchBlogs({
+      page,
+      per_page: pageSize,
+      title: searchInput || undefined,
+      active: filterActive
+    });
+  }, [fetchBlogs, page, pageSize]);
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -129,19 +107,79 @@ export function BlogsContent() {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Implement search logic here
-    console.log("Searching for:", searchInput);
+    setPage(1); // Reset to first page when searching
+    fetchBlogs({
+      page: 1,
+      per_page: pageSize,
+      title: searchInput || undefined,
+      active: filterActive
+    });
+  };
+
+  const handleFilterChange = (value: string) => {
+    const active = value === "" ? undefined : value === "1";
+    setFilterActive(active);
+    setPage(1); // Reset to first page when filtering
+    fetchBlogs({
+      page: 1,
+      per_page: pageSize,
+      title: searchInput || undefined,
+      active
+    });
   };
 
   const handleCreateSuccess = () => {
-    // Refresh the list after creation
-    console.log("Blog created successfully");
+    fetchBlogs({
+      page,
+      per_page: pageSize,
+      title: searchInput || undefined,
+      active: filterActive
+    });
+  };
+
+  const handleOpenNotificationModal = (blogId: number) => {
+    setSelectedBlogId(blogId);
+    setIsNotificationModalOpen(true);
+  };
+
+  const handleToggleStatus = async (blogId: number) => {
+    await toggleBlogStatus(blogId);
+    fetchBlogs({
+      page,
+      per_page: pageSize,
+      title: searchInput || undefined,
+      active: filterActive
+    });
+  };
+
+  const handleDeleteClick = (blogId: number) => {
+    setBlogToDelete(blogId);
+    setShowDeleteAlert(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (blogToDelete) {
+      await deleteBlog(blogToDelete);
+      setShowDeleteAlert(false);
+      fetchBlogs({
+        page,
+        per_page: pageSize,
+        title: searchInput || undefined,
+        active: filterActive
+      });
+    }
   };
 
   const pageSizeOptions = [
     { value: "10", label: "10 per page" },
     { value: "20", label: "20 per page" },
     { value: "50", label: "50 per page" },
+  ];
+
+  const statusOptions = [
+    { value: "", label: "All Statuses" },
+    { value: "1", label: "Active Only" },
+    { value: "0", label: "Inactive Only" },
   ];
 
   return (
@@ -162,38 +200,51 @@ export function BlogsContent() {
       {/* Search and filters */}
       <Card>
         <CardHeader>
-            <div>
+          <div>
             <h2 className="text-xl font-semibold tracking-tight">Search</h2>
-                <p className="text-sm text-muted-foreground mt-1 mb-4">
-                Find blogs by title, author, or content
-                </p>
-            </div>
+            <p className="text-sm text-muted-foreground mt-1 mb-4">
+              Find blogs by title, author, or content
+            </p>
+          </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSearchSubmit} className="flex gap-2">
-            <Input
-              placeholder="Search blogs..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="flex-1"
-            />
-            <Button type="submit">
-              <Search className="h-4 w-4 mr-2" />
-              Search
-            </Button>
-          </form>
+          <div className="flex flex-col md:flex-row gap-4">
+            <form onSubmit={handleSearchSubmit} className="flex gap-2 flex-1">
+              <Input
+                placeholder="Search blogs..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="flex-1"
+              />
+              <Button type="submit">
+                <Search className="h-4 w-4 mr-2" />
+                Search
+              </Button>
+            </form>
+            
+            <div className="w-full md:w-48">
+              <InputSelect
+                name="status-filter"
+                label=""
+                options={statusOptions}
+                onChange={(e) => handleFilterChange(e.target.value)}
+                value={filterActive === undefined ? "" : filterActive ? "1" : "0"}
+                placeholder="Filter by status"
+              />
+            </div>
+          </div>
         </CardContent>
       </Card>
 
       {/* Blog Table */}
       <Card>
         <CardHeader>
-            <div>
-        <h2 className="text-xl font-semibold tracking-tight">Blog List</h2>
-                <p className="text-sm text-muted-foreground mt-1 mb-4">
-                {totalItems} blogs found in your database
-                </p>
-            </div>
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight">Blog List</h2>
+            <p className="text-sm text-muted-foreground mt-1 mb-4">
+              {totalItems > 0 ? `${totalItems} blogs found` : "No blogs found"}
+            </p>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="table-container overflow-x-auto">
@@ -261,11 +312,15 @@ export function BlogsContent() {
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {blog.categories.map((category, i) => (
-                            <Badge key={i} variant="outline" className="mr-1">
-                              {category}
-                            </Badge>
-                          ))}
+                        <TableCell>
+  <div className="flex flex-wrap gap-1">
+    {blog.categories && blog.categories.map((category, i) => (
+      <Badge key={i} variant="neutral" className="mr-1">
+        {category.title}
+      </Badge>
+    ))}
+  </div>
+</TableCell>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -282,6 +337,36 @@ export function BlogsContent() {
                               <span className="sr-only">Edit</span>
                             </Button>
                           </Link>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-8 w-8 p-0"
+                            onClick={() => handleOpenNotificationModal(blog.id)}
+                          >
+                            <Bell className="h-4 w-4" />
+                            <span className="sr-only">Send Notification</span>
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <MoreVertical className="h-4 w-4" />
+                                <span className="sr-only">More</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleToggleStatus(blog.id)}>
+                                <PowerOff className="h-4 w-4 mr-2" />
+                                {blog.active === 1 ? "Deactivate" : "Activate"}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => handleDeleteClick(blog.id)}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -292,60 +377,62 @@ export function BlogsContent() {
           </div>
 
           {/* Pagination */}
-          <div className="flex items-center justify-between mt-4">
-            <div className="text-sm text-muted-foreground">
-              Showing {blogs.length > 0 ? (page - 1) * pageSize + 1 : 0} to{" "}
-              {Math.min(page * pageSize, totalItems)} of {totalItems} blogs
-            </div>
+          {blogs.length > 0 && (
+            <div className="flex items-center justify-between mt-4">
+              <div className="text-sm text-muted-foreground">
+                Showing {(page - 1) * pageSize + 1} to{" "}
+                {Math.min(page * pageSize, totalItems)} of {totalItems} blogs
+              </div>
 
-            <div className="flex items-center gap-4">
-              <InputSelect
-                name="pageSize"
-                label=""
-                value={pageSize.toString()}
-                onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-                options={pageSizeOptions}
-              />
+              <div className="flex items-center gap-4">
+                <InputSelect
+                  name="pageSize"
+                  label=""
+                  value={pageSize.toString()}
+                  onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                  options={pageSizeOptions}
+                />
 
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious
-                      onClick={() => handlePageChange(page - 1)}
-                      disabled={page <= 1}
-                    />
-                  </PaginationItem>
-                  
-                  {Array.from({ length: totalPages }, (_, i) => i + 1)
-                    .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
-                    .map((p, i, arr) => (
-                      <>
-                        {i > 0 && arr[i-1] !== p - 1 && (
-                          <PaginationItem key={`ellipsis-${p}`}>
-                            <PaginationLink disabled>...</PaginationLink>
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => handlePageChange(page - 1)}
+                        disabled={page <= 1}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
+                      .map((p, i, arr) => (
+                        <>
+                          {i > 0 && arr[i-1] !== p - 1 && (
+                            <PaginationItem key={`ellipsis-${p}`}>
+                              <PaginationLink disabled>...</PaginationLink>
+                            </PaginationItem>
+                          )}
+                          <PaginationItem key={p}>
+                            <PaginationLink
+                              isActive={page === p}
+                              onClick={() => handlePageChange(p)}
+                            >
+                              {p}
+                            </PaginationLink>
                           </PaginationItem>
-                        )}
-                        <PaginationItem key={p}>
-                          <PaginationLink
-                            isActive={page === p}
-                            onClick={() => handlePageChange(p)}
-                          >
-                            {p}
-                          </PaginationLink>
-                        </PaginationItem>
-                      </>
-                    ))}
-                  
-                  <PaginationItem>
-                    <PaginationNext
-                      onClick={() => handlePageChange(page + 1)}
-                      disabled={page >= totalPages}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
+                        </>
+                      ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => handlePageChange(page + 1)}
+                        disabled={page >= totalPages}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
@@ -356,7 +443,43 @@ export function BlogsContent() {
         onSuccess={handleCreateSuccess}
       />
 
+      {/* Send Notification Modal */}
+      {selectedBlogId && (
+        <SendNotificationModal
+          isOpen={isNotificationModalOpen}
+          onClose={() => setIsNotificationModalOpen(false)}
+          blogId={selectedBlogId}
+          onSuccess={() => {
+            fetchBlogs({
+              page,
+              per_page: pageSize,
+              title: searchInput || undefined,
+              active: filterActive
+            });
+          }}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              blog post and all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="h-10"></div>
     </div>
-  );
+  )
 }

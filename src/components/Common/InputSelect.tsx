@@ -24,7 +24,7 @@ interface OptionType {
 
 interface InputSelectProps {
   name: string
-  label: string
+  label?: string
   options: OptionType[]
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
   value: string
@@ -36,13 +36,15 @@ export default function InputSelect(props: InputSelectProps) {
 
   return (
     <div>
-      {/* Label */}
-      <label
-        htmlFor={name}
-        className="mb-2.5 block font-satoshi text-base font-medium text-dark dark:text-white"
-      >
-        {label}
-      </label>
+      {/* Label - only render with margin if label exists */}
+      {label && (
+        <label
+          htmlFor={name}
+          className="mb-2.5 block font-satoshi text-base font-medium text-dark dark:text-white"
+        >
+          {label}
+        </label>
+      )}
 
       <div className="relative">
         {/* Native select with classes matching the Radix Trigger styling */}
