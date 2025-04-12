@@ -6,16 +6,12 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
-  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, AlertCircle, UploadCloud } from "lucide-react";
+import { Loader2, UploadCloud } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -24,6 +20,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MultiSelect } from "./multi-select";
+import { useToast } from "@/components/ui/use-toast";
+import { RichTextEditor } from "./rich-text-editor";
 
 interface CreateBlogModalProps {
   isOpen: boolean;
@@ -45,8 +43,8 @@ const mockCategories = [
 ];
 
 export function CreateBlogModal({ isOpen, onClose, onSuccess }: CreateBlogModalProps) {
+  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   
   // Form state
   const [title, setTitle] = useState("");
@@ -60,7 +58,7 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess }: CreateBlogModalP
   const [notificationTitleEn, setNotificationTitleEn] = useState("");
   const [blogImage, setBlogImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-
+  
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -70,10 +68,8 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess }: CreateBlogModalP
     setImagePreview(previewUrl);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setIsSubmitting(true);
-    setError(null);
 
     try {
       // Here you would normally submit to your API
@@ -93,6 +89,11 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess }: CreateBlogModalP
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
+      toast({
+        title: "Success",
+        description: "Blog post created successfully",
+      });
+      
       if (onSuccess) {
         onSuccess();
       }
@@ -100,7 +101,11 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess }: CreateBlogModalP
       handleClose();
     } catch (err) {
       console.error("Submission error:", err);
-      setError("Failed to create blog post");
+      toast({
+        title: "Error",
+        description: "Failed to create blog post",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -118,29 +123,26 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess }: CreateBlogModalP
     setNotificationTitleEn("");
     setBlogImage(null);
     setImagePreview(null);
-    setError(null);
     onClose();
+  };
+
+  const isValidForm = () => {
+    return title.trim() !== "" && content.trim() !== "" && author.trim() !== "";
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Post a new blog</DialogTitle>
-          <DialogDescription>
-            Create a new blog post to share with your users
-          </DialogDescription>
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight">Post a new blog</h2>
+            <p className="text-sm text-muted-foreground mt-1 mb-4">
+              Create a new blog post to share with your users
+            </p>
+          </div>
         </DialogHeader>
 
-        {error && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
@@ -166,25 +168,19 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess }: CreateBlogModalP
 
           <div className="space-y-2">
             <Label htmlFor="content">Content</Label>
-            <Textarea
-              id="content"
+            <RichTextEditor 
               value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Enter content"
-              rows={6}
-              required
+              onChange={setContent}
+              placeholder="Write your blog content here..."
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="content-en">Content (English)</Label>
-            <Textarea
-              id="content-en"
+            <Label htmlFor="content_en">Content (English)</Label>
+            <RichTextEditor 
               value={contentEn}
-              onChange={(e) => setContentEn(e.target.value)}
-              placeholder="Enter content (English)"
-              rows={6}
-              required
+              onChange={setContentEn}
+              placeholder="Write your blog content in English here..."
             />
           </div>
 
@@ -297,31 +293,32 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess }: CreateBlogModalP
               )}
             </div>
           </div>
+        </div>
 
-          <DialogFooter>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={handleClose}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Posting...
-                </>
-              ) : (
-                "Post Blog"
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
+        <DialogFooter>
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={handleClose}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </Button>
+          <Button 
+            type="button" 
+            onClick={handleSubmit}
+            disabled={!isValidForm() || isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Posting...
+              </>
+            ) : (
+              "Post Blog"
+            )}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

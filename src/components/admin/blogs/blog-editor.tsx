@@ -1,22 +1,20 @@
 // components/admin/blogs/blog-editor.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
+import dynamic from "next/dynamic";
 import { 
   Loader2, 
-  AlertCircle, 
   Save, 
   ArrowLeft, 
   Trash2, 
-  Upload, 
-  CheckCircle 
+  Upload
 } from "lucide-react";
 import Link from "next/link";
 import { MultiSelect } from "./multi-select";
@@ -27,6 +25,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+// Import Quill styles
+import 'react-quill/dist/quill.snow.css';
+
+// Dynamically import React Quill with no SSR to avoid hydration errors
+const ReactQuill = dynamic(() => import("react-quill"), { 
+  ssr: false,
+  loading: () => <div className="h-64 w-full flex items-center justify-center">
+    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+  </div>
+});
 
 // Mock categories for the dropdown
 const mockCategories = [
@@ -73,6 +82,10 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   
+  // Store Quill instances
+  const quillRef = useRef<any>(null);
+  const quillEnRef = useRef<any>(null);
+  
   // Load blog data if editing
   useEffect(() => {
     async function loadBlog() {
@@ -91,8 +104,8 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
           id: "1",
           title: "10 Best Foods to Try in Spring",
           title_en: "10 Best Foods to Try in Spring",
-          content: "Spring is a wonderful time to explore fresh, seasonal ingredients...",
-          content_en: "Spring is a wonderful time to explore fresh, seasonal ingredients...",
+          content: "<h2>Spring Foods to Try</h2><p>Spring is a wonderful time to explore fresh, seasonal ingredients...</p><ul><li>Asparagus</li><li>Fresh Peas</li><li>Strawberries</li></ul>",
+          content_en: "<h2>Spring Foods to Try</h2><p>Spring is a wonderful time to explore fresh, seasonal ingredients...</p><ul><li>Asparagus</li><li>Fresh Peas</li><li>Strawberries</li></ul>",
           author: "John Doe",
           active: true,
           show_quiz: "0",
@@ -135,11 +148,26 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
   };
   
   // Handle form input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setBlog(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+  
+  // Handle Quill content changes
+  const handleContentChange = (content: string) => {
+    setBlog(prev => ({
+      ...prev,
+      content
+    }));
+  };
+  
+  const handleContentEnChange = (content: string) => {
+    setBlog(prev => ({
+      ...prev,
+      content_en: content
     }));
   };
   
@@ -156,6 +184,28 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
       blog_categories: selected
     }));
   };
+  
+  // Quill editor modules and formats
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      [{ 'align': [] }],
+      ['link', 'image'],
+      [{ 'color': [] }, { 'background': [] }],
+      ['clean']
+    ],
+  };
+  
+  const formats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet',
+    'align',
+    'link', 'image',
+    'color', 'background'
+  ];
   
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -247,13 +297,12 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
         <div className="grid gap-6">
           <Card>
             <CardHeader>
-            <div>
+              <div>
                 <h2 className="text-xl font-semibold tracking-tight">Basic Information</h2>
                 <p className="text-sm text-muted-foreground mt-1 mb-4">
-                Set the title, content, and author for your blog post
+                  Set the title, content, and author for your blog post
                 </p>
-            </div>
-              
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -295,41 +344,56 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
               
               <div className="space-y-2">
                 <Label htmlFor="content">Content</Label>
-                <Textarea
-                  id="content"
-                  name="content"
-                  value={blog.content}
-                  onChange={handleInputChange}
-                  placeholder="Enter blog content"
-                  rows={8}
-                  required
-                />
+                <div className="rounded-md border border-input overflow-hidden">
+                  {!isLoading && (
+                    <ReactQuill
+                      ref={quillRef}
+                      theme="snow"
+                      value={blog.content}
+                      onChange={handleContentChange}
+                      modules={modules}
+                      formats={formats}
+                      className="h-64"
+                      placeholder="Write your blog content here..."
+                    />
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Use the toolbar to format your content. You can add headers, lists, images, and more.
+                </p>
               </div>
               
-              <div className="space-y-2">
+              <div className="space-y-2 mt-8">
                 <Label htmlFor="content_en">Content (English)</Label>
-                <Textarea
-                  id="content_en"
-                  name="content_en"
-                  value={blog.content_en}
-                  onChange={handleInputChange}
-                  placeholder="Enter blog content (English)"
-                  rows={8}
-                  required
-                />
+                <div className="rounded-md border border-input overflow-hidden">
+                  {!isLoading && (
+                    <ReactQuill
+                      ref={quillEnRef}
+                      theme="snow"
+                      value={blog.content_en}
+                      onChange={handleContentEnChange}
+                      modules={modules}
+                      formats={formats}
+                      className="h-64"
+                      placeholder="Write your blog content in English here..."
+                    />
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Format your English content using the toolbar.
+                </p>
               </div>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader>
-            <div>
+              <div>
                 <h2 className="text-xl font-semibold tracking-tight">Categories & Settings</h2>
                 <p className="text-sm text-muted-foreground mt-1 mb-4">
-                Configure categories and additional settings for your blog
+                  Configure categories and additional settings for your blog
                 </p>
-            </div>
-              
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -366,12 +430,12 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
           
           <Card>
             <CardHeader>
-            <div>
+              <div>
                 <h2 className="text-xl font-semibold tracking-tight">Notifications</h2>
                 <p className="text-sm text-muted-foreground mt-1 mb-4">
-                Configure push notifications for this blog post
+                  Configure push notifications for this blog post
                 </p>
-            </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -419,13 +483,12 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
           
           <Card>
             <CardHeader>
-            <div>
+              <div>
                 <h2 className="text-xl font-semibold tracking-tight">Blog Cover Image</h2>
                 <p className="text-sm text-muted-foreground mt-1 mb-4">
-                Upload a cover image for your blog post
+                  Upload a cover image for your blog post
                 </p>
-            </div>
-              
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
