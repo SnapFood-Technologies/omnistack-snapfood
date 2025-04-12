@@ -4,12 +4,12 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
     title: "Dashboard - SnapFood Admin",
-    description: "Admin dashboard for managing restaurants, orders, and platform analytics.",
+    description: "Monitor your restaurant network and delivery performance metrics",
 };
 
 export default function DashboardPage() {
     return (
-        <div  className="px-5">
+        <div className="px-3">
             <DashboardContent />
         </div>
     )

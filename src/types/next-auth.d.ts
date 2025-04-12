@@ -6,17 +6,26 @@ declare module "next-auth" {
         user: {
             id: string;
             role: string;
+            clientId?: string;
+            client?: {
+                id: string;
+                name: string;
+                isSuperClient: boolean;
+                omniGatewayId?: string;
+                omniGatewayApiKey?: string;
+            };
         } & DefaultSession["user"]
     }
 
     interface User {
         role?: string;
-    }
-}
-
-declare module "next-auth/jwt" {
-    interface JWT {
-        role?: string;
-        id?: string;
+        clientId?: string;
+        client?: {
+            id: string;
+            name: string;
+            isSuperClient: boolean;
+            omniGatewayId?: string;
+            omniGatewayApiKey?: string;
+        };
     }
 }
