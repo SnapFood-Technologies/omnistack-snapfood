@@ -1,4 +1,3 @@
-// components/admin/blogs/blog-editor.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -17,13 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { MultiSelect } from "./multi-select";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import InputSelect from "@/components/Common/InputSelect";
 import { RichTextEditor } from "./rich-text-editor";
 
 // Mock categories for the dropdown
@@ -345,36 +338,34 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="blog_categories">Blog Categories</Label>
-                  <MultiSelect
-                    options={mockCategories.map(cat => ({ 
-                      label: cat.title, 
-                      value: cat.id 
-                    }))}
-                    selected={blog.blog_categories}
-                    onChange={handleCategoryChange}
-                    placeholder="Select categories..."
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="show_quiz">Show Quiz</Label>
-                  <Select 
-                    value={blog.show_quiz} 
-                    onValueChange={(value) => setBlog(prev => ({ ...prev, show_quiz: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select option" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0">No</SelectItem>
-                      <SelectItem value="1">Yes</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+            <Label htmlFor="blog_categories">Blog Categories</Label>
+            <MultiSelect
+                options={mockCategories.map(cat => ({ 
+                    label: cat.title, 
+                    value: cat.id 
+                }))}
+                selected={blog.blog_categories}
+                onChange={handleCategoryChange}
+                placeholder="Select categories..."
+            />
+        </div>
+        <div className={`space-y-2 ${blog.blog_categories.length > 0 ? 'mt-8' : ''}`}>
+            <Label htmlFor="show_quiz">Show Quiz</Label>
+            <InputSelect
+                name="show_quiz"
+                label=""
+                options={[
+                    { value: "0", label: "No" },
+                    { value: "1", label: "Yes" },
+                ]}
+                onChange={(e) => setBlog(prev => ({ ...prev, show_quiz: e.target.value }))}
+                value={blog.show_quiz}
+            />
+        </div>
+    </div>
+</CardContent>
           </Card>
           
           <Card>
@@ -390,18 +381,16 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="send_notification">Send Notification</Label>
-                  <Select 
-                    value={blog.send_notification} 
-                    onValueChange={(value) => setBlog(prev => ({ ...prev, send_notification: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select option" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0">No</SelectItem>
-                      <SelectItem value="1">Yes</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <InputSelect
+                    name="send_notification"
+                    label=""
+                    options={[
+                      { value: "0", label: "No" },
+                      { value: "1", label: "Yes" },
+                    ]}
+                    onChange={(e) => setBlog(prev => ({ ...prev, send_notification: e.target.value }))}
+                    value={blog.send_notification}
+                  />
                 </div>
               </div>
               
