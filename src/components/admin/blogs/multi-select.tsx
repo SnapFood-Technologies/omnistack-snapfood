@@ -1,16 +1,9 @@
-// components/admin/blogs/multi-select.tsx
 "use client";
 
 import * as React from "react";
 import { X, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import InputSelect from "@/components/Common/InputSelect";
 
 type Option = {
   label: string;
@@ -67,21 +60,14 @@ export function MultiSelect({
       </div>
       
       {availableOptions.length > 0 && (
-        <Select
-          onValueChange={handleSelect}
+        <InputSelect
+          name="multi-select"
+          label=""
+          options={availableOptions}
+          onChange={(e) => handleSelect(e.target.value)}
           value=""
-        >
-          <SelectTrigger>
-            <SelectValue placeholder={placeholder} />
-          </SelectTrigger>
-          <SelectContent className="max-h-60">
-            {availableOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          placeholder={placeholder}
+        />
       )}
     </div>
   );
