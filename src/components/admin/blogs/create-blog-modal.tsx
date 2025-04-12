@@ -1,4 +1,3 @@
-// components/admin/blogs/create-blog-modal.tsx
 "use client";
 
 import { useState } from "react";
@@ -12,16 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, UploadCloud } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import { MultiSelect } from "./multi-select";
 import { useToast } from "@/components/ui/use-toast";
 import { RichTextEditor } from "./rich-text-editor";
+import InputSelect from "@/components/Common/InputSelect";
+
 
 interface CreateBlogModalProps {
   isOpen: boolean;
@@ -218,18 +213,16 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess }: CreateBlogModalP
             </div>
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-              <Select 
-                value={status} 
-                onValueChange={setStatus}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">Active</SelectItem>
-                  <SelectItem value="0">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
+              <InputSelect
+                name="status"
+                label=""
+                options={[
+                  { value: "1", label: "Active" },
+                  { value: "0", label: "Inactive" },
+                ]}
+                onChange={(e) => setStatus(e.target.value)}
+                value={status}
+              />
             </div>
           </div>
 
