@@ -14,11 +14,13 @@ import {
   User,
   Bell,
   RefreshCw,
+  PlusCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { RichTextEditor } from "./rich-text-editor";
 import { useSnapFoodBlogs } from "@/hooks/useSnapFoodBlogs";
 import { SendNotificationModal } from "./send-notification-modal";
+import toast from "react-hot-toast";
 
 interface BlogDetailsProps {
   blogId: string;
@@ -27,20 +29,63 @@ interface BlogDetailsProps {
 export function BlogDetails({ blogId }: BlogDetailsProps) {
   const { currentBlog, fetchBlog, isLoading, incrementNotificationRead } = useSnapFoodBlogs();
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+  const [localReadCount, setLocalReadCount] = useState(0);
+  const [isIncreasingView, setIsIncreasingView] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
+    
     async function loadBlog() {
-      await fetchBlog(blogId);
+      if (isMounted) {
+        const blog = await fetchBlog(blogId);
+        if (blog && isMounted) {
+          setLocalReadCount(blog.read_count);
+        }
+      }
     }
     
     loadBlog();
     
-    // Increment notification read count when viewing
-    incrementNotificationRead(blogId);
-  }, [blogId, fetchBlog, incrementNotificationRead]);
+    return () => {
+      isMounted = false;
+    };
+  }, [blogId, fetchBlog]);
 
   const handleSendNotificationClick = () => {
     setIsNotificationModalOpen(true);
+  };
+
+  const handleIncreaseView = async () => {
+    try {
+      setIsIncreasingView(true);
+      
+      // Use the hook from useSnapFoodBlogs instead of direct API call
+      const success = await incrementNotificationRead(blogId);
+      
+      if (success) {
+        setLocalReadCount(prev => prev + 1);
+        toast.success("View count increased successfully");
+      } else {
+        toast.error("Failed to increase view count");
+      }
+    } catch (error) {
+      console.error("Error increasing view count:", error);
+      toast.error("Failed to increase view count");
+    } finally {
+      setIsIncreasingView(false);
+    }
+  };
+
+  const getImageUrl = (path: string | null) => {
+    if (!path) return null;
+    
+    // Check if the path already includes the base URL
+    if (path.startsWith('http')) {
+      return path;
+    }
+    
+    // Otherwise, prepend the base URL
+    return `https://snapfoodal.imgix.net/${path}`;
   };
 
   if (isLoading) {
@@ -61,6 +106,8 @@ export function BlogDetails({ blogId }: BlogDetailsProps) {
       </div>
     );
   }
+
+  const showQuizStatus = currentBlog.show_quiz === 1 || currentBlog.show_quiz === '1' ? 'Yes' : 'No';
 
   return (
     <div className="space-y-6">
@@ -87,12 +134,12 @@ export function BlogDetails({ blogId }: BlogDetailsProps) {
         </div>
       </div>
 
-      {/* Blog Header */}
-      <div className="relative">
+      {/* Blog Header - Added extra margin bottom to create space */}
+      <div className="relative mb-8">
         <div className="w-full h-72 overflow-hidden rounded-lg">
           {currentBlog.image_cover ? (
             <img
-              src={currentBlog.image_cover}
+              src={getImageUrl(currentBlog.image_cover)}
               alt={currentBlog.title}
               className="w-full h-full object-cover"
             />
@@ -110,9 +157,9 @@ export function BlogDetails({ blogId }: BlogDetailsProps) {
                 <Badge variant={currentBlog.active === 1 ? "default" : "destructive"}>
                   {currentBlog.active === 1 ? "Active" : "Inactive"}
                 </Badge>
-                {currentBlog.categories && currentBlog.categories.map((category: string, i: number) => (
-                  <Badge key={i} variant="neutral">
-                    {category}
+                {currentBlog.categories && currentBlog.categories.map((category, i) => (
+                  <Badge key={i} variant="outline" className="mr-1">
+                    {category.title}
                   </Badge>
                 ))}
               </div>
@@ -207,21 +254,33 @@ export function BlogDetails({ blogId }: BlogDetailsProps) {
                 <h3 className="text-sm font-medium text-muted-foreground">
                   Show Quiz
                 </h3>
-                <div className="mt-1">{currentBlog.show_quiz === "1" ? "Yes" : "No"}</div>
+                <div className="mt-1">{showQuizStatus}</div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Analytics */}
+          {/* Analytics - Fixed the Increase View button position */}
           <Card>
             <CardHeader>
-              <div>
-                <h2 className="text-xl font-semibold tracking-tight">
-                  Analytics
-                </h2>
-                <p className="text-sm text-muted-foreground mt-1 mb-4">
-                  Engagement metrics for this blog
-                </p>
+              <div className="flex justify-between items-center w-full">
+                <div className="mb-2">
+                  <h2 className="text-xl font-semibold tracking-tight">
+                    Analytics
+                  </h2>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Engagement metrics for this blog
+                  </p>
+                </div>
+                <Button 
+                  onClick={handleIncreaseView} 
+                  disabled={isIncreasingView}
+                  variant="outline"
+                  size="sm"
+                  className="ml-auto"
+                >
+                  <PlusCircle className="h-4 w-4 mr-2" />
+                  Increase Views
+                </Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -230,7 +289,7 @@ export function BlogDetails({ blogId }: BlogDetailsProps) {
                   <div className="text-sm text-muted-foreground">Read Count</div>
                   <div className="text-2xl font-bold mt-1 flex items-center">
                     <Eye className="h-5 w-5 text-primary mr-2" />
-                    {currentBlog.read_count.toLocaleString()}
+                    {localReadCount.toLocaleString()}
                   </div>
                 </div>
 

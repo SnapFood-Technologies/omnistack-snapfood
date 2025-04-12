@@ -41,11 +41,11 @@ export function MultiSelect({
 
   return (
     <div className={className}>
-      <div className="flex flex-wrap gap-1 mb-2">
+      <div className="flex flex-wrap gap-1">
         {selected.map((value) => {
           const option = options.find((o) => o.value === value);
           return (
-            <Badge key={value} variant="secondary" className="py-1 px-2 rounded">
+            <Badge key={value} variant="secondary" className="py-1  mb-2 px-2 rounded">
               {option?.label}
               <button
                 type="button"

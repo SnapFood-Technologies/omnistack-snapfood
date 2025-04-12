@@ -315,7 +315,7 @@ export function BlogsContent() {
                         <TableCell>
   <div className="flex flex-wrap gap-1">
     {blog.categories && blog.categories.map((category, i) => (
-      <Badge key={i} variant="outline" className="mr-1">
+      <Badge key={i} variant="neutral" className="mr-1">
         {category.title}
       </Badge>
     ))}

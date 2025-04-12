@@ -125,6 +125,7 @@ export const useSnapFoodBlogs = () => {
   const updateBlog = useCallback(async (id: number | string, blogData: Partial<CreateBlogData>) => {
     if (!blogApi) return false;
     
+   
     try {
       setIsLoading(true);
       const response = await blogApi.updateBlog(id, blogData);
