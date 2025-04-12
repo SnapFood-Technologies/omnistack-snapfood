@@ -257,7 +257,7 @@ export function BlogsContent() {
                       <TableCell>{blog.notifications_sent.toLocaleString()}</TableCell>
                       <TableCell>{blog.notifications_read_count.toLocaleString()}</TableCell>
                       <TableCell>
-                        <Badge variant={blog.active === 1 ? "default" : "secondary"}>
+                        <Badge variant={blog.active === 1 ? "default" : "destructive"}>
                           {blog.active === 1 ? "Active" : "Inactive"}
                         </Badge>
                       </TableCell>

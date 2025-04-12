@@ -100,7 +100,7 @@ export function BlogDetails({ blogId }: BlogDetailsProps) {
       
       {/* Blog Header */}
       <div className="relative">
-        <div className="w-full h-64 overflow-hidden rounded-lg">
+        <div className="w-full h-72 overflow-hidden rounded-lg">
           <img 
             src={blog.image_cover} 
             alt={blog.title} 
@@ -110,13 +110,13 @@ export function BlogDetails({ blogId }: BlogDetailsProps) {
         <div className="absolute bottom-4 left-4 right-4 bg-card/90 backdrop-blur-sm p-4 rounded-lg">
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-2xl font-bold">{blog.title}</h1>
+              <h1 className="text-2xl font-bold text-white">{blog.title}</h1>
               <div className="flex items-center gap-2 mt-2">
-                <Badge variant={blog.active ? "default" : "secondary"}>
+                <Badge variant={blog.active ? "default" : "destructive"}>
                   {blog.active ? "Active" : "Inactive"}
                 </Badge>
                 {blog.categories.map((category: string, i: number) => (
-                  <Badge key={i} variant="outline">
+                  <Badge key={i} variant="neutral">
                     {category}
                   </Badge>
                 ))}

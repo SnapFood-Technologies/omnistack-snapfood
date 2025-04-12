@@ -1,14 +1,13 @@
 // components/admin/blogs/blog-editor.tsx
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
-import dynamic from "next/dynamic";
 import { 
   Loader2, 
   Save, 
@@ -25,17 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-// Import Quill styles
-import 'react-quill/dist/quill.snow.css';
-
-// Dynamically import React Quill with no SSR to avoid hydration errors
-const ReactQuill = dynamic(() => import("react-quill"), { 
-  ssr: false,
-  loading: () => <div className="h-64 w-full flex items-center justify-center">
-    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-  </div>
-});
+import { RichTextEditor } from "./rich-text-editor";
 
 // Mock categories for the dropdown
 const mockCategories = [
@@ -81,10 +70,6 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
   // File upload state
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
-  
-  // Store Quill instances
-  const quillRef = useRef<any>(null);
-  const quillEnRef = useRef<any>(null);
   
   // Load blog data if editing
   useEffect(() => {
@@ -156,7 +141,7 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
     }));
   };
   
-  // Handle Quill content changes
+  // Handle content changes
   const handleContentChange = (content: string) => {
     setBlog(prev => ({
       ...prev,
@@ -184,28 +169,6 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
       blog_categories: selected
     }));
   };
-  
-  // Quill editor modules and formats
-  const modules = {
-    toolbar: [
-      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      [{ 'align': [] }],
-      ['link', 'image'],
-      [{ 'color': [] }, { 'background': [] }],
-      ['clean']
-    ],
-  };
-  
-  const formats = [
-    'header',
-    'bold', 'italic', 'underline', 'strike',
-    'list', 'bullet',
-    'align',
-    'link', 'image',
-    'color', 'background'
-  ];
   
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -344,20 +307,13 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
               
               <div className="space-y-2">
                 <Label htmlFor="content">Content</Label>
-                <div className="rounded-md border border-input overflow-hidden">
-                  {!isLoading && (
-                    <ReactQuill
-                      ref={quillRef}
-                      theme="snow"
-                      value={blog.content}
-                      onChange={handleContentChange}
-                      modules={modules}
-                      formats={formats}
-                      className="h-64"
-                      placeholder="Write your blog content here..."
-                    />
-                  )}
-                </div>
+                {!isLoading && (
+                  <RichTextEditor
+                    value={blog.content}
+                    onChange={handleContentChange}
+                    placeholder="Write your blog content here..."
+                  />
+                )}
                 <p className="text-sm text-muted-foreground">
                   Use the toolbar to format your content. You can add headers, lists, images, and more.
                 </p>
@@ -365,20 +321,13 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
               
               <div className="space-y-2 mt-8">
                 <Label htmlFor="content_en">Content (English)</Label>
-                <div className="rounded-md border border-input overflow-hidden">
-                  {!isLoading && (
-                    <ReactQuill
-                      ref={quillEnRef}
-                      theme="snow"
-                      value={blog.content_en}
-                      onChange={handleContentEnChange}
-                      modules={modules}
-                      formats={formats}
-                      className="h-64"
-                      placeholder="Write your blog content in English here..."
-                    />
-                  )}
-                </div>
+                {!isLoading && (
+                  <RichTextEditor
+                    value={blog.content_en}
+                    onChange={handleContentEnChange}
+                    placeholder="Write your blog content in English here..."
+                  />
+                )}
                 <p className="text-sm text-muted-foreground">
                   Format your English content using the toolbar.
                 </p>
