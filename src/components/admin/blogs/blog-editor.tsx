@@ -18,19 +18,7 @@ import Link from "next/link";
 import { MultiSelect } from "./multi-select";
 import InputSelect from "@/components/Common/InputSelect";
 import { RichTextEditor } from "./rich-text-editor";
-
-// Mock categories for the dropdown
-const mockCategories = [
-  { id: "1", title: "Food", title_en: "Food" },
-  { id: "2", title: "Health", title_en: "Health" },
-  { id: "3", title: "Safety", title_en: "Safety" },
-  { id: "4", title: "Tips", title_en: "Tips" },
-  { id: "5", title: "Trends", title_en: "Trends" },
-  { id: "6", title: "Seasonal", title_en: "Seasonal" },
-  { id: "7", title: "Etiquette", title_en: "Etiquette" },
-  { id: "8", title: "Dining", title_en: "Dining" },
-  { id: "9", title: "Budget", title_en: "Budget" },
-];
+import { useSnapFoodBlogs } from "@/hooks/useSnapFoodBlogs";
 
 interface BlogEditorProps {
   blogId?: string;
@@ -39,8 +27,15 @@ interface BlogEditorProps {
 
 export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
   const { toast } = useToast();
+  const { 
+    categories, 
+    fetchBlog, 
+    createBlog, 
+    updateBlog, 
+    isLoading: apiLoading 
+  } = useSnapFoodBlogs();
   
-  // Loading state
+  // Local loading state
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   
@@ -74,31 +69,30 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
       
       try {
         setIsLoading(true);
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        // Mock data for a specific blog
-        const mockBlog = {
-          id: "1",
-          title: "10 Best Foods to Try in Spring",
-          title_en: "10 Best Foods to Try in Spring",
-          content: "<h2>Spring Foods to Try</h2><p>Spring is a wonderful time to explore fresh, seasonal ingredients...</p><ul><li>Asparagus</li><li>Fresh Peas</li><li>Strawberries</li></ul>",
-          content_en: "<h2>Spring Foods to Try</h2><p>Spring is a wonderful time to explore fresh, seasonal ingredients...</p><ul><li>Asparagus</li><li>Fresh Peas</li><li>Strawberries</li></ul>",
-          author: "John Doe",
-          active: true,
-          show_quiz: "0",
-          send_notification: "1",
-          notification_title: "New Spring Foods Blog",
-          notification_title_en: "New Spring Foods Blog",
-          image_cover: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1",
-          blog_categories: ["1", "2"] // Food, Health
-        };
-        
-        setBlog(mockBlog);
-        
-        // Set preview if image exists
-        if (mockBlog.image_cover) {
-          setCoverPreview(mockBlog.image_cover);
+        if (blogId) {
+          const blogData = await fetchBlog(blogId);
+          
+          if (blogData) {
+            setBlog({
+              title: blogData.title || "",
+              title_en: blogData.title_en || "",
+              content: blogData.content || "",
+              content_en: blogData.content_en || "",
+              author: blogData.author || "",
+              active: blogData.active === 1,
+              show_quiz: blogData.show_quiz || "0",
+              send_notification: blogData.send_notification || "0",
+              notification_title: blogData.notification_title || "",
+              notification_title_en: blogData.notification_title_en || "",
+              image_cover: blogData.image_cover || "",
+              blog_categories: blogData.blog_categories ? blogData.blog_categories.map(cat => cat.id.toString()) : []
+            });
+            
+            // Set preview if image exists
+            if (blogData.image_cover) {
+              setCoverPreview(blogData.image_cover);
+            }
+          }
         }
       } catch (error) {
         console.error("Error loading blog:", error);
@@ -113,7 +107,7 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
     }
     
     loadBlog();
-  }, [blogId, isNew, toast]);
+  }, [blogId, isNew, fetchBlog, toast]);
   
   // Handle file uploads
   const handleCoverUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -162,6 +156,14 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
       blog_categories: selected
     }));
   };
+
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setBlog(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
   
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -169,23 +171,40 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
     setIsSaving(true);
     
     try {
-      // First upload image if needed
-      let coverUrl = blog.image_cover;
+      const formData = {
+        title: blog.title,
+        content: blog.content,
+        title_en: blog.title_en,
+        content_en: blog.content_en,
+        author: blog.author,
+        active: blog.active,
+        show_quiz: blog.show_quiz,
+        send_notification: blog.send_notification,
+        notification_title: blog.notification_title,
+        notification_title_en: blog.notification_title_en,
+        blog_categories: blog.blog_categories.map(id => parseInt(id)),
+      };
       
-      if (coverFile) {
-        // Simulate file upload
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        coverUrl = URL.createObjectURL(coverFile); // Just for demo
+      let success = false;
+      
+      if (isNew) {
+        // Create new blog
+        success = await createBlog({
+          ...formData,
+          image_cover: coverFile || undefined
+        });
+      } else if (blogId) {
+        // Update existing blog
+        success = await updateBlog(blogId, {
+          ...formData,
+          image_cover: coverFile || undefined
+        });
       }
       
-      // Now save blog data
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "Success",
-        description: `Blog ${isNew ? 'created' : 'updated'} successfully`,
-      });
+      if (success) {
+        // Redirect to blog list after success
+        window.location.href = '/admin/blogs';
+      }
     } catch (error) {
       console.error("Error saving blog:", error);
       toast({
@@ -261,7 +280,7 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">Title</Label>
                   <Input
@@ -338,34 +357,34 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-            <Label htmlFor="blog_categories">Blog Categories</Label>
-            <MultiSelect
-                options={mockCategories.map(cat => ({ 
-                    label: cat.title, 
-                    value: cat.id 
-                }))}
-                selected={blog.blog_categories}
-                onChange={handleCategoryChange}
-                placeholder="Select categories..."
-            />
-        </div>
-        <div className={`space-y-2 ${blog.blog_categories.length > 0 ? 'mt-8' : ''}`}>
-            <Label htmlFor="show_quiz">Show Quiz</Label>
-            <InputSelect
-                name="show_quiz"
-                label=""
-                options={[
-                    { value: "0", label: "No" },
-                    { value: "1", label: "Yes" },
-                ]}
-                onChange={(e) => setBlog(prev => ({ ...prev, show_quiz: e.target.value }))}
-                value={blog.show_quiz}
-            />
-        </div>
-    </div>
-</CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="blog_categories">Blog Categories</Label>
+                  <MultiSelect
+                    options={categories.map(cat => ({ 
+                      label: cat.title, 
+                      value: cat.id.toString() 
+                    }))}
+                    selected={blog.blog_categories}
+                    onChange={handleCategoryChange}
+                    placeholder="Select categories..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="show_quiz">Show Quiz</Label>
+                  <InputSelect
+                    name="show_quiz"
+                    label=""
+                    options={[
+                      { value: "0", label: "No" },
+                      { value: "1", label: "Yes" },
+                    ]}
+                    onChange={handleSelectChange}
+                    value={blog.show_quiz}
+                  />
+                </div>
+              </div>
+            </CardContent>
           </Card>
           
           <Card>
@@ -378,7 +397,7 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="send_notification">Send Notification</Label>
                   <InputSelect
@@ -388,34 +407,38 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
                       { value: "0", label: "No" },
                       { value: "1", label: "Yes" },
                     ]}
-                    onChange={(e) => setBlog(prev => ({ ...prev, send_notification: e.target.value }))}
+                    onChange={handleSelectChange}
                     value={blog.send_notification}
                   />
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="notification_title">Notification Title</Label>
-                  <Input
-                    id="notification_title"
-                    name="notification_title"
-                    value={blog.notification_title}
-                    onChange={handleInputChange}
-                    placeholder="Enter notification title"
-                  />
+              {blog.send_notification === "1" && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="notification_title">Notification Title</Label>
+                    <Input
+                      id="notification_title"
+                      name="notification_title"
+                      value={blog.notification_title}
+                      onChange={handleInputChange}
+                      placeholder="Enter notification title"
+                      required={blog.send_notification === "1"}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="notification_title_en">Notification Title (English)</Label>
+                    <Input
+                      id="notification_title_en"
+                      name="notification_title_en"
+                      value={blog.notification_title_en}
+                      onChange={handleInputChange}
+                      placeholder="Enter notification title (English)"
+                      required={blog.send_notification === "1"}
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="notification_title_en">Notification Title (English)</Label>
-                  <Input
-                    id="notification_title_en"
-                    name="notification_title_en"
-                    value={blog.notification_title_en}
-                    onChange={handleInputChange}
-                    placeholder="Enter notification title (English)"
-                  />
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
           

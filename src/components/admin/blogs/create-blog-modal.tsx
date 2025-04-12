@@ -16,7 +16,7 @@ import { MultiSelect } from "./multi-select";
 import { useToast } from "@/components/ui/use-toast";
 import { RichTextEditor } from "./rich-text-editor";
 import InputSelect from "@/components/Common/InputSelect";
-
+import { useSnapFoodBlogs } from "@/hooks/useSnapFoodBlogs";
 
 interface CreateBlogModalProps {
   isOpen: boolean;
@@ -24,21 +24,9 @@ interface CreateBlogModalProps {
   onSuccess?: () => void;
 }
 
-// Mock categories for the dropdown
-const mockCategories = [
-  { id: "1", title: "Food", title_en: "Food" },
-  { id: "2", title: "Health", title_en: "Health" },
-  { id: "3", title: "Safety", title_en: "Safety" },
-  { id: "4", title: "Tips", title_en: "Tips" },
-  { id: "5", title: "Trends", title_en: "Trends" },
-  { id: "6", title: "Seasonal", title_en: "Seasonal" },
-  { id: "7", title: "Etiquette", title_en: "Etiquette" },
-  { id: "8", title: "Dining", title_en: "Dining" },
-  { id: "9", title: "Budget", title_en: "Budget" },
-];
-
 export function CreateBlogModal({ isOpen, onClose, onSuccess }: CreateBlogModalProps) {
   const { toast } = useToast();
+  const { categories, createBlog } = useSnapFoodBlogs();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Form state
@@ -49,6 +37,8 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess }: CreateBlogModalP
   const [author, setAuthor] = useState("");
   const [status, setStatus] = useState("1"); // Active by default
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [showQuiz, setShowQuiz] = useState("0"); // No quiz by default
+  const [sendNotification, setSendNotification] = useState("0"); // No notification by default
   const [notificationTitle, setNotificationTitle] = useState("");
   const [notificationTitleEn, setNotificationTitleEn] = useState("");
   const [blogImage, setBlogImage] = useState<File | null>(null);
@@ -64,43 +54,51 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess }: CreateBlogModalP
   };
 
   const handleSubmit = async () => {
+    if (!title || !titleEn || !content || !contentEn || !author || selectedCategories.length === 0) {
+      toast({
+        title: "Missing Fields",
+        description: "Please fill in all required fields and select at least one category.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // If sending notification, require notification titles
+    if (sendNotification === "1" && (!notificationTitle || !notificationTitleEn)) {
+      toast({
+        title: "Missing Notification Titles",
+        description: "Please fill in notification titles for both languages.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      // Here you would normally submit to your API
-      console.log("Form data:", {
+      const success = await createBlog({
         title,
-        titleEn,
+        title_en: titleEn,
         content,
-        contentEn,
+        content_en: contentEn,
         author,
-        status,
-        selectedCategories,
-        notificationTitle,
-        notificationTitleEn,
-        blogImage,
+        active: status === "1",
+        show_quiz: showQuiz,
+        send_notification: sendNotification,
+        notification_title: notificationTitle,
+        notification_title_en: notificationTitleEn,
+        blog_categories: selectedCategories.map(id => parseInt(id)),
+        image_cover: blogImage || undefined
       });
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "Success",
-        description: "Blog post created successfully",
-      });
-      
-      if (onSuccess) {
-        onSuccess();
+      if (success) {
+        if (onSuccess) {
+          onSuccess();
+        }
+        handleClose();
       }
-      
-      handleClose();
     } catch (err) {
       console.error("Submission error:", err);
-      toast({
-        title: "Error",
-        description: "Failed to create blog post",
-        variant: "destructive",
-      });
     } finally {
       setIsSubmitting(false);
     }
@@ -114,15 +112,13 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess }: CreateBlogModalP
     setAuthor("");
     setStatus("1");
     setSelectedCategories([]);
+    setShowQuiz("0");
+    setSendNotification("0");
     setNotificationTitle("");
     setNotificationTitleEn("");
     setBlogImage(null);
     setImagePreview(null);
     onClose();
-  };
-
-  const isValidForm = () => {
-    return title.trim() !== "" && content.trim() !== "" && author.trim() !== "";
   };
 
   return (
@@ -138,7 +134,7 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess }: CreateBlogModalP
         </DialogHeader>
 
         <div className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
               <Input
@@ -179,28 +175,7 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess }: CreateBlogModalP
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="notification-title">Notification Title</Label>
-              <Input
-                id="notification-title"
-                value={notificationTitle}
-                onChange={(e) => setNotificationTitle(e.target.value)}
-                placeholder="Enter notification title"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="notification-title-en">Notification Title (English)</Label>
-              <Input
-                id="notification-title-en"
-                value={notificationTitleEn}
-                onChange={(e) => setNotificationTitleEn(e.target.value)}
-                placeholder="Enter notification title (English)"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="author">Author</Label>
               <Input
@@ -226,18 +201,74 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess }: CreateBlogModalP
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="categories">Blog Categories</Label>
-            <MultiSelect
-              options={mockCategories.map(cat => ({ 
-                label: cat.title, 
-                value: cat.id 
-              }))}
-              selected={selectedCategories}
-              onChange={setSelectedCategories}
-              placeholder="Select categories..."
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="categories">Blog Categories</Label>
+              <MultiSelect
+                options={categories.map(cat => ({ 
+                  label: cat.title, 
+                  value: cat.id.toString() 
+                }))}
+                selected={selectedCategories}
+                onChange={setSelectedCategories}
+                placeholder="Select categories..."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="show-quiz">Show Quiz</Label>
+              <InputSelect
+                name="show-quiz"
+                label=""
+                options={[
+                  { value: "0", label: "No" },
+                  { value: "1", label: "Yes" },
+                ]}
+                onChange={(e) => setShowQuiz(e.target.value)}
+                value={showQuiz}
+              />
+            </div>
           </div>
+
+          <div className="grid grid-cols-1 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="send-notification">Send Notification</Label>
+              <InputSelect
+                name="send-notification"
+                label=""
+                options={[
+                  { value: "0", label: "No" },
+                  { value: "1", label: "Yes" },
+                ]}
+                onChange={(e) => setSendNotification(e.target.value)}
+                value={sendNotification}
+              />
+            </div>
+          </div>
+
+          {sendNotification === "1" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="notification-title">Notification Title</Label>
+                <Input
+                  id="notification-title"
+                  value={notificationTitle}
+                  onChange={(e) => setNotificationTitle(e.target.value)}
+                  placeholder="Enter notification title"
+                  required={sendNotification === "1"}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="notification-title-en">Notification Title (English)</Label>
+                <Input
+                  id="notification-title-en"
+                  value={notificationTitleEn}
+                  onChange={(e) => setNotificationTitleEn(e.target.value)}
+                  placeholder="Enter notification title (English)"
+                  required={sendNotification === "1"}
+                />
+              </div>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="blog-image">Blog Banner Image</Label>
@@ -300,7 +331,7 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess }: CreateBlogModalP
           <Button 
             type="button" 
             onClick={handleSubmit}
-            disabled={!isValidForm() || isSubmitting}
+            disabled={isSubmitting}
           >
             {isSubmitting ? (
               <>
