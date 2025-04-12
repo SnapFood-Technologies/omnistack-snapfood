@@ -127,7 +127,7 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess }: CreateBlogModalP
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[780px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div>
             <h2 className="text-xl font-semibold tracking-tight">Post a new blog</h2>
