@@ -1,12 +1,22 @@
-// components/admin/blogs/blog-details.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Edit, Eye, MessageSquare, Share2, ThumbsUp, User, Bell, RefreshCw } from "lucide-react";
+import {
+  ArrowLeft,
+  Edit,
+  Eye,
+  MessageSquare,
+  Share2,
+  ThumbsUp,
+  User,
+  Bell,
+  RefreshCw,
+} from "lucide-react";
 import Link from "next/link";
+import { RichTextEditor } from "./rich-text-editor"; // Import RichTextEditor
 
 interface BlogDetailsProps {
   blogId: string;
@@ -22,15 +32,17 @@ export function BlogDetails({ blogId }: BlogDetailsProps) {
         setIsLoading(true);
         // This would normally be an API call
         // Simulating API delay
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
+        await new Promise((resolve) => setTimeout(resolve, 800));
+
         // Mock data
         setBlog({
           id: blogId,
           title: "10 Best Foods to Try in Spring",
           title_en: "10 Best Foods to Try in Spring",
-          content: "<p>Spring is a wonderful time to explore fresh, seasonal ingredients. As the weather warms up and nature comes alive, so does the produce available at your local markets. Here are our top 10 picks for the best foods to enjoy during spring.</p><h3>1. Asparagus</h3><p>These tender green spears are at their peak in spring. They're delicious roasted, grilled, or added to pasta dishes.</p><h3>2. Strawberries</h3><p>Spring strawberries are sweeter and more flavorful than those available year-round. Enjoy them fresh, in salads, or as a dessert topping.</p><h3>3. Rhubarb</h3><p>Often used in pies and desserts, rhubarb's tart flavor pairs beautifully with sweeter fruits.</p><h3>4. Peas</h3><p>Fresh spring peas are nothing like their frozen counterparts. They're sweet, tender, and perfect for soups, risottos, and salads.</p><h3>5. Radishes</h3><p>These crisp, peppery vegetables add a delightful crunch to salads and make excellent crudités.</p>",
-          content_en: "<p>Spring is a wonderful time to explore fresh, seasonal ingredients. As the weather warms up and nature comes alive, so does the produce available at your local markets. Here are our top 10 picks for the best foods to enjoy during spring.</p><h3>1. Asparagus</h3><p>These tender green spears are at their peak in spring. They're delicious roasted, grilled, or added to pasta dishes.</p><h3>2. Strawberries</h3><p>Spring strawberries are sweeter and more flavorful than those available year-round. Enjoy them fresh, in salads, or as a dessert topping.</p><h3>3. Rhubarb</h3><p>Often used in pies and desserts, rhubarb's tart flavor pairs beautifully with sweeter fruits.</p><h3>4. Peas</h3><p>Fresh spring peas are nothing like their frozen counterparts. They're sweet, tender, and perfect for soups, risottos, and salads.</p><h3>5. Radishes</h3><p>These crisp, peppery vegetables add a delightful crunch to salads and make excellent crudités.</p>",
+          content:
+            "<p>Spring is a wonderful time to explore fresh, seasonal ingredients. As the weather warms up and nature comes alive, so does the produce available at your local markets. Here are our top 10 picks for the best foods to enjoy during spring.</p><h3>1. Asparagus</h3><p>These tender green spears are at their peak in spring. They're delicious roasted, grilled, or added to pasta dishes.</p><h3>2. Strawberries</h3><p>Spring strawberries are sweeter and more flavorful than those available year-round. Enjoy them fresh, in salads, or as a dessert topping.</p><h3>3. Rhubarb</h3><p>Often used in pies and desserts, rhubarb's tart flavor pairs beautifully with sweeter fruits.</p><h3>4. Peas</h3><p>Fresh spring peas are nothing like their frozen counterparts. They're sweet, tender, and perfect for soups, risottos, and salads.</p><h3>5. Radishes</h3><p>These crisp, peppery vegetables add a delightful crunch to salads and make excellent crudités.</p>",
+          content_en:
+            "<p>Spring is a wonderful time to explore fresh, seasonal ingredients. As the weather warms up and nature comes alive, so does the produce available at your local markets. Here are our top 10 picks for the best foods to enjoy during spring.</p><h3>1. Asparagus</h3><p>These tender green spears are at their peak in spring. They're delicious roasted, grilled, or added to pasta dishes.</p><h3>2. Strawberries</h3><p>Spring strawberries are sweeter and more flavorful than those available year-round. Enjoy them fresh, in salads, or as a dessert topping.</p><h3>3. Rhubarb</h3><p>Often used in pies and desserts, rhubarb's tart flavor pairs beautifully with sweeter fruits.</p><h3>4. Peas</h3><p>Fresh spring peas are nothing like their frozen counterparts. They're sweet, tender, and perfect for soups, risottos, and salads.</p><h3>5. Radishes</h3><p>These crisp, peppery vegetables add a delightful crunch to salads and make excellent crudités.</p>",
           author: "John Doe",
           image_cover: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1",
           active: true,
@@ -50,7 +62,7 @@ export function BlogDetails({ blogId }: BlogDetailsProps) {
         setIsLoading(false);
       }
     }
-    
+
     fetchBlogData();
   }, [blogId]);
 
@@ -72,7 +84,7 @@ export function BlogDetails({ blogId }: BlogDetailsProps) {
       </div>
     );
   }
-  
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -97,13 +109,13 @@ export function BlogDetails({ blogId }: BlogDetailsProps) {
           </Button>
         </div>
       </div>
-      
+
       {/* Blog Header */}
       <div className="relative">
         <div className="w-full h-72 overflow-hidden rounded-lg">
-          <img 
-            src={blog.image_cover} 
-            alt={blog.title} 
+          <img
+            src={blog.image_cover}
+            alt={blog.title}
             className="w-full h-full object-cover"
           />
         </div>
@@ -125,7 +137,7 @@ export function BlogDetails({ blogId }: BlogDetailsProps) {
           </div>
         </div>
       </div>
-      
+
       <div className="grid grid-cols-3 gap-6">
         <div className="col-span-2 space-y-6">
           {/* Blog Content */}
@@ -139,32 +151,46 @@ export function BlogDetails({ blogId }: BlogDetailsProps) {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: blog.content }} />
+              <RichTextEditor
+                value={blog.content}
+                onChange={() => {}} // Explicitly empty function
+                placeholder=""
+                readOnly // Add the readOnly prop
+              />
             </CardContent>
           </Card>
-          
+
           {/* English Content */}
           <Card>
             <CardHeader>
               <div>
-                <h2 className="text-xl font-semibold tracking-tight">Content (English)</h2>
+                <h2 className="text-xl font-semibold tracking-tight">
+                  Content (English)
+                </h2>
                 <p className="text-sm text-muted-foreground mt-1 mb-4">
                   English version of the blog content
                 </p>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: blog.content_en }} />
+              <RichTextEditor
+                value={blog.content_en}
+                onChange={() => {}} // Explicitly empty function
+                placeholder=""
+                readOnly // Add the readOnly prop
+              />
             </CardContent>
           </Card>
         </div>
-        
+
         <div className="space-y-6">
           {/* Blog Info */}
           <Card>
             <CardHeader>
               <div>
-                <h2 className="text-xl font-semibold tracking-tight">Blog Information</h2>
+                <h2 className="text-xl font-semibold tracking-tight">
+                  Blog Information
+                </h2>
                 <p className="text-sm text-muted-foreground mt-1 mb-4">
                   Basic details about this blog post
                 </p>
@@ -172,38 +198,44 @@ export function BlogDetails({ blogId }: BlogDetailsProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <h3 className="text-sm font-medium text-muted-foreground">Author</h3>
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Author
+                </h3>
                 <div className="flex items-center gap-2 mt-1">
                   <User className="h-4 w-4 text-muted-foreground" />
                   <span>{blog.author}</span>
                 </div>
               </div>
-              
+
               <div>
-                <h3 className="text-sm font-medium text-muted-foreground">Published Date</h3>
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Published Date
+                </h3>
                 <div className="mt-1">
-                  {new Date(blog.created_at).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
+                  {new Date(blog.created_at).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
                   })}
                 </div>
               </div>
-              
+
               <div>
-                <h3 className="text-sm font-medium text-muted-foreground">Show Quiz</h3>
-                <div className="mt-1">
-                  {blog.show_quiz === "1" ? "Yes" : "No"}
-                </div>
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Show Quiz
+                </h3>
+                <div className="mt-1">{blog.show_quiz === "1" ? "Yes" : "No"}</div>
               </div>
             </CardContent>
           </Card>
-          
+
           {/* Analytics */}
           <Card>
             <CardHeader>
               <div>
-                <h2 className="text-xl font-semibold tracking-tight">Analytics</h2>
+                <h2 className="text-xl font-semibold tracking-tight">
+                  Analytics
+                </h2>
                 <p className="text-sm text-muted-foreground mt-1 mb-4">
                   Engagement metrics for this blog
                 </p>
@@ -218,39 +250,48 @@ export function BlogDetails({ blogId }: BlogDetailsProps) {
                     {blog.read_count.toLocaleString()}
                   </div>
                 </div>
-                
+
                 <div className="border rounded-lg p-3">
-                  <div className="text-sm text-muted-foreground">Notifications</div>
+                  <div className="text-sm text-muted-foreground">
+                    Notifications
+                  </div>
                   <div className="text-2xl font-bold mt-1 flex items-center">
                     <MessageSquare className="h-5 w-5 text-primary mr-2" />
                     {blog.notifications_sent.toLocaleString()}
                   </div>
                 </div>
-                
+
                 <div className="border rounded-lg p-3">
-                  <div className="text-sm text-muted-foreground">Notif. Opened</div>
+                  <div className="text-sm text-muted-foreground">
+                    Notif. Opened
+                  </div>
                   <div className="text-2xl font-bold mt-1 flex items-center">
                     <ThumbsUp className="h-5 w-5 text-primary mr-2" />
                     {blog.notifications_read_count.toLocaleString()}
                   </div>
                 </div>
-                
+
                 <div className="border rounded-lg p-3">
                   <div className="text-sm text-muted-foreground">Open Rate</div>
                   <div className="text-2xl font-bold mt-1 flex items-center">
                     <Share2 className="h-5 w-5 text-primary mr-2" />
-                    {Math.round((blog.notifications_read_count / blog.notifications_sent) * 100)}%
+                    {Math.round(
+                      (blog.notifications_read_count / blog.notifications_sent) *
+                        100
+                    )}%
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
-          
+
           {/* Notification Info */}
           <Card>
             <CardHeader>
               <div>
-                <h2 className="text-xl font-semibold tracking-tight">Notification Details</h2>
+                <h2 className="text-xl font-semibold tracking-tight">
+                  Notification Details
+                </h2>
                 <p className="text-sm text-muted-foreground mt-1 mb-4">
                   Push notification configuration
                 </p>
@@ -258,24 +299,30 @@ export function BlogDetails({ blogId }: BlogDetailsProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <h3 className="text-sm font-medium text-muted-foreground">Send Notification</h3>
+                <h3 className="text-sm font-medium text-muted-foreground">
+                  Send Notification
+                </h3>
                 <div className="mt-1">
                   {blog.send_notification === "1" ? "Yes" : "No"}
                 </div>
               </div>
-              
+
               {blog.send_notification === "1" && (
                 <>
                   <div>
-                    <h3 className="text-sm font-medium text-muted-foreground">Notification Title</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground">
+                      Notification Title
+                    </h3>
                     <div className="mt-1 flex items-center">
                       <Bell className="h-4 w-4 text-muted-foreground mr-2" />
                       {blog.notification_title}
                     </div>
                   </div>
-                  
+
                   <div>
-                    <h3 className="text-sm font-medium text-muted-foreground">Notification Title (English)</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground">
+                      Notification Title (English)
+                    </h3>
                     <div className="mt-1 flex items-center">
                       <Bell className="h-4 w-4 text-muted-foreground mr-2" />
                       {blog.notification_title_en}
@@ -287,7 +334,7 @@ export function BlogDetails({ blogId }: BlogDetailsProps) {
           </Card>
         </div>
       </div>
-      
+
       <div className="h-10"></div>
     </div>
   );
