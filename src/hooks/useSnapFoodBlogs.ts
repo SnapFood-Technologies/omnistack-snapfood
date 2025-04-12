@@ -26,13 +26,25 @@ export const useSnapFoodBlogs = () => {
     return gatewayApiKey ? createBlogApi(gatewayApiKey) : null;
   }, [gatewayApiKey]);
 
-  // Fetch all blogs with optional filtering
   const fetchBlogs = useCallback(async (params: BlogParams = {}) => {
     if (!blogApi) return;
     
     try {
       setIsLoading(true);
-      const response = await blogApi.getBlogs(params);
+      
+      // Create new params object
+      const apiParams: BlogParams = { ...params };
+      
+      // Only include active parameter if it's explicitly set
+      // This way we get all blogs (both active and inactive) by default
+      if (params.active === undefined) {
+        delete apiParams.active;
+      } else {
+        // Make sure we're passing a proper boolean value, not a string
+        apiParams.active = !!params.active;
+      }
+      
+      const response = await blogApi.getBlogs(apiParams);
       
       if (response.success) {
         setBlogs(response.blogs.data || []);
