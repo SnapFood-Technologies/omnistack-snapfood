@@ -287,7 +287,7 @@ export function BlogsContent() {
                 ) : (
                   blogs.map((blog, index) => (
                     <TableRow key={blog.id}>
-                      <TableCell>{(page - 1) * pageSize + index + 1}</TableCell>
+                      <TableCell>{blog?.id ?? (page - 1) * pageSize + index + 1}</TableCell>
                       <TableCell>
                         {format(new Date(blog.created_at), "MMM d, yyyy")}
                       </TableCell>
