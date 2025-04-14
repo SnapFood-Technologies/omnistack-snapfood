@@ -281,7 +281,7 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
         </div>
       </div>
       
-      <form onSubmit={handleSubmit}>
+      <form>
         <div className="grid gap-6">
           <Card>
             <CardHeader>

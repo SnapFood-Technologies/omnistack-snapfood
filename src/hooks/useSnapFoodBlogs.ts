@@ -19,7 +19,8 @@ export const useSnapFoodBlogs = () => {
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [currentBlog, setCurrentBlog] = useState<Blog | null>(null);
-  
+  const [isImageUploading, setIsImageUploading] = useState(false);
+
   const { gatewayApiKey } = useClient();
   
   const blogApi = useMemo(() => {
@@ -58,6 +59,29 @@ export const useSnapFoodBlogs = () => {
       toast.error('Failed to fetch blogs');
     } finally {
       setIsLoading(false);
+    }
+  }, [blogApi]);
+
+  const uploadBlogImage = useCallback(async (imageFile: File) => {
+    if (!blogApi) return null;
+    
+    try {
+      setIsImageUploading(true);
+      const response = await blogApi.uploadBlogImage(imageFile);
+      
+      if (response.success) {
+        toast.success('Image uploaded successfully');
+        return response.url;
+      } else {
+        toast.error('Failed to upload image');
+        return null;
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image');
+      return null;
+    } finally {
+      setIsImageUploading(false);
     }
   }, [blogApi]);
 
@@ -333,6 +357,8 @@ export const useSnapFoodBlogs = () => {
     toggleBlogStatus,
     incrementNotificationRead,
     sendNotification,
+    uploadBlogImage,
+    isImageUploading,
     isInitialized: !!blogApi
   };
 };

@@ -6,7 +6,7 @@ import {
   BlogResponse,
   BlogCategoriesResponse,
   CreateBlogData,
-  UpdateBlogData,
+  BlogImageUploadResponse,
   BlogCreateResponse,
   BlogUpdateResponse,
   NotificationResponse,
@@ -37,7 +37,20 @@ export const createBlogApi = (clientApiKey: string) => {
       const { data } = await omniGateway.get(`/sf/blogs/${id}`);
       return data;
     },
-
+    
+    uploadBlogImage: async (imageFile: File): Promise<BlogImageUploadResponse> => {
+      const formData = new FormData();
+      formData.append('image', imageFile);
+      
+      const { data } = await omniGateway.post('/sf/blogs/upload-image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      return data;
+    },
+    
     // Create a new blog
     createBlog: async (blogData: CreateBlogData): Promise<BlogCreateResponse> => {
       const formData = new FormData();

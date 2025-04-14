@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { BlogUploadBanner } from "./blog-upload-banner";
 import {
   Pagination,
   PaginationContent,
@@ -43,12 +44,6 @@ import Link from "next/link";
 import { CreateBlogModal } from "./create-blog-modal";
 import { SendNotificationModal } from "./send-notification-modal";
 import { useSnapFoodBlogs } from "@/hooks/useSnapFoodBlogs";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -86,6 +81,9 @@ export function BlogsContent() {
   // Delete confirmation
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [blogToDelete, setBlogToDelete] = useState<number | null>(null);
+  
+  // Active blog action select (instead of dropdown)
+  const [blogActionSelects, setBlogActionSelects] = useState<{[key: number]: string}>({});
 
   useEffect(() => {
     fetchBlogs({
@@ -95,6 +93,15 @@ export function BlogsContent() {
       active: filterActive
     });
   }, [fetchBlogs, page, pageSize]);
+
+  useEffect(() => {
+    // Reset all action selects to empty when blogs change
+    const newActionSelects: {[key: number]: string} = {};
+    blogs.forEach(blog => {
+      newActionSelects[blog.id] = "";
+    });
+    setBlogActionSelects(newActionSelects);
+  }, [blogs]);
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -170,6 +177,29 @@ export function BlogsContent() {
     }
   };
 
+  const handleActionSelectChange = (blogId: number, action: string) => {
+    // Reset the select value
+    setBlogActionSelects(prev => ({...prev, [blogId]: ""}));
+    
+    // Perform the selected action
+    switch(action) {
+      case "toggle":
+        handleToggleStatus(blogId);
+        break;
+      case "delete":
+        handleDeleteClick(blogId);
+        break;
+      default:
+        break;
+    }
+  };
+
+  const getActionOptions = (blog: any) => [
+    { value: "", label: "Actions" },
+    { value: "toggle", label: blog.active === 1 ? "Deactivate" : "Activate" },
+    { value: "delete", label: "Delete" }
+  ];
+
   const pageSizeOptions = [
     { value: "10", label: "10 per page" },
     { value: "20", label: "20 per page" },
@@ -197,44 +227,56 @@ export function BlogsContent() {
         </Button>
       </div>
 
-      {/* Search and filters */}
-      <Card>
-        <CardHeader>
-          <div>
-            <h2 className="text-xl font-semibold tracking-tight">Search</h2>
-            <p className="text-sm text-muted-foreground mt-1 mb-4">
-              Find blogs by title, author, or content
-            </p>
+      {/* Combined Card with Search, Filters, and Upload Banner */}
+<Card>
+
+  <CardContent>
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-x-4">
+      {/* Search and filters - 8 columns */}
+      <div className="md:col-span-6">
+      <div>
+      <h2 className="text-xl font-semibold tracking-tight">Search</h2>
+      <p className="text-sm text-muted-foreground mt-1 mb-4">
+      Find blogs by title or content. Use filters to narrow down results by status or category. Results update as you search.
+
+
+
+      </p>
+    </div>
+        <div className="flex flex-col md:flex-row gap-4">
+          <form onSubmit={handleSearchSubmit} className="flex gap-2 flex-1">
+            <Input
+              placeholder="Search blogs..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="flex-1"
+            />
+            <Button type="submit">
+              <Search className="h-4 w-4 mr-2" />
+              Search
+            </Button>
+          </form>
+          
+          <div className="w-full md:w-48">
+            <InputSelect
+              name="status-filter"
+              label=""
+              options={statusOptions}
+              onChange={(e) => handleFilterChange(e.target.value)}
+              value={filterActive === undefined ? "" : filterActive ? "1" : "0"}
+              placeholder="Filter by status"
+            />
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col md:flex-row gap-4">
-            <form onSubmit={handleSearchSubmit} className="flex gap-2 flex-1">
-              <Input
-                placeholder="Search blogs..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="flex-1"
-              />
-              <Button type="submit">
-                <Search className="h-4 w-4 mr-2" />
-                Search
-              </Button>
-            </form>
-            
-            <div className="w-full md:w-48">
-              <InputSelect
-                name="status-filter"
-                label=""
-                options={statusOptions}
-                onChange={(e) => handleFilterChange(e.target.value)}
-                value={filterActive === undefined ? "" : filterActive ? "1" : "0"}
-                placeholder="Filter by status"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+      
+      {/* Upload section - 4 columns */}
+      <div className="md:col-span-6">
+        <BlogUploadBanner />
+      </div>
+    </div>
+  </CardContent>
+</Card>
 
       {/* Blog Table */}
       <Card>
@@ -287,7 +329,7 @@ export function BlogsContent() {
                 ) : (
                   blogs.map((blog, index) => (
                     <TableRow key={blog.id}>
-                      <TableCell>{(page - 1) * pageSize + index + 1}</TableCell>
+                      <TableCell>{blog?.id ?? (page - 1) * pageSize + index + 1}</TableCell>
                       <TableCell>
                         {format(new Date(blog.created_at), "MMM d, yyyy")}
                       </TableCell>
@@ -312,15 +354,11 @@ export function BlogsContent() {
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                        <TableCell>
-  <div className="flex flex-wrap gap-1">
-    {blog.categories && blog.categories.map((category, i) => (
-      <Badge key={i} variant="neutral" className="mr-1">
-        {category.title}
-      </Badge>
-    ))}
-  </div>
-</TableCell>
+                          {blog.categories && blog.categories.map((category, i) => (
+                            <Badge key={i} variant="neutral" className="mr-1">
+                              {category.title}
+                            </Badge>
+                          ))}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -346,27 +384,17 @@ export function BlogsContent() {
                             <Bell className="h-4 w-4" />
                             <span className="sr-only">Send Notification</span>
                           </Button>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <MoreVertical className="h-4 w-4" />
-                                <span className="sr-only">More</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleToggleStatus(blog.id)}>
-                                <PowerOff className="h-4 w-4 mr-2" />
-                                {blog.active === 1 ? "Deactivate" : "Activate"}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={() => handleDeleteClick(blog.id)}
-                                className="text-destructive focus:text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <div className="w-28">
+                            <InputSelect
+                              name={`action-${blog.id}`}
+                              label=""
+                              options={getActionOptions(blog)}
+                              onChange={(e) => handleActionSelectChange(blog.id, e.target.value)}
+                              value={blogActionSelects[blog.id] || ""}
+                              placeholder="Actions"
+                              className="w-full"
+                            />
+                          </div>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -466,13 +494,14 @@ export function BlogsContent() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              blog post and all associated data.
+              <p className="mb-2">Deleting a blog is a sensitive operation that cannot be undone.</p>
+              <p className="mb-2">Instead of deletion, you can simply deactivate the blog to hide it from users while preserving all data and analytics.</p>
+              <p className="font-semibold">If you still want to proceed with deletion, all associated data including read counts and notification statistics will be permanently removed.</p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground">
+            <AlertDialogAction onClick={handleDeleteConfirm}  className="bg-red-600 hover:bg-red-700">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
