@@ -481,8 +481,9 @@ export function BlogsContent() {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              blog post and all associated data.
+              <p className="mb-2">Deleting a blog is a sensitive operation that cannot be undone.</p>
+              <p className="mb-2">Instead of deletion, you can simply deactivate the blog to hide it from users while preserving all data and analytics.</p>
+              <p className="font-semibold">If you still want to proceed with deletion, all associated data including read counts and notification statistics will be permanently removed.</p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
