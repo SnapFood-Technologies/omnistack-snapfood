@@ -4,7 +4,7 @@ import {
   useEditor,
   EditorContent,
   BubbleMenu,
-  Editor, // Import Editor type
+  Editor,
 } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -31,14 +31,8 @@ import {
   Link as LinkIcon,
   X,
   Check,
-  Type,
   Palette,
 } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,12 +42,21 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  readOnly?: boolean; // Add the readOnly prop
+  readOnly?: boolean;
 }
 
 export function RichTextEditor({
@@ -122,10 +125,9 @@ export function RichTextEditor({
           "prose prose-sm sm:prose lg:prose-lg max-w-none focus:outline-none min-h-[200px] p-4",
       },
     },
-    editable: !readOnly, // Set editable based on readOnly
+    editable: !readOnly,
   });
 
-  // Update editor content when value prop changes
   useEffect(() => {
     if (editor && value !== editor.getHTML()) {
       editor.commands.setContent(value);
@@ -155,12 +157,10 @@ export function RichTextEditor({
 
   const setLink = () => {
     if (linkUrl && !readOnly) {
-      // If a URL is set, update the link
       editor.chain().focus().extendMarkRange("link").setLink({ href: linkUrl }).run();
       setLinkUrl("");
       setIsEditingLink(false);
     } else if (editor.isActive("link") && !readOnly) {
-      // If we're on an existing link with no URL entered, remove it
       editor.chain().focus().extendMarkRange("link").unsetLink().run();
       setIsEditingLink(false);
     }
@@ -175,7 +175,7 @@ export function RichTextEditor({
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (readOnly) return; // Prevent file upload in read-only mode
+    if (readOnly) return;
 
     const file = event.target.files?.[0];
     if (!file) return;
@@ -196,18 +196,17 @@ export function RichTextEditor({
     reader.readAsDataURL(file);
   };
 
-  // Common color presets
   const colorPresets = [
-    "#000000", // Black
-    "#FF0000", // Red
-    "#00FF00", // Green
-    "#0000FF", // Blue
-    "#FFFF00", // Yellow
-    "#FF00FF", // Magenta
-    "#00FFFF", // Cyan
-    "#FFA500", // Orange
-    "#800080", // Purple
-    "#008000", // Dark Green
+    "#000000",
+    "#FF0000",
+    "#00FF00",
+    "#0000FF",
+    "#FFFF00",
+    "#FF00FF",
+    "#00FFFF",
+    "#FFA500",
+    "#800080",
+    "#008000",
   ];
 
   return (
@@ -223,7 +222,7 @@ export function RichTextEditor({
                 className={`p-2 rounded ${
                   editor.isActive("bold") ? "bg-muted-foreground/20" : "hover:bg-muted-foreground/10"
                 }`}
-                disabled={readOnly} // Disable button in read-only mode
+                disabled={readOnly}
               >
                 <Bold className="h-4 w-4" />
               </button>
@@ -264,8 +263,8 @@ export function RichTextEditor({
           </Tooltip>
 
           {/* Color Picker */}
-          <Popover open={isPickingColor} onOpenChange={setIsPickingColor}>
-            <PopoverTrigger asChild>
+          <Dialog open={isPickingColor} onOpenChange={setIsPickingColor}>
+            <DialogTrigger asChild>
               <button
                 type="button"
                 onClick={() => setIsPickingColor(true)}
@@ -278,8 +277,14 @@ export function RichTextEditor({
                   style={{ backgroundColor: selectedColor }}
                 />
               </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-60" align="start">
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Pick a color</DialogTitle>
+                <DialogDescription>
+                  Choose a color for the text.
+                </DialogDescription>
+              </DialogHeader>
               <div className="space-y-2">
                 <div className="font-medium">Text Color</div>
                 <div className="grid grid-cols-5 gap-2">
@@ -316,8 +321,8 @@ export function RichTextEditor({
                   </div>
                 </div>
               </div>
-            </PopoverContent>
-          </Popover>
+            </DialogContent>
+          </Dialog>
 
           <span className="w-px h-6 bg-border mx-1"></span>
 
@@ -475,8 +480,8 @@ export function RichTextEditor({
           <span className="w-px h-6 bg-border mx-1"></span>
 
           {/* Link */}
-          <Popover open={isEditingLink} onOpenChange={setIsEditingLink}>
-            <PopoverTrigger asChild>
+          <Dialog open={isEditingLink} onOpenChange={setIsEditingLink}>
+            <DialogTrigger asChild>
               <button
                 type="button"
                 onClick={() => {
@@ -492,45 +497,35 @@ export function RichTextEditor({
               >
                 <LinkIcon className="h-4 w-4" />
               </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80">
-              <div className="space-y-2">
-                <div className="font-medium">Insert Link</div>
-                <div className="flex gap-2">
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Insert Link</DialogTitle>
+                <DialogDescription>Enter the URL for the link.</DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="link">URL</Label>
                   <Input
                     ref={linkInputRef}
-                    type="url"
-                    placeholder="https://example.com"
+                    id="link"
                     value={linkUrl}
                     onChange={(e) => setLinkUrl(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        setLink();
-                      }
-                    }}
-                    disabled={readOnly}
+                    className="col-span-3"
                   />
-                  <Button
-                    size="sm"
-                    className="shrink-0"
-                    onClick={setLink}
-                    disabled={!linkUrl && !editor.isActive("link") || readOnly}
-                  >
-                    {editor.isActive("link") && !linkUrl ? (
-                      <X className="h-4 w-4 mr-1" />
-                    ) : (
-                      <Check className="h-4 w-4 mr-1" />
-                    )}
-                    {editor.isActive("link") && !linkUrl ? "Remove" : "Apply"}
-                  </Button>
                 </div>
               </div>
-            </PopoverContent>
-          </Popover>
+              <DialogFooter>
+                <Button type="button" onClick={setLink} disabled={readOnly}>
+                  Save changes
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           {/* Image */}
-          <Popover open={isAddingImage} onOpenChange={setIsAddingImage}>
-            <PopoverTrigger asChild>
+          <Dialog open={isAddingImage} onOpenChange={setIsAddingImage}>
+            <DialogTrigger asChild>
               <button
                 type="button"
                 onClick={() => {
@@ -543,36 +538,22 @@ export function RichTextEditor({
               >
                 <ImageIcon className="h-4 w-4" />
               </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80">
-              <div className="space-y-4">
-                <div className="font-medium">Insert Image</div>
-                <div className="space-y-2">
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Insert Image</DialogTitle>
+                <DialogDescription>Enter the URL or upload an image.</DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="image-url">Image URL</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      ref={imageInputRef}
-                      id="image-url"
-                      placeholder="https://example.com/image.jpg"
-                      value={imageUrl}
-                      onChange={(e) => setImageUrl(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          addImage();
-                        }
-                      }}
-                      disabled={readOnly}
-                    />
-                    <Button
-                      size="sm"
-                      className="shrink-0"
-                      onClick={addImage}
-                      disabled={!imageUrl || readOnly}
-                    >
-                      <Check className="h-4 w-4 mr-1" />
-                      Add
-                    </Button>
-                  </div>
+                  <Input
+                    ref={imageInputRef}
+                    id="image-url"
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    className="col-span-3"
+                  />
                 </div>
                 <div>
                   <div className="text-sm mb-2">Or upload from your device</div>
@@ -585,12 +566,17 @@ export function RichTextEditor({
                   />
                 </div>
               </div>
-            </PopoverContent>
-          </Popover>
+              <DialogFooter>
+                <Button type="button" onClick={addImage} disabled={readOnly}>
+                  Add Image
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </TooltipProvider>
       </div>
 
-      {/* This adds a floating menu for quick formatting when text is selected */}
+      {/* BubbleMenu and EditorContent */}
       {editor && !readOnly && (
         <BubbleMenu
           editor={editor}
@@ -665,7 +651,6 @@ export function RichTextEditor({
           height: auto;
         }
       `}</style>
-
       <EditorContent editor={editor} />
     </div>
   );
