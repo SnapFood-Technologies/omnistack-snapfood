@@ -7,7 +7,7 @@ export interface Blog {
     content_en: string;
     author: string;
     image_cover: string | null;
-    active: number;
+    active: string;
     read_count: number;
     notifications_sent: number;
     notifications_read_count: number;
@@ -125,7 +125,7 @@ export interface Blog {
   export interface ToggleStatusResponse {
     success: boolean;
     message: string;
-    active: boolean;
+    active: number;
   }
   
   export interface DeleteBlogResponse {
