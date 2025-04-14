@@ -167,7 +167,7 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
   const handleCategoryChange = (selected: string[]) => {
     setBlog(prev => ({
       ...prev,
-      blog_categories: selected
+      categories: selected
     }));
   };
 
