@@ -44,12 +44,6 @@ import { CreateBlogModal } from "./create-blog-modal";
 import { SendNotificationModal } from "./send-notification-modal";
 import { useSnapFoodBlogs } from "@/hooks/useSnapFoodBlogs";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -86,6 +80,9 @@ export function BlogsContent() {
   // Delete confirmation
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [blogToDelete, setBlogToDelete] = useState<number | null>(null);
+  
+  // Active blog action select (instead of dropdown)
+  const [blogActionSelects, setBlogActionSelects] = useState<{[key: number]: string}>({});
 
   useEffect(() => {
     fetchBlogs({
@@ -95,6 +92,15 @@ export function BlogsContent() {
       active: filterActive
     });
   }, [fetchBlogs, page, pageSize]);
+
+  useEffect(() => {
+    // Reset all action selects to empty when blogs change
+    const newActionSelects: {[key: number]: string} = {};
+    blogs.forEach(blog => {
+      newActionSelects[blog.id] = "";
+    });
+    setBlogActionSelects(newActionSelects);
+  }, [blogs]);
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -169,6 +175,29 @@ export function BlogsContent() {
       });
     }
   };
+
+  const handleActionSelectChange = (blogId: number, action: string) => {
+    // Reset the select value
+    setBlogActionSelects(prev => ({...prev, [blogId]: ""}));
+    
+    // Perform the selected action
+    switch(action) {
+      case "toggle":
+        handleToggleStatus(blogId);
+        break;
+      case "delete":
+        handleDeleteClick(blogId);
+        break;
+      default:
+        break;
+    }
+  };
+
+  const getActionOptions = (blog: any) => [
+    { value: "", label: "Actions" },
+    { value: "toggle", label: blog.active === 1 ? "Deactivate" : "Activate" },
+    { value: "delete", label: "Delete" }
+  ];
 
   const pageSizeOptions = [
     { value: "10", label: "10 per page" },
@@ -312,15 +341,11 @@ export function BlogsContent() {
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                        <TableCell>
-  <div className="flex flex-wrap gap-1">
-    {blog.categories && blog.categories.map((category, i) => (
-      <Badge key={i} variant="neutral" className="mr-1">
-        {category.title}
-      </Badge>
-    ))}
-  </div>
-</TableCell>
+                          {blog.categories && blog.categories.map((category, i) => (
+                            <Badge key={i} variant="neutral" className="mr-1">
+                              {category.title}
+                            </Badge>
+                          ))}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -346,27 +371,17 @@ export function BlogsContent() {
                             <Bell className="h-4 w-4" />
                             <span className="sr-only">Send Notification</span>
                           </Button>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <MoreVertical className="h-4 w-4" />
-                                <span className="sr-only">More</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleToggleStatus(blog.id)}>
-                                <PowerOff className="h-4 w-4 mr-2" />
-                                {blog.active === 1 ? "Deactivate" : "Activate"}
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={() => handleDeleteClick(blog.id)}
-                                className="text-destructive focus:text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <div className="w-28">
+                            <InputSelect
+                              name={`action-${blog.id}`}
+                              label=""
+                              options={getActionOptions(blog)}
+                              onChange={(e) => handleActionSelectChange(blog.id, e.target.value)}
+                              value={blogActionSelects[blog.id] || ""}
+                              placeholder="Actions"
+                              className="w-full"
+                            />
+                          </div>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -472,7 +487,7 @@ export function BlogsContent() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground">
+            <AlertDialogAction onClick={handleDeleteConfirm}  className="bg-red-600 hover:bg-red-700">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
