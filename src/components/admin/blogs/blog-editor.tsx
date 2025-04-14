@@ -168,7 +168,6 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
     setBlog(prev => ({
       ...prev,
       blog_categories: selected,
-      categories: selected
     }));
   };
 
