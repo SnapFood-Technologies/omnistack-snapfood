@@ -72,7 +72,7 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess }: CreateBlogModalP
     });
     return;
   }
-  
+
     // If sending notification, require notification titles
     if (sendNotification === "1" && (!notificationTitle || !notificationTitleEn)) {
       toast({
@@ -92,7 +92,7 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess }: CreateBlogModalP
         content,
         content_en: contentEn,
         author,
-        active: status === "1",
+        active: status,
         show_quiz: showQuiz,
         send_notification: sendNotification,
         notification_title: notificationTitle,
