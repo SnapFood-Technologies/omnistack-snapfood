@@ -52,7 +52,8 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
     notification_title: "",
     notification_title_en: "",
     image_cover: "",
-    blog_categories: [] as string[]
+    blog_categories: [] as string[],
+    categories: [] as string[]
   });
   
   // File upload state
@@ -85,7 +86,8 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
               notification_title: blogData.notification_title || "",
               notification_title_en: blogData.notification_title_en || "",
               image_cover: blogData.image_cover || "",
-              blog_categories: blogData.blog_categories ? blogData.blog_categories.map(cat => cat.id.toString()) : []
+              blog_categories: blogData.blog_categories ? blogData.blog_categories.map(cat => cat.id.toString()) : [],
+              categories: blogData.categories ? blogData.categories.map(cat => cat.id.toString()) : []
             });
             
             // Set preview if image exists
@@ -378,7 +380,7 @@ export function BlogEditor({ blogId, isNew = false }: BlogEditorProps) {
                       label: cat.title, 
                       value: cat.id.toString() 
                     }))}
-                    selected={blog.blog_categories}
+                    selected={blog.categories}
                     onChange={handleCategoryChange}
                     placeholder="Select categories..."
                   />
