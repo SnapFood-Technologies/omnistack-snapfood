@@ -71,7 +71,7 @@ export interface Blog {
     title_en: string;
     content_en: string;
     author: string;
-    active?: boolean;
+    active?: string;
     show_quiz?: string;
     blog_categories: number[];
     send_notification?: string;
