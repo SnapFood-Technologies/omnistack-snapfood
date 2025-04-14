@@ -132,3 +132,8 @@ export interface Blog {
     success: boolean;
     message: string;
   }
+
+  export interface BlogImageUploadResponse {
+    success: boolean;
+    url: string;
+  }

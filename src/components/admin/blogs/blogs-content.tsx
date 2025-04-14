@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { BlogUploadBanner } from "./blog-upload-banner";
 import {
   Pagination,
   PaginationContent,
@@ -225,6 +226,9 @@ export function BlogsContent() {
           Create New Blog
         </Button>
       </div>
+
+      {/* Add the Blog Upload Banner here */}
+      <BlogUploadBanner />
 
       {/* Search and filters */}
       <Card>
