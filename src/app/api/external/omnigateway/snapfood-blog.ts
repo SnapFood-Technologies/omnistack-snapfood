@@ -104,9 +104,7 @@ export const createBlogApi = (clientApiKey: string) => {
         formData.append('image_cover', blogData.image_cover);
       }
       
-      // Add _method to simulate PUT request
-      formData.append('_method', 'PUT');
-      
+
       const { data } = await omniGateway.post(`/sf/blogs/${id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
