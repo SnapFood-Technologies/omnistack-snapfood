@@ -84,7 +84,7 @@ export function BlogUploadBanner() {
   return (
     <>
       <Card className="mb-6 border-dashed border-primary/50 bg-primary/5">
-        <CardContent className="p-6">
+        <CardContent className="p-0">
           <div className="flex flex-col md:flex-row gap-6 items-center">
             <div className="flex-shrink-0 bg-primary/10 p-4 rounded-full">
               <Image className="h-10 w-10 text-primary" />

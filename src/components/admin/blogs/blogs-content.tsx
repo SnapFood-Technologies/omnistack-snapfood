@@ -227,47 +227,56 @@ export function BlogsContent() {
         </Button>
       </div>
 
-      {/* Add the Blog Upload Banner here */}
-      <BlogUploadBanner />
+      {/* Combined Card with Search, Filters, and Upload Banner */}
+<Card>
 
-      {/* Search and filters */}
-      <Card>
-        <CardHeader>
-          <div>
-            <h2 className="text-xl font-semibold tracking-tight">Search</h2>
-            <p className="text-sm text-muted-foreground mt-1 mb-4">
-              Find blogs by title, author, or content
-            </p>
+  <CardContent>
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-x-4">
+      {/* Search and filters - 8 columns */}
+      <div className="md:col-span-6">
+      <div>
+      <h2 className="text-xl font-semibold tracking-tight">Search</h2>
+      <p className="text-sm text-muted-foreground mt-1 mb-4">
+      Find blogs by title or content. Use filters to narrow down results by status or category. Results update as you search.
+
+
+
+      </p>
+    </div>
+        <div className="flex flex-col md:flex-row gap-4">
+          <form onSubmit={handleSearchSubmit} className="flex gap-2 flex-1">
+            <Input
+              placeholder="Search blogs..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="flex-1"
+            />
+            <Button type="submit">
+              <Search className="h-4 w-4 mr-2" />
+              Search
+            </Button>
+          </form>
+          
+          <div className="w-full md:w-48">
+            <InputSelect
+              name="status-filter"
+              label=""
+              options={statusOptions}
+              onChange={(e) => handleFilterChange(e.target.value)}
+              value={filterActive === undefined ? "" : filterActive ? "1" : "0"}
+              placeholder="Filter by status"
+            />
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col md:flex-row gap-4">
-            <form onSubmit={handleSearchSubmit} className="flex gap-2 flex-1">
-              <Input
-                placeholder="Search blogs..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="flex-1"
-              />
-              <Button type="submit">
-                <Search className="h-4 w-4 mr-2" />
-                Search
-              </Button>
-            </form>
-            
-            <div className="w-full md:w-48">
-              <InputSelect
-                name="status-filter"
-                label=""
-                options={statusOptions}
-                onChange={(e) => handleFilterChange(e.target.value)}
-                value={filterActive === undefined ? "" : filterActive ? "1" : "0"}
-                placeholder="Filter by status"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+      
+      {/* Upload section - 4 columns */}
+      <div className="md:col-span-6">
+        <BlogUploadBanner />
+      </div>
+    </div>
+  </CardContent>
+</Card>
 
       {/* Blog Table */}
       <Card>
