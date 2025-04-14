@@ -63,6 +63,16 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess }: CreateBlogModalP
       return;
     }
 
+    // ✅ Require blog image
+  if (!blogImage) {
+    toast({
+      title: "Image Required",
+      description: "Please upload a blog banner image.",
+      variant: "destructive",
+    });
+    return;
+  }
+  
     // If sending notification, require notification titles
     if (sendNotification === "1" && (!notificationTitle || !notificationTitleEn)) {
       toast({
