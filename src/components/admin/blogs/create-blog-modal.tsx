@@ -82,7 +82,7 @@ export function CreateBlogModal({ isOpen, onClose, onSuccess }: CreateBlogModalP
         content,
         content_en: contentEn,
         author,
-        active: status === "1",
+        active: status === "1" ? 1 :0,
         show_quiz: showQuiz,
         send_notification: sendNotification,
         notification_title: notificationTitle,
